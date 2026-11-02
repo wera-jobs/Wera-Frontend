@@ -2,7 +2,7 @@
 // a small script to this site (only the server its user signed in to);
 // it marks the page and passes messages both ways:
 //   - opening a job's posting tells the extension which job that tab is
-//     for, so its side panel shows the job even when the career site's
+//     for, so its panel shows the job even when the career site's
 //     address differs from the one Wera has;
 //   - a change made here (status, details, letter) or there makes the
 //     other side refetch.

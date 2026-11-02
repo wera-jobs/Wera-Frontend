@@ -120,7 +120,7 @@ export function StepApply() {
   );
 }
 
-/** A browser window with the Wera side panel filling a form. */
+/** A browser window with the Wera panel filling a form. */
 export function ExtensionMock({ className }: { className?: string }) {
   return (
     <div className={clsx('overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_30px_80px_-30px_rgb(0_0_0/0.4)]', className)} aria-hidden>
