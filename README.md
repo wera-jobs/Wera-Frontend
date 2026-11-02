@@ -8,11 +8,11 @@
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-fe5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org)
 [![License](https://img.shields.io/github/license/wera-jobs/Wera-Frontend)](LICENSE)
 
-The dashboard for [Wera](https://github.com/wera-jobs/Wera), a self-hosted job radar that collects jobs from public job boards and scores them against your resume with an AI model.
+The site and dashboard for [Wera](https://www.wera-jobs.com), a job search service that collects jobs from public job boards, ranks them for you, and scores the best against your resume with an AI model. The backend is in [wera-jobs/Wera](https://github.com/wera-jobs/Wera).
 
 https://github.com/user-attachments/assets/525e661c-765b-4137-98b7-168d57af9690
 
-Each user signs up, uploads a resume, and answers a few questions; the AI drafts a profile they review, and from then on every new posting is scored against it. Wera never applies on your behalf. Every posting opens at its source.
+Each user signs up, uploads a resume, and answers a few questions; the AI drafts a profile they review, and from then on new postings are ranked for them and the best are scored against it. Wera never applies on your behalf. Every posting opens at its source.
 
 ## Architecture
 
@@ -25,11 +25,14 @@ A React single-page app. It calls only its own origin (`/api`), so it behaves th
 
 The app is built to outlast the server. If the API stops answering, everything already on screen stays there and a banner says what is wrong, telling a server that is down from a device that is offline. The app checks every 10 seconds, and when Wera answers again it refreshes whatever failed, so a tab left open carries on by itself. Resume edits keep trying to save until they land, and leaving with unsaved edits asks first. Visitors still see the landing page.
 
+It opens fast on a slow phone: the logo paints with the first response and the landing page does not wait for the server, because only a browser that was signed in here needs the session check first. Touch screens get 16px fields so iPhones do not zoom in on a tap, pages size to the visible screen between a phone's browser bars, and Wera can be added to the home screen.
+
 ## Features
 
+- **Landing page:** the hero's words are drawn on one small canvas, only under the pointer, so it stays smooth The features section shows the real product (see [Landing screenshots](#landing-screenshots))
 - **Instant start:** right after setup, Today lists your best matches using local estimates (a dashed ring marked "est.") and swaps in AI scores as they arrive; opening a job scores it on the spot
 - **Today:** your review queue ranked by fit, with sponsorship and work-mode badges
-- **Jobs:** filterable, searchable table with keyboard navigation (`j`/`k` to move, `Enter` to open, `o` to open the posting)
+- **Jobs:** filterable, searchable table with keyboard navigation (`j`/`k` to move, `Enter` to open, `o` to open the posting); on phones the filters wait behind a button so the jobs come first
 - **Job view:** the posting beside the fit score, reasoning, and skills you have and lack; your status and notes; a **cover letter** tab that writes, edits, copies and prints a letter for that role; a **resume** tab showing which of the posting's keywords your resume covers, with a one-click tailored, one-page copy; hide a company in one click
 - **Profile, Resume tab:** your resume as an editable document, built on first open from the resume you uploaded, beside a live preview:
   - four templates shown with your own content: Ivy (the classic LaTeX resume), Parse (ATS-maxxing), Signal (modern, with an accent color) and Ledger (refined serif); US Letter or A4
@@ -48,7 +51,7 @@ The app is built to outlast the server. If the API stops answering, everything a
 - **Application details:** what job applications ask beyond your profile (contact, links, work authorization, education, voluntary self-identification), filled into forms by the extension; can be pre-filled from your resume
 - **Admins** use the separate [wera-admin](https://github.com/wera-jobs/wera-admin) console: this dashboard has no admin pages
 - **Excluded:** every filtered job with the reason and evidence
-- **Polish:** a sun and moon toggle with a circular reveal between themes, a soft light palette, count-up stats, staggered entrances, all respecting reduced motion
+- **Polish:** light by default, with dark and system in Settings; a sun and moon toggle with a circular reveal between themes, count-up stats, staggered entrances, all respecting reduced motion
 
 ## Stack
 
@@ -97,6 +100,16 @@ npm run build                # type-check and build to dist/
 npx vite preview --port 3000 # preview the production bundle locally
 ```
 
+## Landing screenshots
+
+The screens in the landing page's features section are `public/landing/*.webp`, in light and dark, wide and phone. To retake them after a design change, run Vite on port 5174 against a local API (see `e2e/README.md`, and never the live one), then:
+
+```sh
+node scripts/landing-shots.mjs            # or one screen: node scripts/landing-shots.mjs tracker
+```
+
+The screens are the real components, with every person, job and company invented in that script. Only the resume preview comes from the API. It signs up a throwaway account and deletes it after.
+
 ## Docker
 
 The backend's `docker-compose.yml` builds this repo as the `wera-web` service. Nginx serves the app with a strict Content-Security-Policy and other security headers (see `security-headers.conf`) and proxies `/api` to the backend.
@@ -130,12 +143,15 @@ src/
 ├── auth/         Login and signup page, route guards
 ├── components/   Job view, cover letter, ScoreRing, Prose, Reactions, FilterBar, charts
 ├── layout/       App shell: sidebar, phone tab bar, command palette, navigation
+├── landing/      Landing page, hero canvas, features section, footer and info pages
 ├── lib/          Theme, toasts, formatting, count-up
 ├── pages/        Today, Jobs, Industries, Tracker, Sponsorship, Interview, Community, Profile, Settings, ...
 ├── profile/      Resume upload, preference fields, location picker, profile editor
 ├── resume/       Resume editor form, live preview, editing helpers
 └── test/         Test setup, render helpers, API fixtures
 e2e/              Playwright specs and seed data
+scripts/          Landing screenshots, commit checks, coverage badge
+public/           Landing screens, home screen icons, web app manifest
 docs/             Architecture diagram (Excalidraw source in docs/diagrams)
 ```
 
