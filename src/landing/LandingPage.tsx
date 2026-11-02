@@ -58,7 +58,7 @@ export default function LandingPage() {
   const s = stats.data ?? ROUGH_STATS;
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-bg text-text">
+    <div className="min-h-svh overflow-x-clip bg-bg text-text">
       {/* Nav */}
       <header className="fixed inset-x-0 top-0 z-30 border-b border-transparent bg-bg/70 backdrop-blur-md">
         <nav className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
@@ -78,8 +78,8 @@ export default function LandingPage() {
       </header>
 
       {/* Hero: words hide in the field; the pointer reveals them */}
-      <RevealField className="min-h-[94vh] pt-16">
-        <section className="relative mx-auto flex min-h-[calc(94vh-4rem)] max-w-4xl flex-col items-center justify-center px-4 py-20 text-center">
+      <RevealField className="min-h-[94svh] pt-16">
+        <section className="relative mx-auto flex min-h-[calc(94svh-4rem)] max-w-4xl flex-col items-center justify-center px-4 py-20 text-center">
           <span className="anim-rise inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
             <Sparkles className="size-3.5 text-accent" /> For students, new grads and international talent
           </span>
@@ -95,7 +95,7 @@ export default function LandingPage() {
             <Link to="/signup" className={CTA}>Get started, it's free <ArrowRight className="size-4" /></Link>
             <a href="#how" className={GHOST}>See how it works</a>
           </div>
-          <p className="mt-6 hidden items-center gap-1.5 text-xs text-faint sm:inline-flex">
+          <p className="mt-6 hidden items-center gap-1.5 text-xs text-faint [@media(hover:hover)]:inline-flex">
             <MousePointer2 className="size-3.5" /> Move your cursor around
           </p>
           <div className="mt-14 grid w-full max-w-2xl grid-cols-2 gap-6 sm:grid-cols-4">

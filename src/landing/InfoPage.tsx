@@ -10,7 +10,7 @@ export default function InfoPage({ page }: { page: keyof typeof INFO_PAGES }) {
   const { title, blurb } = INFO_PAGES[page];
   useDocumentTitle(`${title} · Wera`);
   return (
-    <div className="flex min-h-screen flex-col bg-bg text-text">
+    <div className="flex min-h-svh flex-col bg-bg text-text">
       <header className="border-b border-border">
         <nav className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">
           <Link to="/" aria-label="Wera home"><Logo /></Link>

@@ -12,7 +12,7 @@ import { INPUT_CLS } from '../lib/styles';
 
 function Card({ title, lead, children }: { title: string; lead?: string; children: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="relative flex min-h-svh items-center justify-center px-4 py-10">
       <ThemeToggle className="absolute top-4 right-4" />
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
