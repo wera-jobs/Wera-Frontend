@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, FilterX, Search } from 'lucide-react';
+import clsx from 'clsx';
+import { ChevronDown, FilterX, Search, SlidersHorizontal } from 'lucide-react';
 import { useIndustries, useStats } from '../api/hooks';
 import { APP_STATUSES } from './StatusSelect';
 import { useFamilyLabel } from '../api/profile';
@@ -72,6 +73,7 @@ export function FilterBar({
 }) {
   const [text, setText] = useState(values.q);
   const [syncedQ, setSyncedQ] = useState(values.q);
+  const [open, setOpen] = useState(false);
   const stats = useStats();
   const industries = useIndustries();
 
@@ -95,15 +97,9 @@ export function FilterBar({
     .map((value) => ({ value, label: familyLabel(value) }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  const isDefault =
-    values.q === '' &&
-    values.industry === '' &&
-    values.category === '' &&
-    values.min_score === 0 &&
-    values.sponsorship === '' &&
-    values.work_mode === '' &&
-    values.status === '' &&
-    values.sort === 'score';
+  const active = [values.industry, values.category, values.min_score, values.sponsorship, values.work_mode, values.status, values.sort !== 'score']
+    .filter(Boolean).length;
+  const isDefault = values.q === '' && active === 0;
 
   return (
     <div className="rounded-card border border-border bg-surface p-3">
@@ -120,6 +116,18 @@ export function FilterBar({
           />
         </label>
 
+        {/* On a phone the filters wait behind a button, so the jobs come first. */}
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="inline-flex items-center gap-1.5 self-end rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-sm font-medium text-text md:hidden"
+        >
+          <SlidersHorizontal className="size-3.5" /> Filters
+          {active > 0 && <span className="rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">{active}</span>}
+        </button>
+
+        <div className={clsx('md:contents', open ? 'contents' : 'hidden')}>
         <Select
           label="Industry"
           value={values.industry}
@@ -190,6 +198,7 @@ export function FilterBar({
             className="h-7 w-32 accent-accent"
           />
         </label>
+        </div>
 
         {!isDefault && (
           <button

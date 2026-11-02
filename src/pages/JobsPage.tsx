@@ -147,9 +147,11 @@ export default function JobsPage() {
         <div>
           <h1 className="text-[28px] leading-tight font-semibold">Jobs</h1>
           <p className="mt-1 text-xs text-muted">
-            {isFetching ? 'Loading…' : `${jobs.length} shown${jobs.length === PAGE ? '+' : ''}`} ·{' '}
-            <span className="font-mono">j/k</span> to move · <span className="font-mono">Enter</span>{' '}
-            opens · <span className="font-mono">o</span> opens posting
+            {isFetching ? 'Loading…' : `${jobs.length} shown${jobs.length === PAGE ? '+' : ''}`}
+            <span className="hidden md:inline">
+              {' '}· <span className="font-mono">j/k</span> to move · <span className="font-mono">Enter</span>{' '}
+              opens · <span className="font-mono">o</span> opens posting
+            </span>
           </p>
         </div>
         <div className="flex items-center gap-2 self-end">
