@@ -31,8 +31,9 @@
 
 /* Light theme: a warm paper background, white cards lifted by soft
    shadows rather than hard outlines, and the same hues as dark mode toned
-   down (less saturated, slightly deeper) so nothing glares on white. The
-   attribute is set before first paint by the script in index.html. */
+   down (less saturated, deeper) so nothing glares on white and small text
+   keeps 4.5:1 contrast. The attribute is set before first paint by the
+   script in index.html. */
 :root[data-theme="light"] {
   --color-bg: #F7F6F2;
   --color-surface: #FFFFFF;
@@ -40,14 +41,14 @@
   --color-border: #E5E3DC;
   --color-text: #1D1F24;
   --color-muted: #5F6470;
-  --color-faint: #8E929C;
+  --color-faint: #6B707C;
 
-  --color-accent: #D9653F;
+  --color-accent: #BC4C27;
   --color-accent-2: #4A63C8;
 
-  --color-good: #1E8A5F;
-  --color-warn: #9C6B14;
-  --color-bad: #C2445A;
+  --color-good: #187A53;
+  --color-warn: #8A5D0F;
+  --color-bad: #B83A50;
 
   --color-grid: rgb(29 31 36 / 0.06);
   --color-cursor: rgb(29 31 36 / 0.05);
