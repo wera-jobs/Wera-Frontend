@@ -75,6 +75,7 @@
     color: var(--color-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
     /* Never let a wide element slide the page sideways on phones; clip, unlike hidden, keeps sticky headers working. */
     overflow-x: clip;
   }
@@ -221,6 +222,16 @@ a.inline-flex:active {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* iPhones zoom the page when a field under 16px takes focus, and it stays
+   zoomed. Outside any layer, so it beats the text-xs on a field. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
   }
 }
 
