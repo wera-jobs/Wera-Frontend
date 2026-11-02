@@ -17,8 +17,8 @@ const JOBS = [
 export function ProductMock({ className }: { className?: string }) {
   return (
     <div className={clsx('relative', className)} aria-hidden>
-      <div className="absolute -inset-3 -z-10 rounded-[2rem] sm:-inset-6 bg-[radial-gradient(closest-side,var(--color-glow),transparent)] blur-2xl" />
-      <div className="rounded-2xl border border-border bg-surface/90 p-3 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.35)] backdrop-blur">
+      <div className="absolute -inset-3 -z-10 rounded-[2rem] sm:-inset-6 bg-[radial-gradient(closest-side,var(--color-glow),transparent)]" />
+      <div className="rounded-2xl border border-border bg-surface p-3 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.35)]">
         <div className="mb-2 flex items-center justify-between px-1">
           <span className="text-xs font-semibold text-text">Today</span>
           <span className="rounded-full bg-good/10 px-2 py-0.5 text-[10px] font-medium text-good">34 new matches</span>

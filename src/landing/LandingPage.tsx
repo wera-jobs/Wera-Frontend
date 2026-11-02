@@ -25,7 +25,7 @@ const INDUSTRIES: [string, string][] = [
 ];
 
 const CTA = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-bg shadow-[0_10px_30px_-10px_var(--color-accent)] transition-transform duration-200 hover:-translate-y-0.5 hover:bg-accent/90';
-const GHOST = 'inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface/70 px-5 py-3 text-sm font-semibold text-text backdrop-blur transition-colors hover:border-accent/40';
+const GHOST = 'inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 py-3 text-sm font-semibold text-text transition-colors hover:border-accent/40';
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -90,7 +90,7 @@ export default function LandingPage() {
       {/* Hero: words hide in the field; the pointer reveals them */}
       <RevealField className="min-h-[94vh] pt-16">
         <section className="relative mx-auto flex min-h-[calc(94vh-4rem)] max-w-4xl flex-col items-center justify-center px-4 py-20 text-center">
-          <span className="anim-rise inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3 py-1 text-xs text-muted backdrop-blur">
+          <span className="anim-rise inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
             <Sparkles className="size-3.5 text-accent" /> For students, new grads and international talent
           </span>
           <h1 className="anim-rise mt-6 text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance sm:text-6xl md:text-7xl">
@@ -213,9 +213,12 @@ export default function LandingPage() {
         <p className="mx-auto mt-3 max-w-xl px-4 text-center text-muted">
           {s ? `${s.companies.toLocaleString()} companies across ${s.industries} industries` : 'Hundreds of companies across every industry'}, checked every day.
         </p>
-        <div className="mt-12 space-y-3 [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)]">
+        {/* Faded by covers at the edges: a mask over moving rows repaints every frame. */}
+        <div className="relative mt-12 space-y-3">
           <IndustryRow items={INDUSTRIES.slice(0, 10)} />
           <IndustryRow items={INDUSTRIES.slice(10)} reverse />
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[10%] bg-gradient-to-r from-bg to-transparent" />
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-[10%] bg-gradient-to-l from-bg to-transparent" />
         </div>
       </section>
 
