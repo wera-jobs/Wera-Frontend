@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
@@ -23,6 +23,53 @@ describe('landing page', () => {
     expect(await screen.findByText('495.5k')).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /Get started/ })[0]).toHaveAttribute('href', '/signup');
     expect(screen.getAllByRole('link', { name: /Log in/ })[0]).toHaveAttribute('href', '/login');
+  });
+
+  it('opens at once for visitors, without waiting for the server', async () => {
+    stubApi({ 'GET /api/auth/me': () => new Promise<Response>(() => {}) });
+    renderApp(
+      <Routes>
+        <Route element={<RequireAuth />}><Route index element={<p>today</p>} /></Route>
+      </Routes>,
+      { path: '/' },
+    );
+    expect(await screen.findByRole('heading', { level: 1, name: /Find the jobs that fit you/ })).toBeInTheDocument();
+    expect(screen.getByText('5,100')).toBeInTheDocument();
+  });
+
+  it('keeps someone who was signed in here on the loading screen', async () => {
+    localStorage.setItem('wera-session', '1');
+    stubApi({ 'GET /api/auth/me': () => new Promise<Response>(() => {}) });
+    const { container } = renderApp(
+      <Routes>
+        <Route element={<RequireAuth />}><Route index element={<p>today</p>} /></Route>
+      </Routes>,
+      { path: '/' },
+    );
+    await waitFor(() => expect(container.querySelector('.boot')).toBeInTheDocument());
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+  });
+
+  it('remembers a signed-in visit and forgets it after a 401', async () => {
+    stubApi();
+    const { unmount } = renderApp(
+      <Routes>
+        <Route element={<RequireAuth />}><Route index element={<p>today</p>} /></Route>
+      </Routes>,
+      { path: '/' },
+    );
+    expect(await screen.findByText('today')).toBeInTheDocument();
+    expect(localStorage.getItem('wera-session')).toBe('1');
+    unmount();
+
+    stubApi({ 'GET /api/auth/me': () => new Response('{}', { status: 401 }), 'GET /api/public/stats': () => ({}) });
+    renderApp(
+      <Routes>
+        <Route element={<RequireAuth />}><Route index element={<p>today</p>} /></Route>
+      </Routes>,
+      { path: '/' },
+    );
+    await waitFor(() => expect(localStorage.getItem('wera-session')).toBeNull());
   });
 
   it('shows one product screen at a time, in a list of what comes after the match', async () => {

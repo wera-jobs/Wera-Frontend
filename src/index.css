@@ -224,6 +224,22 @@ a.inline-flex:active {
   }
 }
 
+/* What a phone shows until the app has loaded (see index.html). */
+@keyframes boot-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+.boot {
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+  justify-content: center;
+}
+.boot svg {
+  animation: boot-pulse 1.6s ease-in-out infinite;
+}
+
 /* A target jumped to from the resume review. */
 @keyframes resume-flash { 0%, 60% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 45%, transparent); } 100% { box-shadow: 0 0 0 3px transparent; } }
 .resume-flash { animation: resume-flash 1.6s ease-out; border-radius: 0.5rem; }

@@ -21,6 +21,26 @@ export function useMe() {
   });
 }
 
+const SESSION_HINT = 'wera-session';
+
+/** Whether this browser was last signed in, known before the server answers. */
+export function hadSession(): boolean {
+  try {
+    return localStorage.getItem(SESSION_HINT) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function rememberSession(signedIn: boolean) {
+  try {
+    if (signedIn) localStorage.setItem(SESSION_HINT, '1');
+    else localStorage.removeItem(SESSION_HINT);
+  } catch {
+    // storage blocked: the app only waits for the server a little longer
+  }
+}
+
 export interface Credentials {
   email: string;
   password: string;
