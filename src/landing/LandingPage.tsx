@@ -1,17 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
-import {
-  ArrowRight, BadgeCheck, BellRing, ChartNoAxesColumn, FileText, Globe2, GraduationCap, KanbanSquare, MousePointer2,
-  Puzzle, ShieldCheck, Sparkles, Target,
-} from 'lucide-react';
+import { ArrowRight, BadgeCheck, ChartNoAxesColumn, Globe2, MousePointer2, ShieldCheck, Sparkles } from 'lucide-react';
 import { api } from '../api/client';
 import { IndustryIcon } from '../components/IndustryIcon';
 import { Logo } from '../components/Logo';
 import { compact } from '../lib/format';
 import { ThemeToggle } from '../lib/theme';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { ExtensionMock, H1BMock, ProductMock, ResumeMock, StepApply, StepRadar, StepUpload } from './Illustrations';
+import { AfterTheMatch } from './AfterTheMatch';
+import { ExtensionMock, H1BMock, ProductMock, StepApply, StepRadar, StepUpload } from './Illustrations';
 import { RevealField } from './RevealField';
 import { SiteFooter } from './SiteFooter';
 
@@ -32,18 +30,6 @@ function Stat({ value, label }: { value: string; label: string }) {
     <div className="text-center">
       <div className="font-mono text-2xl font-semibold tracking-tight text-text sm:text-3xl">{value}</div>
       <div className="mt-1 text-[11px] tracking-wide text-faint uppercase">{label}</div>
-    </div>
-  );
-}
-
-function Feature({ icon: Icon, title, children, className }: { icon: typeof Target; title: string; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={clsx('group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-accent/30', className)}>
-      <span className="inline-flex size-10 items-center justify-center rounded-xl bg-accent/10 text-accent transition-transform group-hover:scale-105">
-        <Icon className="size-5" />
-      </span>
-      <h3 className="mt-4 text-base font-semibold text-text">{title}</h3>
-      <div className="mt-1.5 text-sm leading-relaxed text-muted">{children}</div>
     </div>
   );
 }
@@ -156,31 +142,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-28 sm:px-6">
-        <p className="text-center text-xs font-semibold tracking-[0.2em] text-accent uppercase">Everything in one place</p>
-        <h2 className="mt-3 text-center text-3xl font-semibold tracking-tight sm:text-4xl">Built for the whole search, not just the listing.</h2>
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-border bg-surface p-6 md:col-span-2 md:row-span-2">
-            <div className="grid h-full items-center gap-6 sm:grid-cols-[1fr_190px]">
-              <div>
-                <span className="inline-flex size-10 items-center justify-center rounded-xl bg-accent/10 text-accent"><FileText className="size-5" /></span>
-                <h3 className="mt-4 text-xl font-semibold">A resume recruiters like, and machines can read</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  Four polished templates, from the classic LaTeX look to ATS-maxxing plain. Fit it to one page in a click, get a review of
-                  weak bullets, and tailor a copy to any job using only what you have actually done. Download PDF or LaTeX.
-                </p>
-              </div>
-              <ResumeMock className="mx-auto h-56 w-auto float-y" />
-            </div>
-          </div>
-          <Feature icon={Target} title="Scored for you">Every posting gets a 0 to 100 fit with reasons, so the best ones rise and the rest stay out of your way.</Feature>
-          <Feature icon={BellRing} title="First to know">New jobs land on Today within hours of going up, and a digest can bring them to your inbox.</Feature>
-          <Feature icon={Puzzle} title="Applications, filled">The Chrome extension fills forms on Greenhouse, Lever, Workday and more, step by step. You review and submit.</Feature>
-          <Feature icon={KanbanSquare} title="A tracker that keeps up">Saved, applied, interviewing, offer: one board, updated from the extension when you submit.</Feature>
-          <Feature icon={GraduationCap} title="Interview prep">Practice questions by topic and difficulty, with explanations, between applications.</Feature>
-        </div>
-      </section>
+      <AfterTheMatch />
 
       {/* International students */}
       <section id="international" className="scroll-mt-16 border-y border-border bg-surface/50">

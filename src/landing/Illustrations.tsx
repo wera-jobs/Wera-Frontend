@@ -48,32 +48,6 @@ export function ProductMock({ className }: { className?: string }) {
   );
 }
 
-/** A one-page resume with highlighted keywords. */
-export function ResumeMock({ className }: { className?: string }) {
-  const line = (y: number, w: number, x = 22, o = 0.22) => <rect x={x} y={y} width={w} height="4" rx="2" fill={v('text')} opacity={o} />;
-  return (
-    <svg viewBox="0 0 200 250" className={className} aria-hidden>
-      <rect x="6" y="6" width="188" height="238" rx="10" fill={v('surface')} stroke={v('border')} />
-      <rect x="62" y="20" width="76" height="8" rx="4" fill={v('text')} opacity="0.75" />
-      {line(34, 110, 45, 0.18)}
-      {[52, 108, 164].map((y, s) => (
-        <g key={y}>
-          <rect x="22" y={y} width={[44, 54, 38][s]} height="5" rx="2" fill={v('accent')} opacity="0.85" />
-          <rect x="22" y={y + 9} width="156" height="1" fill={v('border')} />
-          {line(y + 16, 120)}{line(y + 24, 140)}
-          {line(y + 32, 96)}{line(y + 40, 128)}
-        </g>
-      ))}
-      <rect x="70" y="122" width="34" height="6" rx="3" fill={v('good')} opacity="0.35" />
-      <rect x="110" y="178" width="28" height="6" rx="3" fill={v('good')} opacity="0.35" />
-      <g transform="translate(150 206)">
-        <circle r="18" fill={v('good')} opacity="0.12" />
-        <path d="M-7 0 l5 5 l10 -11" stroke={v('good')} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
-    </svg>
-  );
-}
-
 /** A small H-1B card: filings and pay by level. */
 export function H1BMock({ className }: { className?: string }) {
   const bars = [{ l: 'I', w: 58, p: '$129k' }, { l: 'II', w: 70, p: '$157k' }, { l: 'III', w: 84, p: '$172k' }, { l: 'IV', w: 100, p: '$194k' }];

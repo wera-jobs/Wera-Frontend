@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { RequireAuth } from '../auth/RequireAuth';
@@ -22,6 +23,28 @@ describe('landing page', () => {
     expect(await screen.findByText('495.5k')).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /Get started/ })[0]).toHaveAttribute('href', '/signup');
     expect(screen.getAllByRole('link', { name: /Log in/ })[0]).toHaveAttribute('href', '/login');
+  });
+
+  it('shows one product screen at a time, in a list of what comes after the match', async () => {
+    stubApi({
+      'GET /api/auth/me': () => new Response('{}', { status: 401 }),
+      'GET /api/public/stats': () => ({ companies: 572, industries: 28, open_jobs: 43742, h1b_filings: 495460, h1b_employers: 57990 }),
+    });
+    renderApp(
+      <Routes>
+        <Route element={<RequireAuth />}><Route index element={<p>today</p>} /></Route>
+      </Routes>,
+      { path: '/' },
+    );
+    expect(await screen.findByRole('heading', { level: 2, name: 'Everything after the match.' })).toBeInTheDocument();
+    const resume = screen.getByRole('button', { name: 'Resume editor' });
+    const tracker = screen.getByRole('button', { name: 'Application tracker' });
+    expect(resume).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.click(tracker);
+    expect(tracker).toHaveAttribute('aria-expanded', 'true');
+    expect(resume).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getAllByRole('img', { name: /A board of job applications/ }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('img', { name: /The resume editor/ })).not.toBeInTheDocument();
   });
 
   it('ends with a company footer linking to the company and legal pages', async () => {
