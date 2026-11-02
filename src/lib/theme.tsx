@@ -12,9 +12,9 @@ function readPref(): ThemePref {
     const v = localStorage.getItem(KEY);
     if (v === 'light' || v === 'dark' || v === 'system') return v;
   } catch {
-    // storage blocked: fall back to the system theme
+    // storage blocked: use the default
   }
-  return 'system';
+  return 'light';
 }
 
 function systemTheme(): Theme {
@@ -33,6 +33,7 @@ function reducedMotion(): boolean {
 function paint(theme: Theme) {
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.background = ''; // drop the pre-paint color
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#F7F6F2' : '#0A0B0F');
 }
 
 /**
