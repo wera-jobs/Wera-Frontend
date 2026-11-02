@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
-import { ArrowRight, BadgeCheck, ChartNoAxesColumn, Globe2, MousePointer2, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, ChartNoAxesColumn, Globe2, MousePointer2, Search, ShieldCheck, Sparkles } from 'lucide-react';
 import { api } from '../api/client';
 import { IndustryIcon } from '../components/IndustryIcon';
 import { Logo } from '../components/Logo';
@@ -19,8 +19,12 @@ const INDUSTRIES: [string, string][] = [
   ['ai_ml', 'AI & ML'], ['big_tech', 'Big Tech'], ['cloud', 'Cloud & DevTools'], ['trading', 'Trading'], ['fintech', 'Fintech'],
   ['aerospace', 'Aerospace'], ['robotics', 'Robotics'], ['healthcare', 'Health Tech'], ['biotech', 'Biotech'], ['energy', 'Energy & Climate'],
   ['automotive', 'Autonomy'], ['security', 'Cybersecurity'], ['gaming', 'Gaming'], ['crypto', 'Crypto'], ['defense', 'Defense'],
-  ['logistics', 'Logistics'], ['media', 'Media'], ['education', 'Education'], ['consumer', 'Consumer'], ['enterprise', 'Enterprise SaaS'],
+  ['logistics', 'Logistics'], ['media', 'Media'], ['education', 'Education'], ['hospitals', 'Hospitals'], ['enterprise', 'Enterprise SaaS'],
+  ['banking', 'Banking'], ['manufacturing', 'Manufacturing'], ['consulting', 'Consulting'], ['consumer', 'Consumer'],
 ];
+
+/** Shown until the live numbers arrive, or if the server is away. */
+const ROUGH_STATS: Stats = { companies: 5100, industries: 30, open_jobs: 500_000, h1b_filings: 495_000, h1b_employers: 58_000 };
 
 const CTA = 'inline-flex items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-bg shadow-[0_10px_30px_-10px_var(--color-accent)] transition-transform duration-200 hover:-translate-y-0.5 hover:bg-accent/90';
 const GHOST = 'inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 py-3 text-sm font-semibold text-text transition-colors hover:border-accent/40';
@@ -51,7 +55,7 @@ function IndustryRow({ items, reverse }: { items: [string, string][]; reverse?: 
 export default function LandingPage() {
   useDocumentTitle('Wera: find jobs that fit you');
   const stats = useQuery({ queryKey: ['public-stats'], queryFn: () => api<Stats>('/api/public/stats'), staleTime: 10 * 60_000 });
-  const s = stats.data;
+  const s = stats.data ?? ROUGH_STATS;
 
   return (
     <div className="min-h-screen overflow-x-clip bg-bg text-text">
@@ -84,7 +88,7 @@ export default function LandingPage() {
             <span className="bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent">And the ones that sponsor.</span>
           </h1>
           <p className="anim-rise mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
-            Wera watches {s ? s.companies.toLocaleString() : '3,000+'} companies every day, scores each new posting against your resume,
+            Wera watches {s.companies.toLocaleString()} companies every day, scores your best matches against your resume,
             and tells you which ones file H-1Bs and what they pay. You spend your evenings applying, not scrolling.
           </p>
           <div className="anim-rise mt-8 flex flex-col gap-3 sm:flex-row">
@@ -95,10 +99,10 @@ export default function LandingPage() {
             <MousePointer2 className="size-3.5" /> Move your cursor around
           </p>
           <div className="mt-14 grid w-full max-w-2xl grid-cols-2 gap-6 sm:grid-cols-4">
-            <Stat value={s ? s.companies.toLocaleString() : '—'} label="Companies" />
-            <Stat value={s ? compact(s.open_jobs) : '—'} label="Open jobs" />
-            <Stat value={s ? String(s.industries) : '—'} label="Industries" />
-            <Stat value={s ? compact(s.h1b_filings) : '—'} label="H-1B filings" />
+            <Stat value={s.companies.toLocaleString()} label="Companies" />
+            <Stat value={compact(s.open_jobs)} label="Open jobs" />
+            <Stat value={String(s.industries)} label="Industries" />
+            <Stat value={compact(s.h1b_filings)} label="H-1B filings" />
           </div>
         </section>
       </RevealField>
@@ -110,8 +114,8 @@ export default function LandingPage() {
           <div>
             <h2 className="text-3xl font-semibold tracking-tight">Every morning, your best matches first.</h2>
             <p className="mt-3 text-muted">
-              Not keyword soup. Each posting is read and scored for you, with the reasons: the skills you have, the ones they want,
-              seniority, location, and whether they sponsor.
+              Not keyword soup. Wera reads every posting, ranks it against you, and scores the best ones with the reasons: the skills
+              you have, the ones they want, seniority, location, and whether they sponsor.
             </p>
             <ul className="mt-5 space-y-2 text-sm">
               {['A fit score from 0 to 100 with the why', 'Sponsorship read from the posting itself', 'Only roles you can apply to: your level, your places'].map((t) => (
@@ -129,7 +133,7 @@ export default function LandingPage() {
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {[
             { art: <StepUpload />, n: '1', t: 'Bring your resume', d: 'Upload it and answer a few questions: roles, places, work authorization. Wera drafts your profile; you edit it.' },
-            { art: <StepRadar />, n: '2', t: 'Wera watches the market', d: 'New postings from hundreds of company career pages are filtered and scored against you as they appear.' },
+            { art: <StepRadar />, n: '2', t: 'Wera watches the market', d: 'Wera checks thousands of company career pages through the day, drops what you can\'t apply to, and scores the best of the rest.' },
             { art: <StepApply />, n: '3', t: 'Apply with an edge', d: 'A one-page resume tailored to the job, a cover letter, and the extension fills the form. You always press submit.' },
           ].map((x) => (
             <div key={x.n} className="relative rounded-2xl border border-border bg-surface p-6">
@@ -151,14 +155,14 @@ export default function LandingPage() {
             <span className="inline-flex items-center gap-2 rounded-full bg-accent-2/10 px-3 py-1 text-xs font-medium text-accent-2"><Globe2 className="size-3.5" /> International students</span>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Stop guessing who sponsors.</h2>
             <p className="mt-3 leading-relaxed text-muted">
-              Wera reads what each posting says about visas, and backs it with {s ? compact(s.h1b_filings) : 'hundreds of thousands of'} certified
+              Wera reads what each posting says about visas, and backs it with {compact(s.h1b_filings)} certified
               H-1B filings from the US Department of Labor: how often a company files, for which titles, and what it offered people at your level.
             </p>
             <ul className="mt-6 space-y-3 text-sm">
               {[
                 [ShieldCheck, 'Filter to jobs that say they sponsor, and see the ones that file anyway.'],
                 [ChartNoAxesColumn, 'Real offered wages by title, city and level, from the filings.'],
-                [Sparkles, 'Look up any employer, even ones Wera does not watch.'],
+                [Search, 'Look up any employer, even ones Wera does not watch.'],
               ].map(([Icon, t], i) => {
                 const I = Icon as typeof ShieldCheck;
                 return <li key={i} className="flex gap-3"><I className="mt-0.5 size-4 shrink-0 text-accent" /> <span className="text-muted">{t as string}</span></li>;
@@ -171,14 +175,14 @@ export default function LandingPage() {
 
       {/* Industries */}
       <section className="overflow-hidden py-24">
-        <h2 className="px-4 text-center text-3xl font-semibold tracking-tight sm:text-4xl">From frontier AI to rockets.</h2>
+        <h2 className="px-4 text-center text-3xl font-semibold tracking-tight sm:text-4xl">From frontier AI to hospitals.</h2>
         <p className="mx-auto mt-3 max-w-xl px-4 text-center text-muted">
-          {s ? `${s.companies.toLocaleString()} companies across ${s.industries} industries` : 'Hundreds of companies across every industry'}, checked every day.
+          {s.companies.toLocaleString()} companies across {s.industries} industries, checked every day.
         </p>
         {/* Faded by covers at the edges: a mask over moving rows repaints every frame. */}
         <div className="relative mt-12 space-y-3">
-          <IndustryRow items={INDUSTRIES.slice(0, 10)} />
-          <IndustryRow items={INDUSTRIES.slice(10)} reverse />
+          <IndustryRow items={INDUSTRIES.slice(0, 12)} />
+          <IndustryRow items={INDUSTRIES.slice(12)} reverse />
           <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-[10%] bg-gradient-to-r from-bg to-transparent" />
           <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-[10%] bg-gradient-to-l from-bg to-transparent" />
         </div>
@@ -195,6 +199,7 @@ export default function LandingPage() {
               application, step by step on multi-page forms. Open questions get a draft in your voice. Wera never submits for you.
             </p>
             <Link to="/signup" className={clsx(CTA, 'mt-7')}>Create your account <ArrowRight className="size-4" /></Link>
+            <p className="mt-3 text-xs text-faint">The extension is in private pilot and coming to the Chrome Web Store.</p>
           </div>
           <ExtensionMock />
         </div>
