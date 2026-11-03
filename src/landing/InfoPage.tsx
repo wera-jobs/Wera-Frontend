@@ -8,7 +8,7 @@ import { SiteFooter } from './SiteFooter';
 
 export default function InfoPage({ page }: { page: keyof typeof INFO_PAGES }) {
   const { title, blurb } = INFO_PAGES[page];
-  useDocumentTitle(`${title} · Wera`);
+  useDocumentTitle(title);
   return (
     <div className="flex min-h-svh flex-col bg-bg text-text">
       <header className="border-b border-border">

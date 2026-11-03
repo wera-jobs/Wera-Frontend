@@ -53,7 +53,7 @@ function IndustryRow({ items, reverse }: { items: [string, string][]; reverse?: 
 
 /** The public front page: what Wera is, for visitors who are not signed in. */
 export default function LandingPage() {
-  useDocumentTitle('Wera: find jobs that fit you');
+  useDocumentTitle('Wera: find jobs that fit you', false);
   const stats = useQuery({ queryKey: ['public-stats'], queryFn: () => api<Stats>('/api/public/stats'), staleTime: 10 * 60_000 });
   const s = stats.data ?? ROUGH_STATS;
 
