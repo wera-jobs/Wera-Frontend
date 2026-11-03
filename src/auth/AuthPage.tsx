@@ -106,6 +106,13 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
             )}
             {mode === 'login' ? 'Log in' : 'Create account'}
           </button>
+          {mode === 'signup' && (
+            <p className="text-center text-[11px] leading-relaxed text-muted">
+              By creating an account, you agree to the{' '}
+              <Link to="/terms" className="underline underline-offset-2 hover:text-text">terms of service</Link> and{' '}
+              <Link to="/privacy" className="underline underline-offset-2 hover:text-text">privacy policy</Link>.
+            </p>
+          )}
         </form>
         <p className="mt-4 text-center text-xs text-muted">
           {mode === 'login' ? (

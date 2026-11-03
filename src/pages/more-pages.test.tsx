@@ -49,6 +49,17 @@ describe('AuthPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     await waitFor(() => expect(body).toMatchObject({ name: 'Ada', email: 'ada@example.com' }));
   });
+
+  it('names the terms and privacy policy at sign-up, and not at log-in', () => {
+    stubApi();
+    const { unmount } = renderApp(<AuthPage mode="signup" />);
+    expect(screen.getByText(/By creating an account, you agree to the/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'terms of service' })).toHaveAttribute('href', '/terms');
+    expect(screen.getByRole('link', { name: 'privacy policy' })).toHaveAttribute('href', '/privacy');
+    unmount();
+    renderApp(<AuthPage mode="login" />);
+    expect(screen.queryByRole('link', { name: 'terms of service' })).not.toBeInTheDocument();
+  });
 });
 
 describe('AppShell', () => {
