@@ -31,8 +31,9 @@
 
 /* Light theme: a warm paper background, white cards lifted by soft
    shadows rather than hard outlines, and the same hues as dark mode toned
-   down (less saturated, slightly deeper) so nothing glares on white. The
-   attribute is set before first paint by the script in index.html. */
+   down (less saturated, deeper) so nothing glares on white and small text
+   keeps 4.5:1 contrast. The attribute is set before first paint by the
+   script in index.html. */
 :root[data-theme="light"] {
   --color-bg: #F7F6F2;
   --color-surface: #FFFFFF;
@@ -40,14 +41,14 @@
   --color-border: #E5E3DC;
   --color-text: #1D1F24;
   --color-muted: #5F6470;
-  --color-faint: #8E929C;
+  --color-faint: #6B707C;
 
-  --color-accent: #D9653F;
+  --color-accent: #BC4C27;
   --color-accent-2: #4A63C8;
 
-  --color-good: #1E8A5F;
-  --color-warn: #9C6B14;
-  --color-bad: #C2445A;
+  --color-good: #187A53;
+  --color-warn: #8A5D0F;
+  --color-bad: #B83A50;
 
   --color-grid: rgb(29 31 36 / 0.06);
   --color-cursor: rgb(29 31 36 / 0.05);
@@ -74,6 +75,7 @@
     color: var(--color-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
     /* Never let a wide element slide the page sideways on phones; clip, unlike hidden, keeps sticky headers working. */
     overflow-x: clip;
   }
@@ -223,36 +225,37 @@ a.inline-flex:active {
   }
 }
 
+/* iPhones zoom the page when a field under 16px takes focus, and it stays
+   zoomed. Outside any layer, so it beats the text-xs on a field. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* What a phone shows until the app has loaded (see index.html). */
+@keyframes boot-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+.boot {
+  display: flex;
+  min-height: 100svh;
+  align-items: center;
+  justify-content: center;
+}
+.boot svg {
+  animation: boot-pulse 1.6s ease-in-out infinite;
+}
+
 /* A target jumped to from the resume review. */
 @keyframes resume-flash { 0%, 60% { box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 45%, transparent); } 100% { box-shadow: 0 0 0 3px transparent; } }
 .resume-flash { animation: resume-flash 1.6s ease-out; border-radius: 0.5rem; }
 
 /* ---- Landing page ---------------------------------------------------- */
-/* The spotlight radius animates (registered so it can transition). */
-@property --reveal-r {
-  syntax: '<length>';
-  inherits: true;
-  initial-value: 0px;
-}
-.reveal-field {
-  --reveal-x: 50%;
-  --reveal-y: 40%;
-  transition: --reveal-r 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.reveal-field.is-active { --reveal-r: 240px; }
-/* Two masks, intersected: the spotlight, and the keep-clear map drawn by
-   RevealField (soft halos around the text in front, so it stays readable). */
-.reveal-words {
-  --spotlight: radial-gradient(circle var(--reveal-r) at var(--reveal-x) var(--reveal-y), #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 100%);
-  -webkit-mask-image: var(--spotlight), var(--keep-clear, linear-gradient(#000, #000));
-  mask-image: var(--spotlight), var(--keep-clear, linear-gradient(#000, #000));
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-}
 @keyframes drift-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes drift-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 .drift-left { animation: drift-left var(--drift, 90s) linear infinite; }
@@ -261,7 +264,6 @@ a.inline-flex:active {
 .float-y { animation: float-y 6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .drift-left, .drift-right, .float-y { animation: none; }
-  .reveal-field { transition: none; }
 }
 
 /* Tracker empty state: a card drifting from Saved toward Applied. */

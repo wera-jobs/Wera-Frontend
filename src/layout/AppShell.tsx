@@ -137,7 +137,7 @@ export function AppShell() {
   }, [latest.data, qc]);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-svh">
       {/* Sidebar (desktop) */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-border bg-surface lg:flex">
         <div className="flex h-14 items-center border-b border-border px-5">

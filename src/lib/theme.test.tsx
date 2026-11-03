@@ -4,7 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { ThemeChoice, ThemeToggle } from './theme';
 
 describe('theme', () => {
+  it('starts light when nothing is saved, even on a dark device', () => {
+    render(<ThemeChoice />);
+    expect(screen.getByRole('radio', { name: /Light/ })).toHaveAttribute('aria-checked', 'true');
+  });
+
   it('the toggle switches between sun and moon and remembers the choice', async () => {
+    localStorage.setItem('wera-theme', 'dark');
     document.documentElement.dataset.theme = 'dark';
     render(<ThemeToggle />);
     await userEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }));

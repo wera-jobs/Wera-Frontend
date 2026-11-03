@@ -19,6 +19,7 @@ import { INFO_PAGES } from './landing/infoPages';
 import { Toasts } from './lib/toast';
 import { announceChange } from './lib/extension';
 import { ExtensionBridge } from './components/ExtensionBridge';
+import { Boot } from './components/Boot';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import TodayPage from './pages/TodayPage';
 import JobsPage from './pages/JobsPage';
@@ -49,7 +50,7 @@ createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <ExtensionBridge />
         <BrowserRouter>
-          <Suspense fallback={null}>
+          <Suspense fallback={<Boot />}>
             <Routes>
               <Route path="login" element={<AuthPage mode="login" />} />
               <Route path="signup" element={<AuthPage mode="signup" />} />

@@ -35,7 +35,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
     errorOrNull(auth.error);
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="relative flex min-h-svh items-center justify-center px-4 py-10">
       <ThemeToggle className="absolute top-4 right-4" />
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
@@ -43,7 +43,7 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           <p className="mt-2 text-sm text-muted">
             {mode === 'login'
               ? 'Welcome back.'
-              : 'Jobs from 3,000+ employers, from startups and hospitals to the Fortune 500, scored against your resume.'}
+              : 'Jobs from 5,000+ employers, from startups and hospitals to the Fortune 500, scored against your resume.'}
           </p>
         </div>
         <form
