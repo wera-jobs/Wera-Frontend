@@ -260,10 +260,8 @@ a.inline-flex:active {
 @keyframes drift-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 .drift-left { animation: drift-left var(--drift, 90s) linear infinite; }
 .drift-right { animation: drift-right var(--drift, 90s) linear infinite; }
-@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.float-y { animation: float-y 6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .drift-left, .drift-right, .float-y { animation: none; }
+  .drift-left, .drift-right { animation: none; }
 }
 
 /* Tracker empty state: a card drifting from Saved toward Applied. */
