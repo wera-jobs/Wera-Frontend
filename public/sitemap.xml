@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The public pages. Keep in step with src/landing/infoPages.ts; a test checks it. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.wera-jobs.com/</loc></url>
+  <url><loc>https://www.wera-jobs.com/about</loc></url>
+  <url><loc>https://www.wera-jobs.com/careers</loc></url>
+  <url><loc>https://www.wera-jobs.com/press</loc></url>
+  <url><loc>https://www.wera-jobs.com/contact</loc></url>
+  <url><loc>https://www.wera-jobs.com/help</loc></url>
+  <url><loc>https://www.wera-jobs.com/ai</loc></url>
+  <url><loc>https://www.wera-jobs.com/accessibility</loc></url>
+  <url><loc>https://www.wera-jobs.com/security</loc></url>
+  <url><loc>https://www.wera-jobs.com/privacy</loc></url>
+  <url><loc>https://www.wera-jobs.com/terms</loc></url>
+  <url><loc>https://www.wera-jobs.com/cookies</loc></url>
+  <url><loc>https://www.wera-jobs.com/acceptable-use</loc></url>
+  <url><loc>https://www.wera-jobs.com/community-guidelines</loc></url>
+  <url><loc>https://www.wera-jobs.com/extension-data</loc></url>
+  <url><loc>https://www.wera-jobs.com/signup</loc></url>
+</urlset>

@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../lib/theme';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { usePublicPage } from '../lib/usePublicPage';
 import { INFO_PAGES } from './infoPages';
 import { Markdown } from './Markdown';
 import { parse } from './parseMarkdown';
@@ -16,6 +17,7 @@ const TEXTS = import.meta.glob<string>('./pages/*.md', { query: '?raw', import: 
 export default function InfoPage({ page }: { page: keyof typeof INFO_PAGES }) {
   const { title, blurb, effective } = INFO_PAGES[page];
   useDocumentTitle(title);
+  usePublicPage(`/${page}`, blurb);
   const text = useQuery({
     queryKey: ['info-page', page],
     queryFn: () => TEXTS[`./pages/${page}.md`](),
