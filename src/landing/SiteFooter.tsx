@@ -7,9 +7,12 @@ const COLUMNS: { title: string; links: [string, string][] }[] = [
     title: 'Product',
     links: [['How it works', '/#how'], ['Features', '/#features'], ['International students', '/#international'], ['Chrome extension', '/#extension'], ['Get started', '/signup']],
   },
-  { title: 'Company', links: [['About', '/about'], ['Careers', '/careers'], ['Blog', '/blog'], ['Press', '/press'], ['Contact', '/contact']] },
-  { title: 'Support', links: [['Help center', '/help'], ['Log in', '/login'], ['Reset password', '/forgot-password'], ['Accessibility', '/accessibility']] },
-  { title: 'Legal', links: [['Privacy policy', '/privacy'], ['Terms of service', '/terms'], ['Cookie policy', '/cookies'], ['Security', '/security']] },
+  { title: 'Company', links: [['About', '/about'], ['Careers', '/careers'], ['Press', '/press'], ['Contact', '/contact']] },
+  { title: 'Help', links: [['Help center', '/help'], ['How Wera uses AI', '/ai'], ['Accessibility', '/accessibility'], ['Security', '/security']] },
+  {
+    title: 'Legal',
+    links: [['Privacy policy', '/privacy'], ['Terms of service', '/terms'], ['Cookie policy', '/cookies'], ['Acceptable use', '/acceptable-use'], ['Community guidelines', '/community-guidelines'], ['Extension data', '/extension-data']],
+  },
 ];
 
 /** The public site footer, shared by the landing page and the company pages. */
@@ -17,8 +20,8 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-surface/40">
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
-          <div className="max-w-xs">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
+          <div className="col-span-2 max-w-xs md:col-span-1">
             <Link to="/" aria-label="Wera home"><Logo /></Link>
             <p className="mt-4 text-sm leading-relaxed text-muted">
               Jobs that fit you, scored against your resume, with the sponsorship history behind every employer.
@@ -27,7 +30,7 @@ export function SiteFooter() {
           </div>
           {COLUMNS.map((c) => (
             <nav key={c.title} aria-label={c.title}>
-              <h3 className="text-xs font-semibold tracking-[0.15em] text-text uppercase">{c.title}</h3>
+              <h2 className="text-sm font-medium text-text">{c.title}</h2>
               <ul className="mt-4 space-y-2.5 text-sm">
                 {c.links.map(([label, to]) => (
                   <li key={to}>
