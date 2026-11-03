@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.9.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.8.0...wera-frontend-v0.9.0) (2026-11-03)
+
+
+### Features
+
+* **jobs:** put the filters behind a button on phones ([773b8bf](https://github.com/wera-jobs/Wera-Frontend/commit/773b8bf15e4ec63802e01097a804ad3c6386773f))
+* **landing:** show the real product after the match ([6551377](https://github.com/wera-jobs/Wera-Frontend/commit/65513770b9b9c9886503f82072e4e035a6e163a1))
+* **theme:** open in light mode by default ([5c37f6d](https://github.com/wera-jobs/Wera-Frontend/commit/5c37f6dd20d4159159fbc027eeeeb62fcf1ae700))
+* **web:** let phones add Wera to the home screen ([6f6a44e](https://github.com/wera-jobs/Wera-Frontend/commit/6f6a44e8e5fbbc4d2443510aea104c9e35b59739))
+* **web:** open at once on slow phones ([7f3f7c6](https://github.com/wera-jobs/Wera-Frontend/commit/7f3f7c6e915948eca2a327073e53d42e2943da1e))
+
+
+### Bug Fixes
+
+* **deps:** bump the production group with 3 updates ([#80](https://github.com/wera-jobs/Wera-Frontend/issues/80)) ([e4b7aea](https://github.com/wera-jobs/Wera-Frontend/commit/e4b7aea02ed2d1b8f5f1f5d55d5b5d4de4f64715))
+* **landing:** say what the product does today ([39a637f](https://github.com/wera-jobs/Wera-Frontend/commit/39a637f02920a4491cce92ba3c67b818f37be5fe))
+* **mobile:** stop iPhones zooming into fields ([e3e8573](https://github.com/wera-jobs/Wera-Frontend/commit/e3e8573f772c531fa9ccbeeff73a6278b9e6de0d))
+* **settings:** hide strong match alerts until they are built ([8b8d2bc](https://github.com/wera-jobs/Wera-Frontend/commit/8b8d2bc078f105758dd71150ad02eb34d66076ae))
+
+
+### Performance
+
+* **landing:** draw the hero words on one small canvas ([6463b2f](https://github.com/wera-jobs/Wera-Frontend/commit/6463b2fae56cea9c3c5028108db51c035aba7441))
+
+
+### Documentation
+
+* **readme:** describe the site as it is today ([95bfab8](https://github.com/wera-jobs/Wera-Frontend/commit/95bfab8c1a909150acc2d4dbc2debad80044a1a1))
+* **readme:** point links at the wera-jobs org ([3b8f218](https://github.com/wera-jobs/Wera-Frontend/commit/3b8f218d3e79f54bc37a4ce6cf957257764bb2cb))
+
 ## [0.8.0](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.7.0...wera-frontend-v0.8.0) (2026-11-01)
 
 
