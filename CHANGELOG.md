@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.10.0...wera-frontend-v0.10.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **landing:** add a main landmark and a skip link ([3ae4c03](https://github.com/wera-jobs/Wera-Frontend/commit/3ae4c037b28f7718729bf54eec34fdd83b4ef229))
+* **landing:** keep the front page in its launch colors ([b251e92](https://github.com/wera-jobs/Wera-Frontend/commit/b251e92825e4bfd8864c96fcabfaa99fda635f8b))
+
 ## [0.10.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.9.0...wera-frontend-v0.10.0) (2026-11-03)
 
 
