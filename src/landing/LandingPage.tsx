@@ -7,6 +7,7 @@ import { Logo } from '../components/Logo';
 import { short, thousands } from '../lib/format';
 import { ThemeToggle } from '../lib/theme';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { usePublicPage } from '../lib/usePublicPage';
 import { AfterTheMatch } from './AfterTheMatch';
 import { ExtensionMock, H1BMock, ProductMock } from './Illustrations';
 import { RevealField } from './RevealField';
@@ -47,6 +48,7 @@ function IndustryRow({ items, reverse }: { items: string[]; reverse?: boolean })
 /** The public front page: what Wera is, for visitors who are not signed in. */
 export default function LandingPage() {
   useDocumentTitle('Wera: find jobs that fit you', false);
+  usePublicPage('/');
   const stats = useQuery({ queryKey: ['public-stats'], queryFn: () => api<Stats>('/api/public/stats'), staleTime: 10 * 60_000 });
   const s = stats.data ?? ROUGH_STATS;
 

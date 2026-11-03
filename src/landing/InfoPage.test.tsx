@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { screen, within } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
@@ -73,6 +73,28 @@ describe('company and policy pages', () => {
     const link = await screen.findByRole('link', { name: /Web Content Accessibility Guidelines/ });
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+});
+
+describe('search engines', () => {
+  it('lists every public page in the sitemap', () => {
+    const sitemap = readFileSync(resolve(process.cwd(), 'public/sitemap.xml'), 'utf8');
+    const listed = [...sitemap.matchAll(/<loc>https:\/\/www\.wera-jobs\.com\/([^<]*)<\/loc>/g)].map((m) => m[1]);
+    for (const page of Object.keys(INFO_PAGES)) expect(listed, page).toContain(page);
+    expect(listed).toContain('');
+  });
+
+  it('gives each page its canonical address and description, and restores them after', async () => {
+    const meta = Object.assign(document.createElement('meta'), { name: 'description', content: 'site default' });
+    document.head.appendChild(meta);
+    const { unmount } = render('terms');
+    await screen.findByRole('heading', { level: 2, name: 'The service' });
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute('href', 'https://www.wera-jobs.com/terms');
+    expect(meta.content).toBe(INFO_PAGES.terms.blurb);
+    unmount();
+    expect(document.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(meta.content).toBe('site default');
+    meta.remove();
   });
 });
 
