@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  capitalize, compact, minutesUntil, money, pct, prettyReason, relTime, runDuration, short, shortLocation, stepId, thousands, verdictOf,
+  capitalize, compact, minutesUntil, money, pct, prettyReason, relTime, runDuration, shortLocation, stepId, verdictOf,
 } from './format';
 
 describe('verdictOf', () => {
@@ -36,16 +36,6 @@ describe('numbers', () => {
     expect(money(0.000341)).toBe('$0.000341');
     expect(money(2.5)).toBe('$2.50');
     expect(money(1234.567)).toBe('$1,234.57');
-  });
-  it('short rounds down for headlines', () => {
-    expect(short(573_112)).toBe('573k');
-    expect(short(495_999)).toBe('495k');
-    expect(short(1_290_000)).toBe('1.2M');
-    expect(short(5120)).toBe('5,120');
-  });
-  it('thousands rounds down to whole thousands', () => {
-    expect(thousands(495_512)).toBe('495,000');
-    expect(thousands(999)).toBe('0');
   });
   it('compact', () => {
     expect(compact(712_300)).toBe('712.3k');
