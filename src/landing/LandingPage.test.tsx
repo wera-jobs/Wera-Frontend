@@ -20,7 +20,7 @@ describe('landing page', () => {
       { path: '/' },
     );
     expect(await screen.findByRole('heading', { level: 1, name: /Find the jobs that fit you/ })).toBeInTheDocument();
-    expect(await screen.findByText('495.5k')).toBeInTheDocument();
+    expect(await screen.findByText('495k')).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /Get started/ })[0]).toHaveAttribute('href', '/signup');
     expect(screen.getAllByRole('link', { name: /Log in/ })[0]).toHaveAttribute('href', '/login');
   });
