@@ -43,12 +43,12 @@
   --color-muted: #5F6470;
   --color-faint: #656A76;
 
-  --color-accent: #B64924;
-  --color-accent-2: #4A63C8;
+  --color-accent: #AA4220;
+  --color-accent-2: #4559BC;
 
-  --color-good: #187A53;
-  --color-warn: #8A5D0F;
-  --color-bad: #B83A50;
+  --color-good: #15704C;
+  --color-warn: #835A0E;
+  --color-bad: #AD3349;
 
   --color-grid: rgb(29 31 36 / 0.06);
   --color-cursor: rgb(29 31 36 / 0.05);
