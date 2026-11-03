@@ -89,18 +89,6 @@ export function compact(n: number | null | undefined): string {
   return String(n);
 }
 
-/** Rounds down for a headline, so a number never overstates: 573,112 is "573k". */
-export function short(n: number): string {
-  if (n >= 1_000_000) return `${Math.floor(n / 100_000) / 10}M`;
-  if (n >= 10_000) return `${Math.floor(n / 1000)}k`;
-  return n.toLocaleString('en-US');
-}
-
-/** Whole thousands for a sentence, rounded down: 495,512 is "495,000". */
-export function thousands(n: number): string {
-  return (Math.floor(n / 1000) * 1000).toLocaleString('en-US');
-}
-
 /** Percent with one decimal: 88.7%. */
 export function pct(n: number | null | undefined, digits = 1): string {
   if (n == null || !Number.isFinite(n)) return '—';
