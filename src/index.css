@@ -7,7 +7,7 @@
   --color-border: #262A35;
   --color-text: #E8EAF0;
   --color-muted: #8A90A2;
-  --color-faint: #5B6173;
+  --color-faint: #80869A;
 
   --color-accent: #FF7A59;
   --color-accent-2: #7C9CFF;
@@ -41,14 +41,14 @@
   --color-border: #E5E3DC;
   --color-text: #1D1F24;
   --color-muted: #5F6470;
-  --color-faint: #6B707C;
+  --color-faint: #656A76;
 
-  --color-accent: #BC4C27;
-  --color-accent-2: #4A63C8;
+  --color-accent: #AA4220;
+  --color-accent-2: #4559BC;
 
-  --color-good: #187A53;
-  --color-warn: #8A5D0F;
-  --color-bad: #B83A50;
+  --color-good: #15704C;
+  --color-warn: #835A0E;
+  --color-bad: #AD3349;
 
   --color-grid: rgb(29 31 36 / 0.06);
   --color-cursor: rgb(29 31 36 / 0.05);
@@ -260,10 +260,8 @@ a.inline-flex:active {
 @keyframes drift-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 .drift-left { animation: drift-left var(--drift, 90s) linear infinite; }
 .drift-right { animation: drift-right var(--drift, 90s) linear infinite; }
-@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.float-y { animation: float-y 6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .drift-left, .drift-right, .float-y { animation: none; }
+  .drift-left, .drift-right { animation: none; }
 }
 
 /* Tracker empty state: a card drifting from Saved toward Applied. */
