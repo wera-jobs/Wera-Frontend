@@ -256,6 +256,17 @@ a.inline-flex:active {
 .resume-flash { animation: resume-flash 1.6s ease-out; border-radius: 0.5rem; }
 
 /* ---- Landing page ---------------------------------------------------- */
+/* The front page keeps the light colors it launched with in v0.9.0. Its text
+   sits on the plain page and on white cards, where these still read at 4.5:1;
+   the deeper tokens above are for the app's tinted badges and raised panels.
+   Green stays deep: the extension picture puts it on a tinted badge. */
+:root[data-theme="light"] .landing-colors {
+  --color-faint: #6B707C;
+  --color-accent: #BC4C27;
+  --color-accent-2: #4A63C8;
+  --color-warn: #8A5D0F;
+  --color-bad: #B83A50;
+}
 @keyframes drift-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes drift-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 .drift-left { animation: drift-left var(--drift, 90s) linear infinite; }

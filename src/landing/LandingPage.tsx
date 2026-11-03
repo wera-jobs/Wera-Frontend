@@ -60,7 +60,7 @@ export default function LandingPage() {
   const s = stats.data ?? ROUGH_STATS;
 
   return (
-    <div className="min-h-svh overflow-x-clip bg-bg text-text">
+    <div className="landing-colors min-h-svh overflow-x-clip bg-bg text-text">
       {/* Nav */}
       <header className="fixed inset-x-0 top-0 z-30 border-b border-transparent bg-bg/70 backdrop-blur-md">
         <nav className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
