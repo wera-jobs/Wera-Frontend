@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.10.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.9.0...wera-frontend-v0.10.0) (2026-11-03)
+
+
+### Features
+
+* **auth:** name the terms and privacy policy at sign-up ([4c807f0](https://github.com/wera-jobs/Wera-Frontend/commit/4c807f0043a2df2de0c175d1e8511ab57a0a91a5))
+* **landing:** take the generated look out of the remaining sections ([e8f93be](https://github.com/wera-jobs/Wera-Frontend/commit/e8f93be3fd8761f916eb1349e92b364791958311))
+* **pages:** write every footer page and publish the policies ([0714a28](https://github.com/wera-jobs/Wera-Frontend/commit/0714a284744d60b2fdc5ba578e378a1d2b98e346))
+* **seo:** share card, canonical addresses, robots and sitemap ([ddb9431](https://github.com/wera-jobs/Wera-Frontend/commit/ddb9431b9e3efe87ecb5d5bea6cd090f4075ae6c))
+
+
+### Bug Fixes
+
+* **theme:** keep status colors readable on their tinted badges ([73c6fbb](https://github.com/wera-jobs/Wera-Frontend/commit/73c6fbba5c8b3a3ce49028f46163f670ae094f44))
+* **theme:** meet 4.5:1 contrast for small text in both themes ([e109d0c](https://github.com/wera-jobs/Wera-Frontend/commit/e109d0c53e33621776649980bc17bfdcca89e54e))
+* **title:** name Wera once in each browser tab ([ada87ef](https://github.com/wera-jobs/Wera-Frontend/commit/ada87efc66db54cde60e55e06d85cf1cf60a8ee9))
+
 ## [0.9.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.8.0...wera-frontend-v0.9.0) (2026-11-03)
 
 
