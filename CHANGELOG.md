@@ -1,5 +1,104 @@
 # Changelog
 
+## [0.9.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.8.0...wera-frontend-v0.9.0) (2026-11-03)
+
+
+### Features
+
+* **jobs:** put the filters behind a button on phones ([773b8bf](https://github.com/wera-jobs/Wera-Frontend/commit/773b8bf15e4ec63802e01097a804ad3c6386773f))
+* **landing:** show the real product after the match ([6551377](https://github.com/wera-jobs/Wera-Frontend/commit/65513770b9b9c9886503f82072e4e035a6e163a1))
+* **theme:** open in light mode by default ([5c37f6d](https://github.com/wera-jobs/Wera-Frontend/commit/5c37f6dd20d4159159fbc027eeeeb62fcf1ae700))
+* **web:** let phones add Wera to the home screen ([6f6a44e](https://github.com/wera-jobs/Wera-Frontend/commit/6f6a44e8e5fbbc4d2443510aea104c9e35b59739))
+* **web:** open at once on slow phones ([7f3f7c6](https://github.com/wera-jobs/Wera-Frontend/commit/7f3f7c6e915948eca2a327073e53d42e2943da1e))
+
+
+### Bug Fixes
+
+* **deps:** bump the production group with 3 updates ([#80](https://github.com/wera-jobs/Wera-Frontend/issues/80)) ([e4b7aea](https://github.com/wera-jobs/Wera-Frontend/commit/e4b7aea02ed2d1b8f5f1f5d55d5b5d4de4f64715))
+* **landing:** say what the product does today ([39a637f](https://github.com/wera-jobs/Wera-Frontend/commit/39a637f02920a4491cce92ba3c67b818f37be5fe))
+* **mobile:** stop iPhones zooming into fields ([e3e8573](https://github.com/wera-jobs/Wera-Frontend/commit/e3e8573f772c531fa9ccbeeff73a6278b9e6de0d))
+* **settings:** hide strong match alerts until they are built ([8b8d2bc](https://github.com/wera-jobs/Wera-Frontend/commit/8b8d2bc078f105758dd71150ad02eb34d66076ae))
+
+
+### Performance
+
+* **landing:** draw the hero words on one small canvas ([6463b2f](https://github.com/wera-jobs/Wera-Frontend/commit/6463b2fae56cea9c3c5028108db51c035aba7441))
+
+
+### Documentation
+
+* **readme:** describe the site as it is today ([95bfab8](https://github.com/wera-jobs/Wera-Frontend/commit/95bfab8c1a909150acc2d4dbc2debad80044a1a1))
+* **readme:** point links at the wera-jobs org ([3b8f218](https://github.com/wera-jobs/Wera-Frontend/commit/3b8f218d3e79f54bc37a4ce6cf957257764bb2cb))
+
+## [0.8.0](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.7.0...wera-frontend-v0.8.0) (2026-11-01)
+
+
+### Features
+
+* **deploy:** reach the API at its permanent address ([41e3091](https://github.com/jessechumo/Wera-Frontend/commit/41e3091b27b62627257cd43a4f9012b193523867))
+
+
+### Documentation
+
+* **contributing:** say pull requests go to dev first ([#76](https://github.com/jessechumo/Wera-Frontend/issues/76)) ([dbcbfdb](https://github.com/jessechumo/Wera-Frontend/commit/dbcbfdb279dd8f5ed74391f76cea5fde9c8b2612))
+
+## [0.7.0](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.6.5...wera-frontend-v0.7.0) (2026-10-31)
+
+
+### Features
+
+* **tracker:** say when a tracked job's posting has closed ([d666379](https://github.com/jessechumo/Wera-Frontend/commit/d6663799767efe74d342f8fb88f9373a7490e7fa))
+
+
+### Bug Fixes
+
+* **app:** keep a page's data on screen when a refresh fails ([e939be5](https://github.com/jessechumo/Wera-Frontend/commit/e939be5d8f78690672f0a9234102eba3f6b66a09))
+* **app:** keep working through an outage and recover by itself ([c49dfb1](https://github.com/jessechumo/Wera-Frontend/commit/c49dfb12106c5e03ea57e31d5e73851538c8aca6))
+* **app:** make Copy work on the plain http dashboard ([b17559d](https://github.com/jessechumo/Wera-Frontend/commit/b17559d3aa9faab09bff5cc79003d2f64d7fc1d2))
+* **app:** release the outage work and the sweep's fixes ([0d8de37](https://github.com/jessechumo/Wera-Frontend/commit/0d8de377cd400ec9998176c63632810f081472b4))
+* **app:** stay on the page when a page's code can't load offline ([97a92a5](https://github.com/jessechumo/Wera-Frontend/commit/97a92a55a776957daadf8458459c1cc03b040100))
+* **app:** stop showing a run in flight when there is no run ([363402b](https://github.com/jessechumo/Wera-Frontend/commit/363402b394ce606fbaa4abdcb0f1d65e122f2ac6))
+* **resume:** keep saving through an outage and warn before losing edits ([a50d4dc](https://github.com/jessechumo/Wera-Frontend/commit/a50d4dc47232d1f373e5cfa5deadd3de98817b97))
+* **settings:** export every tracked job, and show a failed first load ([d8b7fa7](https://github.com/jessechumo/Wera-Frontend/commit/d8b7fa78498a9f183a678a2ff39cdb1a08f95373))
+
+
+### Documentation
+
+* **readme:** bring the stack and Vercel steps up to date ([beec974](https://github.com/jessechumo/Wera-Frontend/commit/beec9741f4955425d63fd02eae6d51459f81ed77))
+
+## [0.6.5](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.6.4...wera-frontend-v0.6.5) (2026-10-31)
+
+
+### Bug Fixes
+
+* **deploy:** point Vercel rewrites at the new tunnel URL ([8251e2d](https://github.com/jessechumo/Wera-Frontend/commit/8251e2d9af1ff2deb52db9438c35a2ff931a8a8f))
+* **deploy:** point Vercel rewrites at the new tunnel URL ([#70](https://github.com/jessechumo/Wera-Frontend/issues/70)) ([2893d5d](https://github.com/jessechumo/Wera-Frontend/commit/2893d5d03e1989ef346e8c236345e1ac116235f0))
+* **deps:** bump the production group with 2 updates ([#68](https://github.com/jessechumo/Wera-Frontend/issues/68)) ([22bf7eb](https://github.com/jessechumo/Wera-Frontend/commit/22bf7eb513e101651948b3f74e6b1b77d37cf87d))
+
+## [0.6.4](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.6.3...wera-frontend-v0.6.4) (2026-10-28)
+
+
+### Bug Fixes
+
+* **deploy:** point Vercel rewrites at the new tunnel URL ([#65](https://github.com/jessechumo/Wera-Frontend/issues/65)) ([b49eb38](https://github.com/jessechumo/Wera-Frontend/commit/b49eb38936493aea9fca927cbbfcc26e419c80c1))
+
+## [0.6.3](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.6.2...wera-frontend-v0.6.3) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deploy:** point Vercel rewrites at the new tunnel URL ([#62](https://github.com/jessechumo/Wera-Frontend/issues/62)) ([02374df](https://github.com/jessechumo/Wera-Frontend/commit/02374dfb33e35283bd9d3cdde06678a5343be0b2))
+
+## [0.6.2](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.6.1...wera-frontend-v0.6.2) (2026-10-24)
+
+
+### Bug Fixes
+
+* **deploy:** point Vercel rewrites at the new tunnel URL ([05a9e54](https://github.com/jessechumo/Wera-Frontend/commit/05a9e54473bc2a7175454e05b51585847fa7ed22))
+* **deploy:** point Vercel rewrites at the new tunnel URL ([#57](https://github.com/jessechumo/Wera-Frontend/issues/57)) ([2da8147](https://github.com/jessechumo/Wera-Frontend/commit/2da814755cb8d7e4ee7cd827df6a20d64367b16d))
+* **deps:** bump the production group with 2 updates ([#47](https://github.com/jessechumo/Wera-Frontend/issues/47)) ([f1be23e](https://github.com/jessechumo/Wera-Frontend/commit/f1be23e05550357ee9efbae3b6c8eae84fe4d331))
+* tracker erasing notes, lost resume edits, endless polling, proxy error pages ([#60](https://github.com/jessechumo/Wera-Frontend/issues/60)) ([4866388](https://github.com/jessechumo/Wera-Frontend/commit/4866388d37ff340353d73186a1cd97b3babbdb25))
+
 ## [0.6.1](https://github.com/jessechumo/Wera-Frontend/compare/wera-frontend-v0.6.0...wera-frontend-v0.6.1) (2026-10-22)
 
 
