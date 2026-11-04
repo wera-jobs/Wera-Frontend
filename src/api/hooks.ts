@@ -53,19 +53,20 @@ function toQuery(params: object): string {
 }
 
 /**
- * The review queue. It polls every 4s while scores are still arriving
- * (jobs pending, or the profile was saved in the last 3 minutes), else
- * every 5 minutes.
+ * The review queue. It polls every 4s in the 3 minutes after a profile
+ * save, while the rematch lands, and every 20s while jobs wait for a score
+ * (they can wait all day under the daily score limit), else every 5
+ * minutes.
  */
 export function useToday(profileUpdatedAt?: string) {
   return useQuery({
     queryKey: ['today'],
     queryFn: () => api<JobList>('/api/today'),
     refetchInterval: (query) => {
-      const pending = (query.state.data?.pending ?? 0) > 0;
       const justSaved =
         profileUpdatedAt != null && Date.now() - new Date(profileUpdatedAt).getTime() < 3 * 60_000;
-      return pending || justSaved ? 4_000 : 5 * 60_000;
+      if (justSaved) return 4_000;
+      return (query.state.data?.pending ?? 0) > 0 ? 20_000 : 5 * 60_000;
     },
   });
 }
