@@ -154,14 +154,24 @@ export function useExcluded(params: ExcludedParams) {
 }
 
 /** Optimistic application update across the job detail + every list. */
+/** Statuses that keep a job in Today's review queue: none yet, or only saved. */
+export const inReview = (status: AppStatus | null | undefined) => status == null || status === 'saved';
+
+/**
+ * Sets a job's status (null takes it off the tracker). Every cached list
+ * changes at once: the tracker's columns move the job, and Today drops a
+ * job once it is applied to or dismissed.
+ */
 export function useUpdateApplication() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: number; status: AppStatus; notes?: string }) =>
-      api<JobDetail>(`/api/jobs/${v.id}/application`, {
-        method: 'PUT',
-        body: JSON.stringify(v),
-      }),
+    mutationFn: (v: { id: number; status: AppStatus | null; notes?: string }) =>
+      v.status == null
+        ? api<JobDetail>(`/api/jobs/${v.id}/application`, { method: 'DELETE' })
+        : api<JobDetail>(`/api/jobs/${v.id}/application`, {
+            method: 'PUT',
+            body: JSON.stringify(v),
+          }),
     onMutate: async (v) => {
       await qc.cancelQueries();
       const prev = new Map<QueryKey, unknown>();
@@ -177,10 +187,12 @@ export function useUpdateApplication() {
       for (const [key, data] of lists) {
         if (!data) continue;
         prev.set(key, data);
-        // Lists filtered by status (the tracker's columns) lose or gain the job right away.
+        // Lists filtered by status (the tracker's columns) lose or gain the job right away,
+        // and Today, the review queue, loses it once it is dealt with.
         const status = (key[1] as JobsParams | undefined)?.status;
         let jobs = data.jobs.map(patch);
-        if (status && status !== v.status) jobs = jobs.filter((j) => j.id !== v.id);
+        if (key[0] === 'today' && !inReview(v.status)) jobs = jobs.filter((j) => j.id !== v.id);
+        else if (status && status !== v.status) jobs = jobs.filter((j) => j.id !== v.id);
         else if (status && moved && !jobs.some((j) => j.id === v.id)) jobs = [patch(moved), ...jobs];
         qc.setQueryData(key, { ...data, jobs });
       }
@@ -200,6 +212,38 @@ export function useUpdateApplication() {
       await qc.invalidateQueries();
     },
   });
+}
+
+const STATUS_DONE: Record<AppStatus, string> = {
+  saved: 'Saved',
+  applied: 'Marked as applied',
+  interviewing: 'Moved to interviewing',
+  offer: 'Moved to offer',
+  rejected: 'Marked as rejected',
+  not_interested: 'Marked not interested',
+};
+
+/**
+ * Sets a status and says so in a toast with Undo, which puts back the
+ * status the job had (none included). For one-click actions on cards,
+ * where a slip is easy.
+ */
+export function useStatusWithUndo() {
+  const update = useUpdateApplication();
+  return (job: Pick<Job, 'id' | 'title' | 'application_status' | 'application_notes'>, status: AppStatus) => {
+    const before = job.application_status ?? null;
+    if (before === status) return;
+    update.mutate(
+      { id: job.id, status },
+      {
+        onSuccess: () =>
+          toast.success(`${STATUS_DONE[status]}: ${job.title}`, {
+            label: 'Undo',
+            run: () => update.mutate({ id: job.id, status: before, notes: job.application_notes ?? undefined }),
+          }),
+      },
+    );
+  };
 }
 
 /** API health, with the version it runs (from /healthz). */

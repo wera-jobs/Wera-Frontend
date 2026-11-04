@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useJobs, useSettings, useUpdateApplication } from '../api/hooks';
-import type { AppStatus } from '../api/types';
+import { useJobs, useSettings, useStatusWithUndo } from '../api/hooks';
 import { FilterBar, type FilterValues } from '../components/FilterBar';
 import { JobCard } from '../components/JobCard';
 import { JobDrawer } from '../components/JobDrawer';
@@ -44,7 +43,6 @@ export default function JobsPage() {
     [values, offset],
   );
   const { data, isLoading, error, refetch, isFetching } = useJobs(params);
-  const update = useUpdateApplication();
 
   const jobs = useMemo(() => data?.jobs ?? [], [data]);
   const drawerId = Number(searchParams.get('job') ?? routeId ?? '') || null;
@@ -112,7 +110,7 @@ export default function JobsPage() {
     }
   }, [routeId, navigate, setSearchParams]);
 
-  const quickStatus = (id: number, status: AppStatus) => update.mutate({ id, status });
+  const quickStatus = useStatusWithUndo();
 
   // Keyboard: j/k move selection, Enter opens, o opens the posting.
   useEffect(() => {
