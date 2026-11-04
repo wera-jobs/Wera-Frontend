@@ -1,3 +1,5 @@
+import type { Job } from '../api/types';
+
 export type Verdict = 'strong' | 'good' | 'stretch' | 'poor';
 
 export function verdictOf(score: number | null): Verdict {
@@ -175,4 +177,45 @@ export function stepId(ids: number[], current: number, dir: -1 | 1): number | nu
   const i = ids.indexOf(current);
   if (i < 0) return null;
   return ids[i + dir] ?? null;
+}
+
+/**
+ * One quiet line of what a job is: where, how, what level, how many years.
+ * Values the AI could not tell ("unknown") are left out.
+ */
+export function jobMeta(job: Pick<Job, 'location_summary' | 'location_raw' | 'work_mode' | 'seniority' | 'years_required'>): string {
+  const known = (v: string | null | undefined) => (v && v !== 'unknown' ? capitalize(v) : null);
+  return [
+    shortLocation(job),
+    known(job.work_mode),
+    known(job.seniority),
+    job.years_required != null ? `${job.years_required}+ yrs` : null,
+  ]
+    .filter((m) => m && m !== '—')
+    .join(' · ');
+}
+
+const YOU_VERBS: Record<string, string> = {
+  is: 'are', was: 'were', has: 'have', "isn't": "aren't", "hasn't": "haven't", "doesn't": "don't", does: 'do',
+  lacks: 'lack', wants: 'want', targets: 'target', prefers: 'prefer', needs: 'need', seeks: 'seek', holds: 'hold',
+  shows: 'show', matches: 'match', fits: 'fit', appears: 'appear', brings: 'bring', meets: 'meet',
+};
+const WHO = String.raw`(?:(?:the|this) )?(?:candidate|applicant)`;
+const keepCase = (from: string, to: string) => (from[0] === from[0].toUpperCase() ? to[0].toUpperCase() + to.slice(1) : to);
+
+/**
+ * Fit reasons written before November 2026 speak of the user in the third
+ * person ("matches the candidate's Python", "fits his interests"). This
+ * puts the safe cases in the second person, as newer reasons are written:
+ * possessives, and "the candidate" before a verb it knows. Anything else
+ * is left as written rather than risk bad grammar.
+ */
+export function toYou(text: string): string {
+  return text
+    .replace(new RegExp(String.raw`\b${WHO}'s\b`, 'gi'), (m) => keepCase(m, 'your'))
+    .replace(new RegExp(String.raw`\b${WHO} (${Object.keys(YOU_VERBS).join('|')})\b`, 'gi'), (m, verb: string) =>
+      keepCase(m, `you ${YOU_VERBS[verb.toLowerCase()]}`))
+    .replace(new RegExp(String.raw`\b(for|to|fits|suits|with|than) ${WHO}\b`, 'gi'), (_m, prep: string) => `${prep} you`)
+    .replace(/\bhis\b/g, 'your')
+    .replace(/\bHis\b/g, 'Your');
 }

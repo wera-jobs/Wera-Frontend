@@ -1,10 +1,19 @@
-import { Ban, Bookmark, ExternalLink } from 'lucide-react';
+import { Ban, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
 import { ScoreRing } from './ScoreRing';
 import { Badge } from './Badge';
 import { AutofilledBadge, CategoryChips, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
-import { capitalize, shortLocation } from '../lib/format';
+import { jobMeta, toYou } from '../lib/format';
 import type { AppStatus, Job } from '../api/types';
 
+/** The small bordered buttons on cards. */
+export const CHIP_BUTTON =
+  'relative z-10 inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2 py-1 text-[11px] font-medium transition-colors duration-150';
+
+/**
+ * A job in a list. The title is the card's button: it stretches over the
+ * whole card, so a click anywhere opens the job, while the links and
+ * buttons on it sit above it and stay their own controls.
+ */
 export function JobCard({
   job,
   index = 0,
@@ -16,30 +25,17 @@ export function JobCard({
   /** Position in the grid; drives the staggered entrance delay. */
   index?: number;
   onOpen: (id: number) => void;
-  onQuickStatus?: (id: number, status: AppStatus) => void;
+  onQuickStatus?: (job: Job, status: AppStatus) => void;
   quickActions?: boolean;
 }) {
-  // One quiet mono line instead of a wall of badges; the sponsor chip stays
+  // One quiet line instead of a wall of badges; the sponsor chip stays
   // because it is the one signal worth interrupting the scan for.
-  const meta = [
-    shortLocation(job),
-    job.work_mode ? capitalize(job.work_mode) : null,
-    job.seniority && job.seniority !== 'unknown' ? capitalize(job.seniority) : null,
-    job.years_required != null ? `${job.years_required}+ yrs` : null,
-  ]
-    .filter((m) => m && m !== '—')
-    .join(' · ');
+  const meta = jobMeta(job);
+  const saved = job.application_status === 'saved';
 
   return (
-    <div
-      onClick={() => onOpen(job.id)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onOpen(job.id);
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={`${job.title} at ${job.company}`}
-      className="group anim-rise min-w-0 cursor-pointer rounded-card border border-border bg-surface p-4 transition-colors duration-150 hover:border-accent/40 focus-visible:border-accent/40"
+    <article
+      className="group anim-rise relative min-w-0 cursor-pointer rounded-card border border-border bg-surface p-4 transition-colors duration-150 hover:border-accent/40 has-[h3_button:focus-visible]:ring-2 has-[h3_button:focus-visible]:ring-accent"
       style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
     >
       <div className="flex items-start gap-4">
@@ -47,7 +43,16 @@ export function JobCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="truncate text-sm font-semibold text-text">{job.title}</h3>
+              <h3 className="truncate text-sm font-semibold text-text">
+                <button
+                  type="button"
+                  onClick={() => onOpen(job.id)}
+                  aria-label={`${job.title} at ${job.company}`}
+                  className="text-left outline-none after:absolute after:inset-0 after:rounded-card after:content-['']"
+                >
+                  {job.title}
+                </button>
+              </h3>
               <div className="mt-0.5 truncate text-xs text-muted">{job.company}</div>
             </div>
             <span className="flex shrink-0 flex-col items-end gap-1">
@@ -68,7 +73,7 @@ export function JobCard({
             )}
           </div>
           {job.reason && (
-            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{job.reason}</p>
+            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{toYou(job.reason)}</p>
           )}
           <div className="mt-2.5 flex min-h-6 flex-wrap items-end justify-between gap-2">
             <CategoryChips cats={job.matched_categories} />
@@ -79,28 +84,25 @@ export function JobCard({
                   data-wera-job={job.id}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2 py-1 text-[11px] font-medium text-text transition-colors duration-150 hover:border-accent/40 hover:text-accent"
+                  className={`${CHIP_BUTTON} text-text hover:border-accent/40 hover:text-accent`}
                 >
                   <ExternalLink className="size-3" /> Open
                 </a>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onQuickStatus?.(job.id, 'saved');
-                  }}
-                  aria-label="Save job"
-                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2 py-1 text-[11px] font-medium text-text transition-colors duration-150 hover:border-accent/40 hover:text-accent"
+                  type="button"
+                  onClick={() => onQuickStatus?.(job, 'saved')}
+                  disabled={saved}
+                  aria-label={saved ? 'Saved' : 'Save job'}
+                  className={`${CHIP_BUTTON} text-text hover:border-accent/40 hover:text-accent disabled:border-accent/30 disabled:text-accent`}
                 >
-                  <Bookmark className="size-3" /> Save
+                  {saved ? <BookmarkCheck className="size-3" /> : <Bookmark className="size-3" />} {saved ? 'Saved' : 'Save'}
                 </button>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onQuickStatus?.(job.id, 'not_interested');
-                  }}
+                  type="button"
+                  onClick={() => onQuickStatus?.(job, 'not_interested')}
                   aria-label="Mark not interested"
-                  className="inline-flex items-center rounded-lg border border-border bg-surface-2 px-2 py-1 text-[11px] font-medium text-muted transition-colors duration-150 hover:border-bad/40 hover:text-bad"
+                  title="Not interested"
+                  className={`${CHIP_BUTTON} text-muted hover:border-bad/40 hover:text-bad`}
                 >
                   <Ban className="size-3" />
                 </button>
@@ -109,6 +111,6 @@ export function JobCard({
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
