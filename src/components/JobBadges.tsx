@@ -65,7 +65,7 @@ export function OldPostingBadge({ job }: { job: Pick<Job, 'posted_at' | 'first_s
 }
 
 export function WorkModeBadge({ value }: { value: Job['work_mode'] }) {
-  if (!value) return null;
+  if (!value || value === 'unknown') return null;
   const label = value === 'remote' ? 'Remote' : value === 'hybrid' ? 'Hybrid' : 'Onsite';
   return <Badge>{label}</Badge>;
 }
