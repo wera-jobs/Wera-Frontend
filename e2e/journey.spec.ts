@@ -10,6 +10,14 @@ test('a new user from sign-up to account deletion', async ({ page }) => {
   // Matches appear right away (estimates), without waiting for AI scores.
   await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible();
 
+  // A click anywhere on a card opens it, not only on its title: a press
+  // must not shrink the card's click area before the release.
+  const match = (await page.locator('article').first().boundingBox())!;
+  await page.mouse.click(match.x + match.width * 0.4, match.y + match.height - 10);
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
   // The seeded SRE job matches; the senior one was filtered out.
   await page.goto('/jobs?q=E2E%20Robotics');
   await expect(page.getByText('Site Reliability Engineer', { exact: true }).first()).toBeVisible();

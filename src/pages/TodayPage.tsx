@@ -55,7 +55,7 @@ function TopPick({ job, onOpen, onStatus }: { job: Job; onOpen: (id: number) => 
               type="button"
               onClick={() => onOpen(job.id)}
               aria-label={`Top pick: ${job.title} at ${job.company}`}
-              className="text-left outline-none after:absolute after:inset-0 after:rounded-card after:content-['']"
+              className="stretched text-left outline-none"
             >
               {job.title}
             </button>
@@ -113,8 +113,7 @@ function vsUsual(perDay: { count: number }[]): { text: string; tone: 'good' | 'n
 export default function TodayPage() {
   useDocumentTitle('Today');
   // While matches are still being scored (a new user's first minutes),
-  // estimates fill the list and it refreshes every few seconds as real
-  // scores replace them.
+  // estimates fill the list and it refreshes as real scores replace them.
   const profile = useProfile();
   const updatedAt = profile.data?.updated_at ?? undefined;
   const { data, isLoading, error, refetch } = useToday(updatedAt);
