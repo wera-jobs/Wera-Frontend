@@ -270,7 +270,7 @@ function Column({
       ref={setNodeRef}
       aria-label={COLUMN_LABEL[status]}
       className={clsx(
-        'flex min-w-0 flex-col rounded-card border p-2.5 transition-colors duration-150',
+        'flex min-w-0 flex-col rounded-card border p-2.5 transition-colors duration-150 xl:min-h-0',
         isOver ? 'border-accent/60 bg-accent/5' : 'border-border bg-surface/60',
       )}
     >
@@ -278,7 +278,8 @@ function Column({
         <h3 className="text-xs font-semibold text-text">{COLUMN_LABEL[status]}</h3>
         <span className="font-mono text-xs text-faint">{jobs.length}</span>
       </header>
-      <div className="flex flex-col gap-2">
+      {/* The column scrolls on its own, so a long list does not make the page long. */}
+      <div className="-mx-1 flex max-h-[60svh] flex-col gap-2 overflow-y-auto overscroll-contain px-1 pb-1 xl:max-h-none xl:min-h-0 xl:flex-1">
         {isLoading ? (
           <>
             <Skeleton className="h-20 w-full" />
@@ -356,7 +357,8 @@ export default function TrackerPage() {
         <div
           className={clsx(
             empty && 'hidden',
-            'grid gap-3 sm:grid-cols-2 xl:grid-cols-5',
+            // On a wide screen the board fits the window and each column scrolls.
+            'grid gap-3 sm:grid-cols-2 xl:h-[calc(100svh-12rem)] xl:min-h-96 xl:grid-cols-5 xl:grid-rows-1',
             showNI && 'xl:grid-cols-6',
           )}
         >
