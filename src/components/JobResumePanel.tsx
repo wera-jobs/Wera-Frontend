@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { Link } from 'react-router-dom';
 import { Download, ExternalLink, FileText, LoaderCircle, RefreshCw, Wand2 } from 'lucide-react';
 import { errorMessage } from '../api/client';
@@ -82,6 +83,13 @@ export function JobResumePanel({ job }: { job: JobDetail }) {
               {tailor.isPending ? <LoaderCircle className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />} Tailor again
             </button>
           </div>
+          {doc.fit_score && (
+            <p className="text-xs text-muted" aria-label="Fit score with the tailored resume">
+              Fit score with this resume:{' '}
+              {doc.fit_score.after !== doc.fit_score.before && <><span className="font-mono">{doc.fit_score.before}</span> → </>}
+              <span className={clsx('font-mono font-semibold', doc.fit_score.after > doc.fit_score.before ? 'text-good' : 'text-text')}>{doc.fit_score.after}</span>
+            </p>
+          )}
           {doc.notes.length > 0 && <ul className="list-disc space-y-0.5 pl-5 text-xs text-muted">{doc.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>}
           <ResumePreview {...preview} />
         </>

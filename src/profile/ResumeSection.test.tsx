@@ -145,7 +145,7 @@ describe('JobResumePanel', () => {
       'GET /api/jobs/12/keywords': () => ({ keywords: ['Go', 'Rust'], coverage: { matched: ['Go'], missing: ['Rust'], percent: 50 }, resume_id: 3 }),
       'GET /api/jobs/12/resume': () => tailored ?? new Response('{}', { status: 404 }),
       'POST /api/jobs/12/resume': () => {
-        tailored = doc({ id: 9, job_id: 12, job_title: 'SRE', job_company: 'Acme', notes: ['Led with Go'] });
+        tailored = doc({ id: 9, job_id: 12, job_title: 'SRE', job_company: 'Acme', notes: ['Led with Go'], fit_score: { before: 58, after: 64 } });
         return { resume: tailored, coverage_before: { matched: [], missing: ['Go', 'Rust'], percent: 0 } };
       },
       'POST /api/resumes/preview': preview,
@@ -157,5 +157,6 @@ describe('JobResumePanel', () => {
     expect(await screen.findByText('Led with Go')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Edit/ })).toHaveAttribute('href', '/profile/resume/9');
     expect(screen.getByRole('link', { name: /PDF/ })).toHaveAttribute('href', '/api/resumes/9/pdf?download=1');
+    expect(screen.getByLabelText('Fit score with the tailored resume')).toHaveTextContent('Fit score with this resume: 58 → 64');
   });
 });

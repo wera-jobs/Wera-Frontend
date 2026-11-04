@@ -100,6 +100,8 @@ export interface ResumeDoc {
   notes: string[];
   updated_at: string;
   coverage?: Coverage;
+  /** For a copy tailored to a job: the job's fit score, and what it is with this resume. */
+  fit_score?: { before: number; after: number };
 }
 export interface ResumeSummary {
   id: number;
