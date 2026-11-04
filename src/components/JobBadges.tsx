@@ -1,6 +1,6 @@
 import { Wand2 } from 'lucide-react';
 import { Badge, type BadgeVariant } from './Badge';
-import { relTime } from '../lib/format';
+import { absTime, daysUp, listedAt, relTime } from '../lib/format';
 import { IndustryIcon } from './IndustryIcon';
 import { useIndustryLabel } from '../api/hooks';
 import { useFamilyLabel } from '../api/profile';
@@ -39,6 +39,27 @@ export function ClosedBadge({ at }: { at?: string | null }) {
   return (
     <span title={`The posting came down ${relTime(at)}`}>
       <Badge variant="neutral">Posting closed</Badge>
+    </span>
+  );
+}
+
+/** Postings up longer than this are marked old: many are filled already. */
+export const OLD_POSTING_DAYS = 60;
+
+/** When the posting went up, with when Wera found it on hover. */
+export function PostedAge({ job }: { job: Pick<Job, 'posted_at' | 'first_seen_at'> }) {
+  const at = listedAt(job);
+  const found = at === job.first_seen_at ? '' : `. Wera found it ${absTime(job.first_seen_at)}`;
+  return <span title={`Posted ${absTime(at)}${found}`}>{relTime(at)}</span>;
+}
+
+/** Marks a posting that has been up for months: often filled already, or kept up for show. */
+export function OldPostingBadge({ job }: { job: Pick<Job, 'posted_at' | 'first_seen_at' | 'closed_at'> }) {
+  const days = daysUp(job);
+  if (days <= OLD_POSTING_DAYS || job.closed_at) return null;
+  return (
+    <span title={`Up for ${days} days. Postings this old are often filled already.`}>
+      <Badge variant="neutral">Old posting</Badge>
     </span>
   );
 }

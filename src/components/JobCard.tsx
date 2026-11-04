@@ -1,8 +1,8 @@
 import { Ban, Bookmark, ExternalLink } from 'lucide-react';
 import { ScoreRing } from './ScoreRing';
 import { Badge } from './Badge';
-import { AutofilledBadge, CategoryChips, StatusPill } from './JobBadges';
-import { capitalize, relTime, shortLocation } from '../lib/format';
+import { AutofilledBadge, CategoryChips, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
+import { capitalize, shortLocation } from '../lib/format';
 import type { AppStatus, Job } from '../api/types';
 
 export function JobCard({
@@ -57,9 +57,10 @@ export function JobCard({
           </div>
           <div className="mt-2 flex min-w-0 items-center gap-2 text-[11px] text-faint">
             <span className="min-w-0 truncate">{meta || '—'}</span>
-            <span className="shrink-0" title={`First seen ${job.first_seen_at}`}>
-              · {relTime(job.first_seen_at)}
+            <span className="shrink-0">
+              · <PostedAge job={job} />
             </span>
+            <OldPostingBadge job={job} />
             {job.sponsorship === 'yes' && (
               <Badge variant="good" className="shrink-0">
                 Sponsors visas

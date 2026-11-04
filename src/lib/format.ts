@@ -51,6 +51,21 @@ export function absTime(iso: string | null | undefined): string {
   return new Date(iso).toLocaleString();
 }
 
+/**
+ * When a posting went up: the date its job board gives, or when Wera first
+ * saw it, whichever is earlier. A company Wera starts watching brings
+ * postings that are months old, all first seen that day.
+ */
+export function listedAt(job: { posted_at?: string | null; first_seen_at: string }): string {
+  const { posted_at: posted, first_seen_at: seen } = job;
+  return posted && new Date(posted).getTime() < new Date(seen).getTime() ? posted : seen;
+}
+
+/** Days a posting has been up (see listedAt). */
+export function daysUp(job: { posted_at?: string | null; first_seen_at: string }): number {
+  return Math.floor((Date.now() - new Date(listedAt(job)).getTime()) / 86_400_000);
+}
+
 /** Minutes from now until iso, rounded down; negative means "due". */
 export function minutesUntil(iso: string | null | undefined): number {
   if (!iso) return 0;
