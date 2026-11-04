@@ -21,7 +21,7 @@ import { JobResumePanel } from './JobResumePanel';
 import { toast } from '../lib/toast';
 import type { AppStatus, JobDetail } from '../api/types';
 import { Description } from './Description';
-import { ClosedBadge, IndustryBadge, StatusPill } from './JobBadges';
+import { ClosedBadge, IndustryBadge, OldPostingBadge, StatusPill } from './JobBadges';
 import { Skeleton } from './States';
 import { Insights } from './JobInsights';
 import { absTime, relTime } from '../lib/format';
@@ -72,6 +72,7 @@ function Header({ job }: { job: JobDetail }) {
         <IndustryBadge value={job.industry} />
         <StatusPill value={job.application_status} />
         <ClosedBadge at={job.closed_at} />
+        <OldPostingBadge job={job} />
       </div>
       <h2 className="mt-2 text-xl leading-snug font-semibold text-balance text-text md:text-2xl">{job.title}</h2>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">

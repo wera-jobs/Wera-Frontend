@@ -41,7 +41,7 @@ function Matches({ industry, onOpen }: { industry: string; onOpen: (id: number) 
               <th className="px-3 py-2.5">Location</th>
               <th className="hidden px-3 py-2.5 2xl:table-cell">Mode</th>
               <th className="px-3 py-2.5">Sponsorship</th>
-              <th className="hidden px-3 py-2.5 2xl:table-cell">First seen</th>
+              <th className="hidden px-3 py-2.5 2xl:table-cell">Posted</th>
               <th className="px-3 py-2.5">Status</th>
             </tr>
           </thead>

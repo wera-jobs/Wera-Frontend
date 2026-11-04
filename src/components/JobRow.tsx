@@ -1,6 +1,6 @@
 import clsx from 'clsx';
-import { absTime, relTime, shortLocation, verdictColor, verdictOf } from '../lib/format';
-import { IndustryBadge, SponsorshipBadge, StatusPill, WorkModeBadge, AddedBadge, AutofilledBadge } from './JobBadges';
+import { shortLocation, verdictColor, verdictOf } from '../lib/format';
+import { IndustryBadge, SponsorshipBadge, StatusPill, WorkModeBadge, AddedBadge, AutofilledBadge, OldPostingBadge, PostedAge } from './JobBadges';
 import type { Job } from '../api/types';
 
 /** Dense table row for the Jobs page. */
@@ -42,7 +42,14 @@ export function JobRow({
           ))}
         </span>
       </td>
-      <td className="max-w-72 truncate px-3 py-2.5 text-sm font-medium text-text">{job.title}</td>
+      <td className="max-w-72 px-3 py-2.5 text-sm font-medium text-text">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate">{job.title}</span>
+          <span className="shrink-0 2xl:hidden">
+            <OldPostingBadge job={job} />
+          </span>
+        </span>
+      </td>
       <td className="max-w-44 truncate px-3 py-2.5 text-sm text-muted">
         {job.company} {job.source === 'manual' && <AddedBadge source={job.source} />}
       </td>
@@ -56,8 +63,11 @@ export function JobRow({
       <td className="px-3 py-2.5">
         <SponsorshipBadge value={job.sponsorship} />
       </td>
-      <td className="hidden px-3 py-2.5 text-xs whitespace-nowrap text-faint 2xl:table-cell" title={absTime(job.first_seen_at)}>
-        {relTime(job.first_seen_at)}
+      <td className="hidden px-3 py-2.5 text-xs whitespace-nowrap text-faint 2xl:table-cell">
+        <span className="inline-flex items-center gap-1.5">
+          <PostedAge job={job} />
+          <OldPostingBadge job={job} />
+        </span>
       </td>
       <td className="px-3 py-2.5">
         <span className="inline-flex items-center gap-1">
