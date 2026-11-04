@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { ArrowLeft, ArrowRight, Check, LoaderCircle, Sparkles } from 'lucide-react';
 import { useMe } from '../api/auth';
 import { errorOrNull } from '../api/client';
-import { useDraftProfile, useProfile, useSaveProfile, useSuggestPreferences } from '../api/profile';
+import { useDraftProfile, useProfile, useSaveProfile, useSetupPreferences, useSuggestPreferences } from '../api/profile';
 import type { Answers, Preferences, Suggestions } from '../api/types';
 import { LOCATION_SEPARATOR, toPlace } from '../profile/places';
 import { ProfileEditor } from '../profile/ProfileEditor';
@@ -25,6 +25,7 @@ export default function WelcomePage() {
   const profile = useProfile();
   const draft = useDraftProfile();
   const save = useSaveProfile();
+  const setupPrefs = useSetupPreferences();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
@@ -81,6 +82,8 @@ export default function WelcomePage() {
     setStep(to);
     // A resume uploaded in an earlier visit still pre-fills the form.
     if (to === 1 && resumeChars > 0 && !suggested && !suggest.isPending && !touched) runSuggest();
+    // Leaving the preferences: Wera filters the jobs while the profile is drafted.
+    if (to === 2) setupPrefs.mutate({ preferences: prefs, answers });
     if (to === 2 && !markdown && !draft.isPending) runDraft();
     window.scrollTo({ top: 0 });
   };
