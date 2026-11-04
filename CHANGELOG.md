@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.11.0...wera-frontend-v0.12.0) (2026-11-04)
+
+
+### Features
+
+* **jobs:** filter jobs by when they were posted ([b46f4da](https://github.com/wera-jobs/Wera-Frontend/commit/b46f4dad5444d2ae4cdbb10c04aa736da5ff194e))
+* **jobs:** show when a posting went up and mark old ones ([6950ea0](https://github.com/wera-jobs/Wera-Frontend/commit/6950ea08c574eb2a59e9e027eb5dff696331ba8a))
+
 ## [0.11.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.10.1...wera-frontend-v0.11.0) (2026-11-04)
 
 
