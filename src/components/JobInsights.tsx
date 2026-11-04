@@ -166,7 +166,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
             <SponsorshipBadge value={job.sponsorship} />
             {!job.sponsorship && '—'}
           </Fact>
-          <Fact label="First seen">
+          <Fact label="Found by Wera">
             <span title={absTime(job.first_seen_at)}>{relTime(job.first_seen_at)}</span>
           </Fact>
           <Fact label="Source">
