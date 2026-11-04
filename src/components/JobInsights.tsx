@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import { Ban } from 'lucide-react';
 import { useUpdateApplication } from '../api/hooks';
 import type { AppStatus, DeepAnalysis, JobDetail } from '../api/types';
-import { absTime, compact, money, prettyReason, relTime, verdictLabel, verdictOf } from '../lib/format';
+import { absTime, compact, money, prettyReason, relTime, toYou, verdictLabel, verdictOf } from '../lib/format';
 import { Badge } from './Badge';
 import { AddedBadge, AutofilledBadge, CategoryChips, SponsorshipBadge, WorkModeBadge } from './JobBadges';
 import { JobH1B } from './JobH1B';
@@ -47,7 +47,7 @@ function BulletList({ items, dot }: { items: string[]; dot: string }) {
 function DeepSection({ deep }: { deep: DeepAnalysis }) {
   return (
     <Section title="Deep review">
-      <p className="text-xs leading-relaxed text-muted">{deep.reason}</p>
+      <p className="text-xs leading-relaxed text-muted">{toYou(deep.reason)}</p>
       <div className="mt-4 space-y-4">
         {deep.raw.why_fit.length > 0 && (
           <div>
@@ -147,7 +147,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
           <ScoreRing score={job.fit_score} size="lg" />
           <div className="min-w-0">
             <div className="text-sm font-semibold text-text">{verdictLabel[verdict]}</div>
-            {job.reason && <p className="mt-1 text-xs leading-relaxed text-muted">{job.reason}</p>}
+            {job.reason && <p className="mt-1 text-xs leading-relaxed text-muted">{toYou(job.reason)}</p>}
           </div>
         </div>
       ) : (
@@ -160,7 +160,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
           <Fact label="Years required">{job.years_required != null ? `${job.years_required}+` : '—'}</Fact>
           <Fact label="Work mode">
             <WorkModeBadge value={job.work_mode} />
-            {!job.work_mode && '—'}
+            {(!job.work_mode || job.work_mode === 'unknown') && '—'}
           </Fact>
           <Fact label="Sponsorship">
             <SponsorshipBadge value={job.sponsorship} />

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { AutofilledBadge, OldPostingBadge, PostedAge } from './JobBadges';
+import { AutofilledBadge, OldPostingBadge, PostedAge, WorkModeBadge } from './JobBadges';
 
 describe('AutofilledBadge', () => {
   it('marks a job the extension filled, saying when', () => {
@@ -41,6 +41,15 @@ describe('OldPostingBadge', () => {
         <OldPostingBadge job={{ posted_at: ago(200), first_seen_at: ago(20), closed_at: ago(1) }} />
       </>,
     );
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe('WorkModeBadge', () => {
+  it('names the work mode, and says nothing when the posting does not', () => {
+    render(<WorkModeBadge value="hybrid" />);
+    expect(screen.getByText('Hybrid')).toBeInTheDocument();
+    const { container } = render(<WorkModeBadge value="unknown" />);
     expect(container).toBeEmptyDOMElement();
   });
 });

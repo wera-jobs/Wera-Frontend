@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { X } from 'lucide-react';
+import { useScrollLock } from '../lib/useScrollLock';
 
 /**
  * A centered dialog over a dimmed page: Escape or a click outside closes
@@ -19,6 +20,7 @@ export function Modal({ title, label, hint, onClose, onSubmit, as = 'div', width
   className?: string;
   children: ReactNode;
 }) {
+  useScrollLock();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -26,8 +28,9 @@ export function Modal({ title, label, hint, onClose, onSubmit, as = 'div', width
   }, [onClose]);
   const Panel = as;
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 md:p-10">
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain p-4 md:p-10">
+      {/* A plain scrim: a blurred one made scrolling inside dialogs stutter. */}
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} aria-hidden />
       <Panel
         role="dialog"
         aria-modal="true"

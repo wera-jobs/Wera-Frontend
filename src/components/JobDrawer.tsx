@@ -27,6 +27,7 @@ import { Insights } from './JobInsights';
 import { absTime, relTime } from '../lib/format';
 import { handOffJob } from '../lib/extension';
 import { AutofillHistory } from './AutofillHistory';
+import { useScrollLock } from '../lib/useScrollLock';
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
@@ -126,11 +127,14 @@ export function JobDrawer({
       score.mutate(job.id);
     }
   }, [job, score]);
-  const closeRef = useRef<HTMLButtonElement>(null);
   const scrollers = useRef<(HTMLElement | null)[]>([]);
 
-  // New job: back to the top of both columns.
-  useEffect(() => scrollers.current.forEach((el) => el?.scrollTo({ top: 0 })), [jobId]);
+  // New job: back to the top of both columns, with the keyboard on the
+  // posting, so arrows, Page Down and Space scroll it.
+  useEffect(() => {
+    scrollers.current.forEach((el) => el?.scrollTo({ top: 0 }));
+    scrollers.current[0]?.focus({ preventScroll: true });
+  }, [jobId]);
 
   // Esc closes, o opens the posting, arrows move through the list.
   useEffect(() => {
@@ -150,15 +154,7 @@ export function JobDrawer({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose, onNavigate, job?.id, job?.url]);
 
-  // Scroll lock and initial focus while open.
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    closeRef.current?.focus();
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
+  useScrollLock();
 
   const setStatus = (status: AppStatus) =>
     job && update.mutate({ id: job.id, status, notes: job.application_notes ?? '' });
@@ -186,7 +182,8 @@ export function JobDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex items-stretch justify-center md:p-5 lg:p-8">
-      <div className="fade-enter absolute inset-0 bg-black/55 backdrop-blur-[3px]" onClick={onClose} aria-hidden />
+      {/* A plain scrim: a blurred one made the posting stutter as it scrolled. */}
+      <div className="fade-enter absolute inset-0 bg-black/60" onClick={onClose} aria-hidden />
       <div
         role="dialog"
         aria-modal="true"
@@ -236,7 +233,6 @@ export function JobDrawer({
               </>
             )}
             <button
-              ref={closeRef}
               onClick={onClose}
               aria-label="Close"
               title="Close (Esc)"
@@ -248,12 +244,14 @@ export function JobDrawer({
         </div>
 
         {/* Body: posting | insights (stacked on phones, insights first) */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto md:grid md:grid-cols-[minmax(0,1fr)_360px] md:overflow-hidden lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain md:grid md:grid-cols-[minmax(0,1fr)_360px] md:overflow-hidden lg:grid-cols-[minmax(0,1fr)_400px]">
           <div
             ref={(el) => {
               scrollers.current[0] = el;
             }}
-            className="order-2 px-5 py-5 md:order-1 md:overflow-y-auto md:px-8 md:py-6"
+            tabIndex={-1}
+            aria-label="The posting"
+            className="order-2 px-5 py-5 outline-none md:order-1 md:overflow-y-auto md:overscroll-contain md:px-8 md:py-6"
           >
             {isLoading ? (
               <div className="space-y-3">
@@ -294,7 +292,7 @@ export function JobDrawer({
             ref={(el) => {
               scrollers.current[1] = el;
             }}
-            className="order-1 border-border bg-surface-2/35 md:order-2 md:overflow-y-auto md:border-l"
+            className="order-1 border-border bg-surface-2/35 md:order-2 md:overflow-y-auto md:overscroll-contain md:border-l"
           >
             {job ? (
               <>

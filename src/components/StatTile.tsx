@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { useCountUp } from '../lib/useCountUp';
@@ -95,7 +96,10 @@ export function DayBars({ data, unit = 'new matches' }: { data: { day: string; c
   );
 }
 
-/** Label + big mono number + optional trend chip, sparkline and sub-line. */
+/**
+ * Label + big mono number + optional trend chip, sparkline and sub-line.
+ * Spans throughout, so the same body is valid inside a button or a link.
+ */
 export function StatTile({
   label,
   value,
@@ -105,6 +109,9 @@ export function StatTile({
   bars,
   accent,
   className,
+  onClick,
+  pressed,
+  to,
 }: {
   label: string;
   value: ReactNode;
@@ -117,48 +124,67 @@ export function StatTile({
   bars?: { day: string; count: number }[];
   accent?: boolean;
   className?: string;
+  /** Makes the tile a toggle (a filter), pressed when `pressed`. */
+  onClick?: () => void;
+  pressed?: boolean;
+  /** Makes the tile a link to a page. */
+  to?: string;
 }) {
   const tone = delta?.tone ?? 'neutral';
-  return (
-    <div
-      className={clsx(
-        'rounded-card border border-border bg-surface p-4 transition-colors duration-150',
-        accent && 'border-accent/30',
-        className,
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-xs font-medium text-muted">{label}</div>
-          <div className="mt-1.5 font-mono text-2xl font-semibold tabular-nums text-text">
-            {typeof value === 'number' ? <CountUp value={value} /> : value}
-          </div>
-          {sub != null && <div className="mt-1 text-xs text-faint">{sub}</div>}
-          {delta && (
-            <div
-              className={clsx(
-                'mt-1 font-mono text-[11px] tabular-nums',
-                tone === 'good' && 'text-good',
-                tone === 'bad' && 'text-bad',
-                tone === 'neutral' && 'text-faint',
-              )}
-            >
-              {delta.text}
-            </div>
-          )}
-        </div>
-        {bars ? (
-          <span className="hidden self-end sm:block">
-            <DayBars data={bars} />
-          </span>
-        ) : (
-          spark && (
-            <span className="hidden sm:block">
-              <Sparkline data={spark} />
-            </span>
-          )
-        )}
-      </div>
-    </div>
+  const classes = clsx(
+    'flex w-full flex-col rounded-card border border-border bg-surface p-3 text-left transition-colors duration-150 sm:p-4',
+    accent && 'border-accent/30',
+    (onClick || to) && 'cursor-pointer hover:border-accent/50',
+    pressed && 'border-accent bg-accent/[0.06] ring-1 ring-accent',
+    className,
   );
+  const body = (
+    <span className="flex items-start justify-between gap-3">
+      <span className="block min-w-0">
+        <span className="block text-xs font-medium text-muted">{label}</span>
+        <span className="mt-1 block font-mono text-xl font-semibold tabular-nums text-text sm:mt-1.5 sm:text-2xl">
+          {typeof value === 'number' ? <CountUp value={value} /> : value}
+        </span>
+        {sub != null && <span className="mt-1 block text-xs text-faint">{sub}</span>}
+        {delta && (
+          <span
+            className={clsx(
+              'mt-1 hidden font-mono text-[11px] tabular-nums sm:block',
+              tone === 'good' && 'text-good',
+              tone === 'bad' && 'text-bad',
+              tone === 'neutral' && 'text-faint',
+            )}
+          >
+            {delta.text}
+          </span>
+        )}
+      </span>
+      {bars ? (
+        <span className="hidden self-end sm:block">
+          <DayBars data={bars} />
+        </span>
+      ) : (
+        spark && (
+          <span className="hidden sm:block">
+            <Sparkline data={spark} />
+          </span>
+        )
+      )}
+    </span>
+  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} aria-pressed={!!pressed} className={classes}>
+        {body}
+      </button>
+    );
+  }
+  if (to) {
+    return (
+      <Link to={to} className={classes}>
+        {body}
+      </Link>
+    );
+  }
+  return <div className={classes}>{body}</div>;
 }

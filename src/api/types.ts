@@ -32,7 +32,8 @@ export interface Job {
   seniority: string | null;
   years_required: number | null;
   sponsorship: 'yes' | 'unknown' | 'no' | null;
-  work_mode: 'remote' | 'hybrid' | 'onsite' | null;
+  // "unknown" when the posting does not say.
+  work_mode: 'remote' | 'hybrid' | 'onsite' | 'unknown' | null;
   location_summary: string | null;
   skills_matched: string[] | null;
   skills_missing: string[] | null;

@@ -13,6 +13,7 @@ import { ThemeToggle } from '../lib/theme';
 import { Logo } from '../components/Logo';
 import { Avatar } from '../components/Avatar';
 import { CommandPalette } from '../components/CommandPalette';
+import { ApplyCheck } from '../components/ApplyCheck';
 import {
   useHealth,
   useLatestRun,
@@ -245,6 +246,7 @@ export function AppShell() {
       </nav>
 
       {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
+      <ApplyCheck />
     </div>
   );
 }
