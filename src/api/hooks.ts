@@ -29,6 +29,7 @@ export interface JobsParams {
   work_mode?: string;
   status?: string;
   since?: string;
+  posted_within?: number;
   include_excluded?: boolean;
   sort?: string;
   limit?: number;

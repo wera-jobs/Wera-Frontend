@@ -13,6 +13,7 @@ export interface FilterValues {
   sponsorship: string;
   work_mode: string;
   status: string;
+  posted_within: number;
   sort: string;
 }
 
@@ -24,6 +25,7 @@ export const DEFAULT_FILTERS: FilterValues = {
   sponsorship: '',
   work_mode: '',
   status: '',
+  posted_within: 0,
   sort: 'score',
 };
 
@@ -97,7 +99,7 @@ export function FilterBar({
     .map((value) => ({ value, label: familyLabel(value) }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  const active = [values.industry, values.category, values.min_score, values.sponsorship, values.work_mode, values.status, values.sort !== 'score']
+  const active = [values.industry, values.category, values.min_score, values.sponsorship, values.work_mode, values.status, values.posted_within, values.sort !== 'score']
     .filter(Boolean).length;
   const isDefault = values.q === '' && active === 0;
 
@@ -171,6 +173,18 @@ export function FilterBar({
           options={[
             { value: '', label: 'Any status' },
             ...APP_STATUSES.map((s) => ({ value: s.value, label: s.label })),
+          ]}
+        />
+        <Select
+          label="Posted"
+          value={String(values.posted_within)}
+          onChange={(v) => onChange({ posted_within: Number(v) })}
+          options={[
+            { value: '0', label: 'Any time' },
+            { value: '1', label: 'Past 24 hours' },
+            { value: '7', label: 'Past week' },
+            { value: '30', label: 'Past month' },
+            { value: '60', label: 'Past 2 months' },
           ]}
         />
         <Select

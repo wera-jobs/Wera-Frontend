@@ -24,6 +24,7 @@ function valuesFromParams(sp: URLSearchParams, defaultSort: string): FilterValue
     sponsorship: sp.get('sponsorship') ?? '',
     work_mode: sp.get('work_mode') ?? '',
     status: sp.get('status') ?? '',
+    posted_within: Number(sp.get('posted_within') ?? 0) || 0,
     sort: (sp.get('sort') ?? defaultSort) === 'newest' ? 'newest' : 'score',
   };
 }
@@ -217,7 +218,7 @@ export default function JobsPage() {
                   <th className="px-3 py-2.5">Location</th>
                   <th className="hidden px-3 py-2.5 2xl:table-cell">Mode</th>
                   <th className="px-3 py-2.5">Sponsorship</th>
-                  <th className="hidden px-3 py-2.5 2xl:table-cell">First seen</th>
+                  <th className="hidden px-3 py-2.5 2xl:table-cell">Posted</th>
                   <th className="px-3 py-2.5">Status</th>
                 </tr>
               </thead>
