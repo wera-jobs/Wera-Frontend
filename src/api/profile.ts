@@ -108,6 +108,18 @@ export function useDraftProfile() {
   });
 }
 
+/**
+ * During setup, save what the user wants before the profile text exists:
+ * the API filters their jobs while the text is drafted and reviewed, so
+ * the final save is quick. Best effort: the final save does it otherwise.
+ */
+export function useSetupPreferences() {
+  return useMutation({
+    mutationFn: (input: Pick<Required<ProfileInput>, 'preferences' | 'answers'>) =>
+      api<void>('/api/profile/preferences', { method: 'PUT', body: JSON.stringify(input) }),
+  });
+}
+
 /** Save the profile; the API starts matching the user's jobs right away. */
 export function useSaveProfile() {
   const qc = useQueryClient();

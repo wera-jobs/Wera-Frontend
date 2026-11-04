@@ -95,8 +95,16 @@ describe('AppShell', () => {
 
 describe('WelcomePage', () => {
   it('walks the setup steps', async () => {
-    stubApi({ 'GET /api/profile': () => ({ markdown: '', resume_text: '', resume_file: null, answers: {}, resume_chars: 0, ready: false, updated_at: null,
-      preferences: { role_families: [], levels: ['entry'], max_years_required: 3, us_only: true, needs_sponsorship: false } }) });
+    const sent: unknown[] = [];
+    stubApi({
+      'GET /api/profile': () => ({ markdown: '', resume_text: '', resume_file: null, answers: {}, resume_chars: 0, ready: false, updated_at: null,
+        preferences: { role_families: [], levels: ['entry'], max_years_required: 3, us_only: true, needs_sponsorship: false } }),
+      'PUT /api/profile/preferences': (init) => {
+        sent.push(jsonBody(init));
+        return null;
+      },
+      'POST /api/profile/draft': () => ({ markdown: '# Profile' }),
+    });
     renderApp(<WelcomePage />);
     await userEvent.click(await screen.findByRole('button', { name: /Skip/ }));
     // Step 2: roles are listed alphabetically.
@@ -106,6 +114,10 @@ describe('WelcomePage', () => {
     // Picking one enables Continue.
     await userEvent.click(within(group).getByRole('button', { name: 'Site reliability' }));
     expect(screen.getByRole('button', { name: /Continue/ })).toBeEnabled();
+    // Leaving the preferences saves them, so Wera filters jobs while the profile is drafted.
+    await userEvent.click(screen.getByRole('button', { name: /Continue/ }));
+    await waitFor(() => expect(sent).toHaveLength(1));
+    expect(sent[0]).toMatchObject({ preferences: { role_families: ['sre'] } });
   });
 });
 
