@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.10.1...wera-frontend-v0.11.0) (2026-11-04)
+
+
+### Features
+
+* **resume:** show the fit score a tailored resume earns ([6bdf046](https://github.com/wera-jobs/Wera-Frontend/commit/6bdf046bfa5798916fa3e0fe5ce2a78cdd84f673))
+* **tracker:** scroll each column on its own ([e8a57c3](https://github.com/wera-jobs/Wera-Frontend/commit/e8a57c37e244b18a2db7701bc1320e0e65b938b9))
+
 ## [0.10.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.10.0...wera-frontend-v0.10.1) (2026-11-03)
 
 
