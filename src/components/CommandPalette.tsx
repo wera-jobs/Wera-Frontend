@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import { NAV } from '../layout/nav';
+import { useScrollLock } from '../lib/useScrollLock';
 import type { JobList } from '../api/types';
 
 interface PaletteItem {
@@ -58,15 +59,8 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
     queryFn: () => api<JobList>('/api/jobs?limit=200&sort=score'),
   });
 
-  // Focus + scroll lock on open.
-  useEffect(() => {
-    inputRef.current?.focus();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
+  useScrollLock();
+  useEffect(() => inputRef.current?.focus(), []);
 
   const items = useMemo<PaletteItem[]>(() => {
     const q = query.trim().toLowerCase();
@@ -148,7 +142,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[60]">
       <div
-        className="fade-enter absolute inset-0 bg-black/60 backdrop-blur-[3px]"
+        className="fade-enter absolute inset-0 bg-black/60"
         onClick={onClose}
         aria-hidden
       />
