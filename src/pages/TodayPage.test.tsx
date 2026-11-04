@@ -113,12 +113,12 @@ describe('Today', () => {
 });
 
 describe('Did you apply?', () => {
-  const away = async (ms: number) => {
+  const away = (ms: number) => {
     const now = Date.now();
     const real = Date.now;
     Date.now = () => now + ms;
     try {
-      await act(() => {
+      act(() => {
         document.dispatchEvent(new Event('visibilitychange'));
       });
     } finally {
@@ -142,7 +142,7 @@ describe('Did you apply?', () => {
     );
     const pick = await screen.findByRole('button', { name: `Top pick: ${top.title} at ${top.company}` });
     fireEvent.click(within(pick.closest('article')!).getByRole('link', { name: /Open posting/ }));
-    await away(60_000);
+    away(60_000);
     const ask = await screen.findByRole('dialog', { name: 'Did you apply?' });
     expect(ask).toHaveTextContent(`${top.title} at ${top.company}`);
     await userEvent.click(within(ask).getByRole('button', { name: 'Yes, mark it applied' }));
@@ -161,10 +161,10 @@ describe('Did you apply?', () => {
     const pick = await screen.findByRole('button', { name: `Top pick: ${top.title} at ${top.company}` });
     const link = within(pick.closest('article')!).getByRole('link', { name: /Open posting/ });
     fireEvent.click(link);
-    await away(5_000);
+    away(5_000);
     expect(screen.queryByRole('dialog', { name: 'Did you apply?' })).toBeNull();
     fireEvent.click(link);
-    await away(60_000);
+    away(60_000);
     await act(async () => new Promise((done) => setTimeout(done, 50)));
     expect(screen.queryByRole('dialog', { name: 'Did you apply?' })).toBeNull();
   });
