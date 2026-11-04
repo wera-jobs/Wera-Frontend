@@ -10,16 +10,18 @@ const DIMS: Record<Size, { box: number; stroke: number; num: string }> = {
 
 /**
  * Circular score 0-100, colored by verdict. Without a score it shows the
- * relevance estimate as a dashed, muted ring marked "est." (or an em dash
- * when there is neither).
+ * estimate as a dashed, muted ring marked "est." (or an em dash when there
+ * is neither); `ai` says the estimate is the AI's quick grade.
  */
 export function ScoreRing({
   score,
   estimate = null,
+  ai = false,
   size = 'md',
 }: {
   score: number | null;
   estimate?: number | null;
+  ai?: boolean;
   size?: Size;
 }) {
   const { box, stroke, num } = DIMS[size];
@@ -30,8 +32,12 @@ export function ScoreRing({
       <div
         className="relative shrink-0"
         style={{ width: box, height: box }}
-        aria-label={`Estimated fit ${estimate}, AI score pending`}
-        title="Estimated from your profile; the AI score is on its way"
+        aria-label={`Estimated fit ${estimate}, full AI score pending`}
+        title={
+          ai
+            ? 'A quick AI grade; the full score, with its reason, comes when you open the job or in a later pass'
+            : 'Estimated from your profile; the AI score is on its way'
+        }
       >
         <svg width={box} height={box} className="-rotate-90">
           <circle cx={box / 2} cy={box / 2} r={r} fill="none" stroke="var(--color-surface-2)" strokeWidth={stroke} />

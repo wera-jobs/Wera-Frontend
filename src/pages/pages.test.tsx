@@ -47,13 +47,22 @@ describe('TodayPage', () => {
     expect(screen.getByText(/matches to review/)).toBeInTheDocument();
   });
 
-  it('explains that scoring is in progress for a brand-new user', async () => {
+  it('shows grading progress while the AI grades a new user\'s matches', async () => {
     const estimated = fixtures.today.jobs.slice(0, 3).map((j) => ({ ...j, fit_score: null, estimated_score: 70 }));
-    stubApi({ 'GET /api/today': () => ({ count: 3, jobs: estimated, pending: 120 }) });
+    stubApi({ 'GET /api/today': () => ({ count: 3, jobs: estimated, pending: 120, ungraded: 80 }) });
     renderApp(<TodayPage />);
-    expect(await screen.findByText('Scoring your matches')).toBeInTheDocument();
-    expect(screen.getByText(/120 to go/)).toBeInTheDocument();
+    expect(await screen.findByText('The AI is grading your matches')).toBeInTheDocument();
+    expect(screen.getByText(/80 to go/)).toBeInTheDocument();
     expect(screen.getByText(/\(3 estimated\)/)).toBeInTheDocument();
+  });
+
+  it('shows no progress once every match is graded, though some wait for a full score', async () => {
+    const estimated = fixtures.today.jobs.slice(0, 3).map((j) => ({ ...j, fit_score: null, estimated_score: 70, estimate_ai: true }));
+    stubApi({ 'GET /api/today': () => ({ count: 3, jobs: estimated, pending: 120, ungraded: 0 }) });
+    renderApp(<TodayPage />);
+    expect(await screen.findByText(/\(3 estimated\)/)).toBeInTheDocument();
+    expect(screen.queryByText('The AI is grading your matches')).toBeNull();
+    expect(screen.getAllByLabelText(/Estimated fit 70/)[0]).toHaveAttribute('title', expect.stringContaining('quick AI grade'));
   });
 });
 

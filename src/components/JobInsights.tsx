@@ -124,15 +124,17 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
         </div>
       ) : job.fit_score == null && (scoring || job.estimated_score != null) ? (
         <div className="flex items-start gap-4 px-5 py-5">
-          <ScoreRing score={null} estimate={job.estimated_score} size="lg" />
+          <ScoreRing score={null} estimate={job.estimated_score} ai={job.estimate_ai} size="lg" />
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-text">
-              {scoring ? 'Scoring this job…' : 'Estimated match'}
+              {scoring ? 'Scoring this job…' : job.estimate_ai ? 'AI estimate' : 'Estimated match'}
             </div>
             <p className="mt-1 text-xs leading-relaxed text-muted">
               {scoring
                 ? 'Reading the posting against your profile. This takes a couple of seconds.'
-                : 'Estimated from your profile. The AI score arrives with the next scoring pass.'}
+                : job.estimate_ai
+                  ? 'A quick grade by the AI from your profile. The full score, with its reason, comes in a later pass.'
+                  : 'Estimated from your profile. The AI score arrives with the next scoring pass.'}
             </p>
             {scoring && (
               <div className="mt-3 space-y-1.5">

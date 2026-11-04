@@ -37,10 +37,10 @@ function TopPick({ job, onOpen, onStatus }: { job: Job; onOpen: (id: number) => 
     <article className="anim-rise group relative cursor-pointer rounded-card border border-accent/25 bg-surface p-5 transition-colors duration-150 hover:border-accent/50 has-[h2_button:focus-visible]:ring-2 has-[h2_button:focus-visible]:ring-accent">
       <div className="flex flex-wrap items-start gap-4 sm:gap-5">
         <span className="sm:hidden">
-          <ScoreRing score={job.fit_score} estimate={job.estimated_score} size="md" />
+          <ScoreRing score={job.fit_score} estimate={job.estimated_score} ai={job.estimate_ai} size="md" />
         </span>
         <span className="hidden sm:block">
-          <ScoreRing score={job.fit_score} estimate={job.estimated_score} size="lg" />
+          <ScoreRing score={job.fit_score} estimate={job.estimated_score} ai={job.estimate_ai} size="lg" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -118,6 +118,7 @@ export default function TodayPage() {
   const updatedAt = profile.data?.updated_at ?? undefined;
   const { data, isLoading, error, refetch } = useToday(updatedAt);
   const pending = data?.pending ?? 0;
+  const ungraded = data?.ungraded ?? 0;
   const [now] = useState(() => Date.now());
   const justSaved = updatedAt != null && now - new Date(updatedAt).getTime() < 3 * 60_000;
   const stats = useStats();
@@ -162,15 +163,15 @@ export default function TodayPage() {
         </p>
       </header>
 
-      {estimatedCount > 0 && pending > 0 && (
+      {ungraded > 0 && (
         <div className="anim-rise flex items-center gap-3 rounded-card border border-accent-2/25 bg-accent-2/[0.06] px-4 py-3">
           <LoaderCircle className="size-4 shrink-0 animate-spin text-accent-2" />
           <div className="min-w-0 text-xs">
-            <span className="font-medium text-text">Scoring your matches</span>
+            <span className="font-medium text-text">The AI is grading your matches</span>
             <span className="text-muted">
               {' '}
-              · {pending.toLocaleString()} to go. Your best estimated matches are shown meanwhile and update as AI
-              scores arrive; open any job to score it right away.
+              · {ungraded.toLocaleString()} to go. The list reorders as grades arrive; open any job to score it in
+              full right away.
             </span>
           </div>
         </div>
