@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.13.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.13.0...wera-frontend-v0.13.1) (2026-11-04)
+
+
+### Bug Fixes
+
+* **today:** open a job card on any click ([5ead77c](https://github.com/wera-jobs/Wera-Frontend/commit/5ead77cfb34628dfcdbfbd0c5fce57b480a33397))
+
+
+### Performance
+
+* **today:** poll every 20 s while jobs wait for a score ([9b25f97](https://github.com/wera-jobs/Wera-Frontend/commit/9b25f97c46c3335f1787def3c4f766ff5ebf8fff))
+
 ## [0.13.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.12.0...wera-frontend-v0.13.0) (2026-11-04)
 
 
