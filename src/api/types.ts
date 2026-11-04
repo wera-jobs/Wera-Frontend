@@ -40,8 +40,13 @@ export interface Job {
   reason: string | null;
   application_status: AppStatus | null;
   application_notes: string | null;
-  /** Local relevance estimate (35..85) until the AI fit score arrives. */
+  /**
+   * Shown until the full AI score arrives: the AI's quick grade when
+   * estimate_ai, else a local relevance estimate (35..85).
+   */
   estimated_score: number | null;
+  /** The estimate is the AI's quick grade (absent on older servers). */
+  estimate_ai?: boolean;
   /** When the Chrome extension last filled an application for it (absent on older servers). */
   autofilled_at?: string | null;
   /** When the posting came down (null: still open). */
@@ -83,8 +88,10 @@ export interface JobDetail extends Job {
 export interface JobList {
   count: number;
   jobs: Job[];
-  /** Today only: matches still waiting for an AI score. */
+  /** Today only: matches still waiting for a full AI score. */
   pending?: number;
+  /** Today only: of those, the ones without an AI quick grade yet. */
+  ungraded?: number;
 }
 
 export interface DayCount {
