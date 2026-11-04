@@ -55,7 +55,7 @@ function TopPick({ job, onOpen, onStatus }: { job: Job; onOpen: (id: number) => 
               type="button"
               onClick={() => onOpen(job.id)}
               aria-label={`Top pick: ${job.title} at ${job.company}`}
-              className="text-left outline-none after:absolute after:inset-0 after:rounded-card after:content-['']"
+              className="stretched text-left outline-none"
             >
               {job.title}
             </button>
