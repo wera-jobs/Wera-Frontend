@@ -113,8 +113,7 @@ function vsUsual(perDay: { count: number }[]): { text: string; tone: 'good' | 'n
 export default function TodayPage() {
   useDocumentTitle('Today');
   // While matches are still being scored (a new user's first minutes),
-  // estimates fill the list and it refreshes every few seconds as real
-  // scores replace them.
+  // estimates fill the list and it refreshes as real scores replace them.
   const profile = useProfile();
   const updatedAt = profile.data?.updated_at ?? undefined;
   const { data, isLoading, error, refetch } = useToday(updatedAt);
