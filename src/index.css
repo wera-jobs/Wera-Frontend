@@ -154,9 +154,23 @@ a.rounded-card:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-card-hover, 0 10px 30px -12px rgb(0 0 0 / 0.5));
 }
-button:not(:disabled):active,
+button:not(:disabled):not(.stretched):active,
 a.inline-flex:active {
   transform: scale(0.98);
+}
+/* A card's title button, stretched over the whole card by its ::after so a
+   click anywhere opens the card. It must never be transformed: a transform
+   makes it the containing block of its ::after, which then shrinks to the
+   title while the button is held, and the release lands outside it, so no
+   click happens. The card answers the press instead. */
+.stretched::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-card);
+}
+.cursor-pointer.rounded-card:has(.stretched:active) {
+  transform: none;
 }
 
 /* Theme switch: a circular reveal (View Transitions), or a short color
