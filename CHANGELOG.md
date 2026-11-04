@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.12.0...wera-frontend-v0.13.0) (2026-11-04)
+
+
+### Features
+
+* **today:** a review queue that keeps up with you ([1206aeb](https://github.com/wera-jobs/Wera-Frontend/commit/1206aebb88d66c0632db1bbac363dfdb56d3c4c5))
+
+
+### Bug Fixes
+
+* **job-view:** scroll the posting smoothly, and with the keyboard ([3490ece](https://github.com/wera-jobs/Wera-Frontend/commit/3490ece8af44868bfef53316630360c9220fdbbd))
+* **jobs:** stop showing an unknown work mode as Onsite ([2ce674c](https://github.com/wera-jobs/Wera-Frontend/commit/2ce674c3afcbd0f63df500984962fb0769bd9ed3))
+
 ## [0.12.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.11.0...wera-frontend-v0.12.0) (2026-11-04)
 
 
