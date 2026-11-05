@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.13.1...wera-frontend-v0.14.0) (2026-11-05)
+
+
+### Features
+
+* **setup:** save preferences before the profile is drafted ([ad83cf7](https://github.com/wera-jobs/Wera-Frontend/commit/ad83cf7ea4320f55c088af1748ecf60d147057e4))
+* **today:** show AI estimates and grading progress ([4c2d5fa](https://github.com/wera-jobs/Wera-Frontend/commit/4c2d5fa3f3a3dfa88e643024ec8feeec27473e36))
+
 ## [0.13.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.13.0...wera-frontend-v0.13.1) (2026-11-04)
 
 
