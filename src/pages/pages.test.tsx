@@ -5,7 +5,6 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { fixtures, stubApi } from '../test/fixtures';
 import { jsonResponse, renderApp, jsonBody } from '../test/render';
-import ExcludedPage from './ExcludedPage';
 import IndustriesPage from './IndustriesPage';
 import IndustryPage from './IndustryPage';
 import JobsPage from './JobsPage';
@@ -166,13 +165,6 @@ describe('other pages', () => {
     stubApi();
     renderApp(<IndustryPage />, { path: '/industries/trading', route: '/industries/:id' });
     expect(await screen.findByRole('heading', { name: 'Trading & HFT' })).toBeInTheDocument();
-  });
-
-  it('Excluded explains why jobs were filtered out', async () => {
-    stubApi();
-    renderApp(<ExcludedPage />);
-    const first = fixtures.excluded.jobs[0];
-    expect((await screen.findAllByText(first.title)).length).toBeGreaterThan(0);
   });
 
 

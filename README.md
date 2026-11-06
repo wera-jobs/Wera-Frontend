@@ -50,7 +50,6 @@ It opens fast on a slow phone: the logo paints with the first response and the l
 - **Settings:** theme (light, dark, system), default sort, notification preferences, hidden companies, connected browsers (the [Chrome extension](https://github.com/wera-jobs/wera-extension)), password, CSV export of every job you track, account deletion
 - **Application details:** what job applications ask beyond your profile (contact, links, work authorization, education, voluntary self-identification), filled into forms by the extension; can be pre-filled from your resume
 - **Admins** use the separate [wera-admin](https://github.com/wera-jobs/wera-admin) console: this dashboard has no admin pages
-- **Excluded:** every filtered job with the reason and evidence
 - **Polish:** light by default, with dark and system in Settings; a sun and moon toggle with a circular reveal between themes, count-up stats, staggered entrances, all respecting reduced motion
 
 ## Stack

@@ -28,7 +28,7 @@ A number from 0 to 100 for how well a job fits your profile, with the reasons: t
 
 ### Why can't I find a job I expected?
 
-Your filters may have dropped it: the levels, places, years of experience and work authorization in your preferences. Every job your filters drop is listed on the Excluded page, with the reason.
+Your filters may have dropped it: the levels, places, years of experience and work authorization in your preferences. Loosen them in your profile, or add the job yourself with **Add job** on the Jobs page or the Chrome extension: a job you add skips your filters and goes straight to scoring.
 
 ## Sponsorship
 

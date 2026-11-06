@@ -30,14 +30,7 @@ export interface JobsParams {
   status?: string;
   since?: string;
   posted_within?: number;
-  include_excluded?: boolean;
   sort?: string;
-  limit?: number;
-  offset?: number;
-}
-
-export interface ExcludedParams {
-  reason?: string;
   limit?: number;
   offset?: number;
 }
@@ -147,12 +140,6 @@ export function useIndustryLabel(): (id: string) => string {
   return (id) => labels.get(id) ?? id;
 }
 
-export function useExcluded(params: ExcludedParams) {
-  return useQuery({
-    queryKey: ['excluded', params],
-    queryFn: () => api<JobList>(`/api/excluded${toQuery(params)}`),
-  });
-}
 
 /** Optimistic application update across the job detail + every list. */
 /** Statuses that keep a job in Today's review queue: none yet, or only saved. */

@@ -16,7 +16,6 @@ test('every page renders', async ({ page }) => {
     ['/community', 'Community'],
     ['/profile', 'Erin Example'],
     ['/settings', 'Settings'],
-    ['/excluded', 'Excluded'],
   ] as const) {
     await page.goto(path);
     await expect(page.getByRole('heading', { name: heading, level: 1 })).toBeVisible();
