@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.14.0...wera-frontend-v0.15.0) (2026-11-06)
+
+
+### Features
+
+* remove the Excluded page ([d797d95](https://github.com/wera-jobs/Wera-Frontend/commit/d797d9561fd89038eb72d800d4c08e8db7d6a980))
+
 ## [0.14.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.13.1...wera-frontend-v0.14.0) (2026-11-05)
 
 
