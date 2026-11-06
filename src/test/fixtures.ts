@@ -1,7 +1,6 @@
 // Default API responses for page tests: the real responses saved in
 // src/api/__fixtures__ plus small hand-made ones for newer endpoints.
 import companies from '../api/__fixtures__/companies.json';
-import excluded from '../api/__fixtures__/excluded.json';
 import job from '../api/__fixtures__/job.json';
 import jobs from '../api/__fixtures__/jobs.json';
 import runs from '../api/__fixtures__/runs.json';
@@ -10,7 +9,7 @@ import today from '../api/__fixtures__/today.json';
 import type { Profile, User } from '../api/types';
 import { mockApi } from './render';
 
-export const fixtures = { companies, excluded, job, jobs, runs, stats, today };
+export const fixtures = { companies, job, jobs, runs, stats, today };
 
 export const me: User = {
   id: 1, email: 'ada@example.com', name: 'Ada Lovelace', is_admin: true, created_at: '2026-09-01T00:00:00Z',
@@ -82,7 +81,6 @@ export function stubApi(overrides: Record<string, Handler> = {}) {
     'GET /api/industries': () => industries,
     'GET /api/today': () => today,
     'GET /api/jobs': () => jobs,
-    'GET /api/excluded': () => excluded,
     'GET /api/stats': () => stats,
     'GET /api/runs': () => runs,
     'GET /api/usage/me': () => ({ month_spend_usd: 0.42, monthly_budget_usd: 10, remaining_usd: 9.58, analyses: 120 }),
@@ -97,7 +95,7 @@ export function stubApi(overrides: Record<string, Handler> = {}) {
     'GET /api/autofill-runs': () => ({ runs: [] }),
     // Every listed job opens with the fixture detail (description etc.).
     ...Object.fromEntries(
-      [...jobs.jobs, ...today.jobs, ...excluded.jobs, job].flatMap((j): [string, Handler][] => [
+      [...jobs.jobs, ...today.jobs, job].flatMap((j): [string, Handler][] => [
         [`GET /api/jobs/${j.id}`, () => ({ ...job, ...j, description: POSTING, deep: null })],
         [`GET /api/jobs/${j.id}/cover-letter`, () => new Response('{"error":"none"}', { status: 404 })],
       ]),

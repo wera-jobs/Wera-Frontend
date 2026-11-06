@@ -63,7 +63,7 @@ describe('AuthPage', () => {
 });
 
 describe('AppShell', () => {
-  it('shows the navigation with Excluded below the everyday pages', async () => {
+  it('shows the navigation without an Excluded page', async () => {
     stubApi();
     renderApp(
       <Routes>
@@ -74,7 +74,7 @@ describe('AppShell', () => {
     );
     expect(await screen.findByText('page body')).toBeInTheDocument();
     const labels = screen.getAllByRole('link').map((a) => a.textContent?.trim()).filter(Boolean);
-    expect(labels.indexOf('Excluded')).toBeGreaterThan(labels.indexOf('Settings'));
+    expect(labels).not.toContain('Excluded');
     expect(labels).toEqual(expect.arrayContaining(['Today', 'Jobs', 'Community', 'Interview prep', 'Sponsorship']));
   });
 

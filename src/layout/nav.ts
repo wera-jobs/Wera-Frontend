@@ -4,7 +4,6 @@ import {
   GraduationCap,
   Landmark,
   Newspaper,
-  EyeOff,
   ListChecks,
   Settings,
   Sun,
@@ -30,5 +29,4 @@ export const NAV: NavItem[] = [
   { to: '/community', label: 'Community', icon: Newspaper },
   { to: '/profile', label: 'Profile', icon: UserRound, mobile: true },
   { to: '/settings', label: 'Settings', icon: Settings },
-  { to: '/excluded', label: 'Excluded', icon: EyeOff },
 ];
