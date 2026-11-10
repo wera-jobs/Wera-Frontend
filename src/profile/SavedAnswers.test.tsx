@@ -46,12 +46,34 @@ describe('SavedAnswers', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByText('One month')).toBeInTheDocument();
 
+    // Asked by one form only: under the fold.
+    expect(screen.queryByText('Robots at scale.')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /1 answer to one form's own questions/ }));
     await userEvent.click(screen.getByRole('button', { name: 'Forget the answer to Why Acme?' }));
     await waitFor(() => expect(screen.queryByText('Robots at scale.')).toBeNull());
 
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    await userEvent.click(within(screen.getByRole('list').parentElement!).getByRole('button', { name: 'Forget all' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Forget all' }));
     expect(await screen.findByText(/None yet/)).toBeInTheDocument();
     expect(forgotten).toEqual(['2', 'all']);
+  });
+
+  it('puts the questions most forms ask first, and table rows and option texts under the fold', async () => {
+    stubApi({
+      'GET /api/applicant/answers': () => ({ answers: [
+        answer(1, 'How did you hear about us?', 'LinkedIn'),
+        answer(2, 'Do you have a non-compete agreement?', 'No'),
+        answer(3, 'Skill level', '4', { uses: 4 }),
+        answer(4, 'Yes Required', 'Yes', { uses: 7 }),
+        answer(5, 'What is your favorite Linux init system?', 'systemd', { kind: 'long' }),
+      ] }),
+    });
+    renderApp(<SavedAnswers />);
+    const common = await screen.findByRole('region', { name: 'Asked on most forms' });
+    expect(within(common).getByText('LinkedIn')).toBeInTheDocument();
+    expect(within(common).getByText('No')).toBeInTheDocument();
+    expect(within(common).queryByText('Skill level')).toBeNull();
+    expect(screen.getByRole('button', { name: /3 answers to one form's own questions/ })).toBeInTheDocument();
+    expect(screen.queryByText('systemd')).toBeNull();
   });
 });

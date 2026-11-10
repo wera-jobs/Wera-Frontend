@@ -249,7 +249,7 @@ function ProfileOverview() {
             </Card>
           </div>
           <div id="answers" className="scroll-mt-20">
-            <Card title="Saved answers" hint="What you answered on application forms. The Chrome extension offers these when a form asks the same question.">
+            <Card title="Saved answers" hint="What you answered on application forms. The Chrome extension gives the same answer when another form asks the same question.">
               <SavedAnswers />
             </Card>
           </div>
