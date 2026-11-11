@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.15.1...wera-frontend-v0.16.0) (2026-11-11)
+
+
+### Features
+
+* **analytics:** count page views and time on page without cookies ([d0db822](https://github.com/wera-jobs/Wera-Frontend/commit/d0db8225688b3cf11c83919aefd219205508e061))
+
 ## [0.15.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.15.0...wera-frontend-v0.15.1) (2026-11-11)
 
 
