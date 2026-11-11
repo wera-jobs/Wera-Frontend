@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.2](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.17.1...wera-frontend-v0.17.2) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** bump react-query, lucide-react and dev tooling ([67f7843](https://github.com/wera-jobs/Wera-Frontend/commit/67f7843d4838a70aa8a4e9d7b59a4831ab3b5c71))
+* **deps:** dependency updates from Dependabot ([4297345](https://github.com/wera-jobs/Wera-Frontend/commit/4297345c9029d917519f4f2efe5259b11bea60cb))
+
 ## [0.17.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.17.0...wera-frontend-v0.17.1) (2026-11-11)
 
 
