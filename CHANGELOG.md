@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.17.0...wera-frontend-v0.17.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** bump the production group with 2 updates ([4543f42](https://github.com/wera-jobs/Wera-Frontend/commit/4543f42309945640685699de90f9b29ac838305a))
+* **deps:** dependency updates from Dependabot ([b5aed81](https://github.com/wera-jobs/Wera-Frontend/commit/b5aed815e1cb71d7725f759463248ec57abcf102))
+
 ## [0.17.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.16.0...wera-frontend-v0.17.0) (2026-11-11)
 
 
