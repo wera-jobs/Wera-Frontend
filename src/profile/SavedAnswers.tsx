@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { LoaderCircle, Pencil, Search, Trash2 } from 'lucide-react';
+import { ChevronDown, LoaderCircle, Pencil, Search, Trash2 } from 'lucide-react';
 import { errorMessage } from '../api/client';
 import { useForgetAnswer, useSavedAnswers, useUpdateAnswer, type SavedAnswer } from '../api/extension';
 import { relTime } from '../lib/format';
 import { INPUT_CLS } from '../lib/styles';
 import { Skeleton } from '../components/States';
 import { toast } from '../lib/toast';
+import { isCommon } from './answerGroups';
 
 function AnswerRow({ a }: { a: SavedAnswer }) {
   const [editing, setEditing] = useState(false);
@@ -53,12 +54,15 @@ function AnswerRow({ a }: { a: SavedAnswer }) {
 
 /**
  * Answers the Chrome extension remembered from application forms, which it
- * offers the next time a form asks the same question. Edit or forget any.
+ * offers the next time a form asks the same question. The ones most forms
+ * ask come first; answers given once, to one form's own questions, wait
+ * under a fold. Edit or forget any.
  */
 export function SavedAnswers() {
   const q = useSavedAnswers();
   const forget = useForgetAnswer();
   const [filter, setFilter] = useState('');
+  const [more, setMore] = useState(false);
   // Arriving from the extension's "saved answers" link.
   const top = useRef<HTMLDivElement>(null);
   const ready = q.isSuccess;
@@ -72,7 +76,9 @@ export function SavedAnswers() {
     return <p className="text-xs text-muted">None yet. When you fill an application with the extension, the answers you give are kept here and offered on the next form that asks.</p>;
   }
   const needle = filter.trim().toLowerCase();
-  const shown = needle ? all.filter((a) => `${a.question} ${a.answer} ${a.company}`.toLowerCase().includes(needle)) : all;
+  const common = all.filter(isCommon).sort((a, b) => b.uses - a.uses);
+  const once = all.filter((a) => !isCommon(a));
+  const found = needle ? all.filter((a) => `${a.question} ${a.answer} ${a.company}`.toLowerCase().includes(needle)) : [];
   return (
     <div ref={top} className="space-y-3">
       <div className="flex items-center gap-2">
@@ -86,8 +92,32 @@ export function SavedAnswers() {
           Forget all
         </button>
       </div>
-      <ul className="space-y-2">{shown.map((a) => <AnswerRow key={a.id} a={a} />)}</ul>
-      {!shown.length && <p className="text-xs text-muted">No answer matches “{filter}”.</p>}
+      {needle ? (
+        <>
+          <ul className="space-y-2">{found.map((a) => <AnswerRow key={a.id} a={a} />)}</ul>
+          {!found.length && <p className="text-xs text-muted">No answer matches “{filter}”.</p>}
+        </>
+      ) : (
+        <>
+          {common.length > 0 && (
+            <section aria-label="Asked on most forms" className="space-y-2">
+              <h3 className="text-[11px] font-semibold tracking-wide text-muted uppercase">Asked on most forms ({common.length})</h3>
+              <ul className="space-y-2">{common.map((a) => <AnswerRow key={a.id} a={a} />)}</ul>
+            </section>
+          )}
+          {once.length > 0 && (
+            <section aria-label="Answered once" className="space-y-2">
+              <button type="button" aria-expanded={more} onClick={() => setMore((v) => !v)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                <ChevronDown className={`size-3.5 transition-transform ${more ? 'rotate-180' : ''}`} />
+                {once.length} answer{once.length === 1 ? '' : 's'} to one form's own questions
+              </button>
+              {more && <ul className="space-y-2">{once.map((a) => <AnswerRow key={a.id} a={a} />)}</ul>}
+              {!more && <p className="text-[11px] text-faint">Kept in case a form asks the same thing again. You don't need to look after them: change an answer on a form and Wera remembers the new one.</p>}
+            </section>
+          )}
+        </>
+      )}
     </div>
   );
 }

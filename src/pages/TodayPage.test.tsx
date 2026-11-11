@@ -9,11 +9,15 @@ import TodayPage from './TodayPage';
 
 const jobs = fixtures.today.jobs;
 const top = jobs[0];
+// The fixture's top pick, posted days ago whatever today's date: a posting up for months is not the top pick.
+const freshTop = { ...top, posted_at: new Date(Date.now() - 3 * 86_400_000).toISOString() };
+const freshJobs = [freshTop, ...jobs.slice(1)];
+const freshToday = { 'GET /api/today': () => ({ ...fixtures.today, jobs: freshJobs }) };
 const titles = () => screen.queryAllByRole('button', { name: / at / }).map((b) => b.getAttribute('aria-label'));
 
 describe('Today', () => {
   it('shows the top pick and 20 more, then 20 at a time', async () => {
-    stubApi();
+    stubApi(freshToday);
     renderApp(<TodayPage />);
     expect(await screen.findByRole('button', { name: `Top pick: ${top.title} at ${top.company}` })).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(21);
@@ -35,7 +39,7 @@ describe('Today', () => {
   });
 
   it('filters to strong fits from their tile, and back', async () => {
-    stubApi();
+    stubApi(freshToday);
     renderApp(<TodayPage />);
     const tile = await screen.findByRole('button', { name: /Strong fits \(80\+\)/ });
     await waitFor(() => expect(tile).toHaveTextContent('5'));
@@ -49,22 +53,22 @@ describe('Today', () => {
   });
 
   it('says so when a filter leaves nothing', async () => {
-    stubApi();
+    stubApi(freshToday);
     renderApp(<TodayPage />);
     await userEvent.click(await screen.findByRole('button', { name: /Sponsor visas/ }));
     expect(screen.getByText('No job that sponsors visas to review right now.')).toBeInTheDocument();
   });
 
   it('links applied this week to the tracker', async () => {
-    stubApi();
+    stubApi(freshToday);
     renderApp(<TodayPage />);
     expect(await screen.findByRole('link', { name: /Applied this week/ })).toHaveAttribute('href', '/tracker');
   });
 
   it('drops a dismissed job at once, and Undo brings it back', async () => {
     const sent: { method: string; body?: unknown }[] = [];
-    let list = jobs;
-    stubApi({
+    let list = freshJobs;
+    stubApi({ ...freshToday,
       'GET /api/today': () => ({ ...fixtures.today, jobs: list }),
       [`PUT /api/jobs/${top.id}/application`]: (init) => {
         sent.push({ method: 'PUT', body: jsonBody(init) });
@@ -73,8 +77,8 @@ describe('Today', () => {
       },
       [`DELETE /api/jobs/${top.id}/application`]: () => {
         sent.push({ method: 'DELETE' });
-        list = jobs;
-        return { ...top, application_status: null };
+        list = freshJobs;
+        return { ...freshTop, application_status: null };
       },
     });
     renderApp(
@@ -94,8 +98,8 @@ describe('Today', () => {
   });
 
   it('keeps browsing in the job view after the open job leaves the list', async () => {
-    let list = jobs;
-    stubApi({
+    let list = freshJobs;
+    stubApi({ ...freshToday,
       'GET /api/today': () => ({ ...fixtures.today, jobs: list }),
       [`PUT /api/jobs/${jobs[1].id}/application`]: () => {
         list = jobs.filter((j) => j.id !== jobs[1].id);
@@ -128,7 +132,7 @@ describe('Did you apply?', () => {
 
   it('asks after the user comes back from a posting, and marks it applied', async () => {
     const sent: unknown[] = [];
-    stubApi({
+    stubApi({ ...freshToday,
       [`PUT /api/jobs/${top.id}/application`]: (init) => {
         sent.push(jsonBody(init));
         return { ...top, application_status: 'applied' };
@@ -151,7 +155,7 @@ describe('Did you apply?', () => {
   });
 
   it('does not ask after a glance, or about a job already applied to', async () => {
-    stubApi({ [`GET /api/jobs/${top.id}`]: () => ({ ...fixtures.job, ...top, application_status: 'applied', deep: null }) });
+    stubApi({ ...freshToday, [`GET /api/jobs/${top.id}`]: () => ({ ...fixtures.job, ...top, application_status: 'applied', deep: null }) });
     renderApp(
       <>
         <TodayPage />
