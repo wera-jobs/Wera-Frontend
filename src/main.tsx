@@ -25,6 +25,7 @@ import TodayPage from './pages/TodayPage';
 import JobsPage from './pages/JobsPage';
 import { reloadForNewVersion } from './lib/lazyPage';
 import './index.css';
+import { PageTracker } from './lib/analytics';
 
 // A deploy replaced code this tab still links to (a page's shared chunk or
 // stylesheet): load the new version rather than break.
@@ -50,6 +51,7 @@ createRoot(document.getElementById('root')!).render(
       <QueryClientProvider client={queryClient}>
         <ExtensionBridge />
         <BrowserRouter>
+          <PageTracker />
           <Suspense fallback={<Boot />}>
             <Routes>
               <Route path="login" element={<AuthPage mode="login" />} />
