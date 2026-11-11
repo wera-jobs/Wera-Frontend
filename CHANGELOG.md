@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.16.0...wera-frontend-v0.17.0) (2026-11-11)
+
+
+### Features
+
+* **interview:** role tracks, work simulations and practice stats ([7e76d82](https://github.com/wera-jobs/Wera-Frontend/commit/7e76d82c83d496290e16d3b193e3c398175fb35a))
+
 ## [0.16.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.15.1...wera-frontend-v0.16.0) (2026-11-11)
 
 
