@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.15.0...wera-frontend-v0.15.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **profile:** show the questions most forms ask, fold the rest ([f3c3218](https://github.com/wera-jobs/Wera-Frontend/commit/f3c32188c6aad7dd07f08543b3392729e5361b6a))
+
 ## [0.15.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.14.0...wera-frontend-v0.15.0) (2026-11-06)
 
 
