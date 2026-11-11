@@ -51,7 +51,7 @@ describe('company and policy pages', () => {
   it('shows a policy with its date, sections, tables and links', async () => {
     render('privacy');
     expect(screen.getByRole('heading', { level: 1, name: 'Privacy policy' })).toBeInTheDocument();
-    expect(screen.getByText('Effective November 3, 2026')).toBeInTheDocument();
+    expect(screen.getByText('Effective November 11, 2026')).toBeInTheDocument();
     expect(await screen.findByRole('heading', { level: 2, name: 'The short version' })).toHaveAttribute('id', 'the-short-version');
     expect(screen.getAllByRole('table').length).toBeGreaterThan(1);
     expect(screen.getAllByRole('link', { name: 'cookie policy' })[0]).toHaveAttribute('href', '/cookies');

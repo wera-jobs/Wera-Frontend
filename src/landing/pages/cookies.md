@@ -1,4 +1,4 @@
-Wera keeps this short because we use very little. There are no advertising or analytics cookies, and no third-party trackers. Our fonts and scripts are served from our own site.
+Wera keeps this short because we use very little. There are no advertising or analytics cookies, and no third-party trackers. Our fonts and scripts are served from our own site. We count visits without cookies or browser storage (see the [privacy policy](/privacy)).
 
 ## Cookies
 

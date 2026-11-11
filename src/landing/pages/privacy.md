@@ -30,8 +30,9 @@ Wera ("Wera", "we", "us") is a job search service at wera-jobs.com, with a Chrom
 | Last-active time | To stop spending AI credits on inactive accounts |
 | AI usage and cost per account | To enforce spending limits |
 | IP address, used in memory to rate-limit sign-in and other actions, and kept briefly in our hosting providers' logs | To protect the service from abuse |
+| Pages visited on wera-jobs.com: the page (without anything that identifies you), the site you came from, campaign tags in the link, device type, browser, operating system, country, and how long the page was open | To count visits and improve the site |
 
-We do not use analytics or advertising trackers. See the [cookie policy](/cookies).
+We count visits ourselves, without cookies and without storing anything in your browser. A visitor is counted with a code made from your IP address, browser and a random value that changes every day and is then deleted, so we cannot tell who you are or follow you from one day to the next. We do not keep your IP address, link visits to your account, or share them with anyone. If your browser sends Do Not Track or Global Privacy Control, nothing is counted. Visit counts are deleted after 13 months. We use no advertising trackers and no third-party analytics. See the [cookie policy](/cookies).
 
 ### From the Chrome extension
 
