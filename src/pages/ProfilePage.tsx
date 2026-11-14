@@ -194,11 +194,7 @@ function ProfileOverview() {
   const [resumeChars, setResumeChars] = useState(0);
   const [dirty, setDirty] = useState(false);
 
-  // Load the saved profile into the form (again after each save).
-  const [loadedFrom, setLoadedFrom] = useState<typeof profile.data>(undefined);
-  if (profile.data && profile.data !== loadedFrom && !dirty) {
-    const p = profile.data;
-    setLoadedFrom(p);
+  const load = (p: NonNullable<typeof profile.data>) => {
     setPrefs(p.preferences);
     setAnswers(p.answers ?? {});
     setMarkdown(p.markdown);
@@ -288,7 +284,11 @@ function ProfileOverview() {
             <button
               type="button"
               onClick={() => {
+                // Back to what is saved, at once. A refetch that brings the same data
+                // changes nothing, so the form is put back from what is already here.
+                if (profile.data) load(profile.data);
                 setDirty(false);
+                save.reset();
                 void profile.refetch();
               }}
               className="rounded-lg px-3 py-2 text-xs text-muted hover:text-text"
