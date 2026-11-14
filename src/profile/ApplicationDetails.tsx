@@ -6,6 +6,7 @@ import { useApplicant, useSaveApplicant, useSuggestApplicant, type Applicant, ty
 import { INPUT_CLS } from '../lib/styles';
 import { Skeleton } from '../components/States';
 import { toast } from '../lib/toast';
+import { useUnsavedGuard } from '../lib/useUnsavedGuard';
 
 type Key = keyof Applicant;
 
@@ -148,15 +149,21 @@ export function ApplicationDetails() {
   const suggest = useSuggestApplicant();
   const [draft, setDraft] = useState<Applicant | null>(null);
   const [loadedFrom, setLoadedFrom] = useState<typeof q.data>(undefined);
-  if (q.data && q.data !== loadedFrom) {
+  // Edits not saved yet: what the user typed differs from what is saved.
+  const dirty = !!draft && !!loadedFrom && (Object.keys(draft) as Key[]).some((k) => (draft[k] ?? '') !== (loadedFrom.applicant[k] ?? ''));
+  // Load what is saved (again after each save), but never over edits in progress:
+  // a refetch in the background must not wipe what the user is typing.
+  if (q.data && q.data !== loadedFrom && !dirty) {
     setLoadedFrom(q.data);
     setDraft(q.data.applicant);
   }
+  useUnsavedGuard(dirty);
   // Arriving from the extension's "Edit your application details" link.
   const top = useRef<HTMLDivElement>(null);
   const ready = draft != null;
   useEffect(() => {
-    if (ready && window.location.hash === '#application') top.current?.scrollIntoView({ block: 'start' });
+    // The section's own wrapper keeps clear of the page header (scroll-mt): scroll to it, not to this form.
+    if (ready && window.location.hash === '#application') (document.getElementById('application') ?? top.current)?.scrollIntoView({ block: 'start' });
   }, [ready]);
   if (!draft) return <Skeleton className="h-64 w-full" />;
 
@@ -216,10 +223,22 @@ export function ApplicationDetails() {
         <p className="mt-0.5 text-xs text-faint">Forms that ask for each job or school (Workday, iCIMS and others) get these, most recent first. Change them by editing your resume.</p>
         <div className="mt-2.5"><FromResume jobs={q.data?.experience ?? []} schools={q.data?.education ?? []} /></div>
       </fieldset>
-      <div className="flex items-center justify-end gap-3">
-        {save.error && <span className="text-xs text-bad">{errorMessage(save.error, 'Save failed')}</span>}
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        {save.error ? <span className="text-xs text-bad">{errorMessage(save.error, 'Save failed')}</span>
+          : dirty && <span className="mr-auto text-xs text-warn" role="status">Application details have unsaved changes.</span>}
+        {dirty && (
+          <button type="button" onClick={() => { setDraft(loadedFrom.applicant); save.reset(); }} className="rounded-lg px-3 py-2 text-xs text-muted hover:text-text">
+            Discard
+          </button>
+        )}
         <button type="button" disabled={save.isPending}
-          onClick={() => save.mutate(draft, { onSuccess: () => toast.success('Application details saved.') })}
+          onClick={() => save.mutate(draft, {
+            onSuccess: () => {
+              // What was sent is what is saved now: the form is clean until the saved copy arrives.
+              setLoadedFrom((l) => (l ? { ...l, applicant: draft } : l));
+              toast.success('Application details saved.');
+            },
+          })}
           className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg hover:bg-accent/85 disabled:opacity-60">
           {save.isPending && <LoaderCircle className="size-4 animate-spin" />} Save details
         </button>
