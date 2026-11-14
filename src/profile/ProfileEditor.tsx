@@ -2,6 +2,9 @@ import { LoaderCircle, Sparkles } from 'lucide-react';
 import clsx from 'clsx';
 import { INPUT_CLS } from '../lib/styles';
 
+/** The most profile text the server saves (it is sent with every scoring call). */
+export const MAX_PROFILE_CHARS = 12000;
+
 /** The profile text the AI scores jobs against, with an AI draft button. */
 export function ProfileEditor({
   value,
@@ -50,7 +53,9 @@ export function ProfileEditor({
         placeholder={'# Candidate Profile\n\n## Target roles\n…'}
         className={clsx(INPUT_CLS, 'font-mono text-xs leading-relaxed', drafting && 'opacity-50')}
       />
-      <div className="text-right text-[11px] text-faint">{value.length.toLocaleString()} / 12,000</div>
+      <div className={clsx('text-right text-[11px]', value.length > MAX_PROFILE_CHARS ? 'font-medium text-bad' : 'text-faint')} role={value.length > MAX_PROFILE_CHARS ? 'alert' : undefined}>
+        {value.length.toLocaleString()} / {MAX_PROFILE_CHARS.toLocaleString()}{value.length > MAX_PROFILE_CHARS && ' · too long to save'}
+      </div>
     </div>
   );
 }
