@@ -25,7 +25,7 @@ function AnswerRow({ a }: { a: SavedAnswer }) {
         <button type="button" onClick={() => setEditing((v) => !v)} aria-label={`Edit the answer to ${a.question}`} className="rounded p-1 text-faint hover:text-text">
           <Pencil className="size-3.5" />
         </button>
-        <button type="button" disabled={forget.isPending} onClick={() => forget.mutate(a.id)} aria-label={`Forget the answer to ${a.question}`} className="rounded p-1 text-faint hover:text-bad">
+        <button type="button" disabled={forget.isPending} onClick={() => forget.mutate(a.id, { onError: (e) => toast.error(errorMessage(e, 'Could not forget the answer')) })} aria-label={`Forget the answer to ${a.question}`} className="rounded p-1 text-faint hover:text-bad">
           <Trash2 className="size-3.5" />
         </button>
       </div>
@@ -67,7 +67,8 @@ export function SavedAnswers() {
   const top = useRef<HTMLDivElement>(null);
   const ready = q.isSuccess;
   useEffect(() => {
-    if (ready && window.location.hash === '#answers') top.current?.scrollIntoView({ block: 'start' });
+    // The section's own wrapper keeps clear of the page header (scroll-mt): scroll to it, not to this list.
+    if (ready && window.location.hash === '#answers') (document.getElementById('answers') ?? top.current)?.scrollIntoView({ block: 'start' });
   }, [ready]);
   if (q.isPending) return <Skeleton className="h-32 w-full" />;
   if (q.isLoadingError) return <p className="text-xs text-bad">{errorMessage(q.error, 'Could not load your saved answers')}</p>;
@@ -87,7 +88,7 @@ export function SavedAnswers() {
           <input className={`${INPUT_CLS} pl-8`} value={filter} onChange={(e) => setFilter(e.target.value)} placeholder={`Search ${all.length} answers`} aria-label="Search saved answers" />
         </label>
         <button type="button" disabled={forget.isPending}
-          onClick={() => window.confirm('Forget every saved answer? The extension will ask again on the next forms.') && forget.mutate(undefined, { onSuccess: () => toast.success('Saved answers forgotten.') })}
+          onClick={() => window.confirm('Forget every saved answer? The extension will ask again on the next forms.') && forget.mutate(undefined, { onSuccess: () => toast.success('Saved answers forgotten.'), onError: (e) => toast.error(errorMessage(e, 'Could not forget the answers')) })}
           className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted hover:border-bad/40 hover:text-bad">
           Forget all
         </button>

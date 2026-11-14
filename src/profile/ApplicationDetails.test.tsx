@@ -66,4 +66,34 @@ describe('ApplicationDetails', () => {
     await userEvent.type(screen.getByLabelText('School'), 'SMU');
     expect(screen.getAllByText('from your resume')).toHaveLength(1);
   });
+
+  it('says when details are not saved, puts them back on Discard, and is clean again after saving', async () => {
+    stubApi({ 'PUT /api/applicant': (init) => ({ applicant: jsonBody(init), saved: true }) });
+    renderApp(<><ApplicationDetails /><Toasts /></>);
+    const title = await screen.findByLabelText('Current or last title');
+    expect(screen.queryByText(/unsaved changes/)).toBeNull();
+    await userEvent.type(title, ' II');
+    expect(screen.getByText('Application details have unsaved changes.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Discard' }));
+    expect(title).toHaveValue('SRE intern');
+    expect(screen.queryByText(/unsaved changes/)).toBeNull();
+    await userEvent.type(title, ' II');
+    await userEvent.click(screen.getByRole('button', { name: 'Save details' }));
+    expect(await screen.findByText('Application details saved.')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByText(/unsaved changes/)).toBeNull());
+    expect(title).toHaveValue('SRE intern II');
+  });
+
+  it('keeps what the user is typing when the saved copy is read again in the background', async () => {
+    let city = 'Austin';
+    stubApi({ 'GET /api/applicant': () => ({ applicant: { ...applicant, city }, saved: true }) });
+    const { client } = renderApp(<ApplicationDetails />);
+    const title = await screen.findByLabelText('Current or last title');
+    await userEvent.type(title, ' II');
+    // The server's copy changed elsewhere (the extension learned a detail), and the page reads it again.
+    city = 'Dallas';
+    await client.invalidateQueries({ queryKey: ['applicant'] });
+    await waitFor(() => expect(client.getQueryData<{ applicant: { city: string } }>(['applicant'])?.applicant.city).toBe('Dallas'));
+    expect(title).toHaveValue('SRE intern II');
+  });
 });

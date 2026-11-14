@@ -111,7 +111,11 @@ export function ResumeUpload({
             type="file"
             accept="application/pdf,.pdf"
             className="hidden"
-            onChange={(e) => pick(e.target.files)}
+            onChange={(e) => {
+              pick(e.target.files);
+              // So choosing the same file again (after an error, or a fixed PDF of the same name) is noticed.
+              e.target.value = '';
+            }}
           />
           <div className="text-[11px] text-faint">PDF, up to 5 MB. Only the text is kept.</div>
         </div>

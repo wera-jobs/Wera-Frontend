@@ -168,6 +168,37 @@ describe('other pages', () => {
   });
 
 
+  it('Profile: Discard puts the form back to what is saved', async () => {
+    stubApi();
+    renderApp(<ProfilePage />);
+    const text = await screen.findByLabelText('Profile text');
+    const saved = (text as HTMLTextAreaElement).value;
+    await userEvent.type(text, ' and more');
+    expect(await screen.findByText('You have unsaved changes.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Discard' }));
+    expect(text).toHaveValue(saved);
+    expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull();
+  });
+
+  it('Profile: text over the limit cannot be saved, and says by how much', async () => {
+    stubApi();
+    renderApp(<ProfilePage />);
+    const text = await screen.findByLabelText('Profile text');
+    fireEvent.change(text, { target: { value: 'x'.repeat(12_050) } });
+    expect(await screen.findByText(/50 characters over the limit/)).toBeInTheDocument();
+    expect(screen.getByText(/too long to save/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled();
+  });
+
+  it('Profile: the text jobs are scored against comes right after what the user wants', async () => {
+    stubApi();
+    renderApp(<ProfilePage />);
+    await screen.findByLabelText('Profile text');
+    const titles = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    expect(titles.slice(0, 4)).toEqual(['What you want', 'Profile text', 'Application details', 'Saved answers']);
+    expect(within(screen.getByRole('navigation', { name: 'On this page' })).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['#want', '#text', '#application', '#answers']);
+  });
+
   it('Profile shows the photo controls and the resume', async () => {
     stubApi();
     renderApp(<ProfilePage />);

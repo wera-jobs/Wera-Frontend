@@ -4,7 +4,7 @@
 // questions from the domains that role's loop weighs, leaning toward the
 // stack the user picks. Jobs the user is interviewing for sit on top with
 // the topics Wera expects, a click from practicing for them.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import {
@@ -20,6 +20,7 @@ import { Quiz } from '../components/interview/Quiz';
 import { PersonMark, ScenarioPlayer } from '../components/interview/ScenarioPlayer';
 import { DifficultyPill } from '../components/interview/bits';
 import { tagLabel } from '../components/interview/text';
+import { errorMessage } from '../api/client';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
 const DIFFS: { value: Difficulty | ''; label: string }[] = [
@@ -48,8 +49,13 @@ function rememberTrack(id: string) {
 }
 
 function TrackBar({ tracks, value, suggested, onChange }: { tracks: Track[]; value: string; suggested: string; onChange: (id: string) => void }) {
+  // On a phone the roles scroll sideways: the chosen one is brought into view, not left off screen.
+  const bar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    bar.current?.querySelector('[aria-checked="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'center' });
+  }, [value]);
   return (
-    <div role="radiogroup" aria-label="Role" className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
+    <div ref={bar} role="radiogroup" aria-label="Role" className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
       {tracks.map((t) => {
         const on = t.id === value;
         return (
@@ -288,12 +294,23 @@ export default function InterviewPage() {
   const track = list.find((t) => t.id === trackId);
   const sim = sp.get('sim');
 
+  // Opening a simulation or a round is a step in the history, so the browser's Back
+  // returns to the practice page. Closing one replaces that step: Back does not reopen it.
   const setParam = (k: string, v: string | null) => {
     const next = new URLSearchParams(sp);
     if (v) next.set(k, v);
     else next.delete(k);
-    setSp(next, { replace: k === 'track' });
+    setSp(next, { replace: k === 'track' || v === null });
   };
+  const round = sp.get('round') === '1';
+  // A round lives in this page's memory: a reload, or a link to one, has none to show.
+  const stale = round && !quiz?.length;
+  useEffect(() => {
+    if (!stale) return;
+    const next = new URLSearchParams(sp);
+    next.delete('round');
+    setSp(next, { replace: true });
+  }, [stale, sp, setSp]);
   const pickTrack = (id: string) => {
     rememberTrack(id);
     setParam('track', id);
@@ -313,10 +330,10 @@ export default function InterviewPage() {
       </div>
     );
   }
-  if (quiz?.length) {
+  if (quiz?.length && round) {
     return (
       <div className="mx-auto max-w-2xl pb-10">
-        <Quiz key={quiz[0].id} questions={quiz} onDone={() => setQuiz(null)} />
+        <Quiz key={quiz[0].id} questions={quiz} onDone={() => { setQuiz(null); setParam('round', null); }} />
       </div>
     );
   }
@@ -341,8 +358,14 @@ export default function InterviewPage() {
       <Upcoming onPractice={pickTrack} />
       {sims.isLoading ? <Skeleton className="h-56 w-full" /> : <Simulations sims={s} track={track} onOpen={(id) => setParam('sim', id)} />}
       <Rounds key={track.id} track={track} domains={d} practice={domains.data?.practice} starting={start.isPending}
-        onStart={(v) => start.mutate({ ...v, track: track.id }, { onSuccess: (r) => setQuiz(r.questions) })} />
-      {quiz && !quiz.length && <p className="text-sm text-muted">No questions match that choice yet. Try another difficulty or stack.</p>}
+        onStart={(v) => start.mutate({ ...v, track: track.id }, {
+          onSuccess: (r) => {
+            setQuiz(r.questions);
+            if (r.questions.length) setParam('round', '1');
+          },
+        })} />
+      {start.isError ? <p role="alert" className="text-sm text-bad">{errorMessage(start.error, 'Could not start a round. Check your connection and try again.')}</p>
+        : quiz && !quiz.length && <p role="status" className="text-sm text-muted">No questions match that choice yet. Try another difficulty or stack.</p>}
     </div>
   );
 }

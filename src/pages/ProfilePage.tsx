@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { ArrowRight, Camera, Download, FileText, LoaderCircle, Save, UserRound } from 'lucide-react';
@@ -11,7 +11,8 @@ import { ErrorState, Skeleton } from '../components/States';
 import { money, relTime } from '../lib/format';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { ProfileEditor } from '../profile/ProfileEditor';
+import { useUnsavedGuard } from '../lib/useUnsavedGuard';
+import { MAX_PROFILE_CHARS, ProfileEditor } from '../profile/ProfileEditor';
 import { DEFAULT_PREFS, PreferencesFields, prefsProblem } from '../profile/PreferencesFields';
 import { ResumeUpload } from '../profile/ResumeUpload';
 import { ApplicationDetails } from '../profile/ApplicationDetails';
@@ -151,6 +152,35 @@ function ResumeCard({ resumeChars, onUploaded }: { resumeChars: number; onUpload
   );
 }
 
+const SECTIONS = [
+  ['want', 'What you want'],
+  ['text', 'Profile text'],
+  ['application', 'Application details'],
+  ['answers', 'Saved answers'],
+] as const;
+
+/** The page is long: a line of links to its sections, and what the first two do. */
+function SectionLinks() {
+  return (
+    <div className="-mt-2 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-xs">
+      <nav aria-label="On this page" className="flex flex-wrap gap-1">
+        {SECTIONS.map(([id, label]) => (
+          <a key={id} href={`#${id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+              window.history.replaceState(window.history.state, '', `#${id}`);
+            }}
+            className="rounded-full border border-border bg-surface px-2.5 py-1 font-medium text-muted hover:border-accent/40 hover:text-text">
+            {label}
+          </a>
+        ))}
+      </nav>
+      <p className="text-muted sm:ml-auto">What you want and the profile text decide your matches. Saving them rematches your jobs.</p>
+    </div>
+  );
+}
+
 function ProfileTabs() {
   const tab = ({ isActive }: { isActive: boolean }) =>
     clsx(
@@ -194,16 +224,28 @@ function ProfileOverview() {
   const [resumeChars, setResumeChars] = useState(0);
   const [dirty, setDirty] = useState(false);
 
-  // Load the saved profile into the form (again after each save).
-  const [loadedFrom, setLoadedFrom] = useState<typeof profile.data>(undefined);
-  if (profile.data && profile.data !== loadedFrom && !dirty) {
-    const p = profile.data;
-    setLoadedFrom(p);
+  const load = (p: NonNullable<typeof profile.data>) => {
     setPrefs(p.preferences);
     setAnswers(p.answers ?? {});
     setMarkdown(p.markdown);
     setResumeChars(p.resume_chars);
+  };
+  // Load the saved profile into the form (again after each save).
+  const [loadedFrom, setLoadedFrom] = useState<typeof profile.data>(undefined);
+  if (profile.data && profile.data !== loadedFrom && !dirty) {
+    setLoadedFrom(profile.data);
+    load(profile.data);
   }
+  // Leaving with edits not saved asks first.
+  useUnsavedGuard(dirty);
+  // A link to a section of this page (/profile#text): the page loads after the browser
+  // looked for the anchor, so go there once the form is up. The two sections lower down
+  // go to theirs when their own data has arrived (they grow as it does).
+  const loaded = !!profile.data;
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (loaded && (id === 'want' || id === 'text')) document.getElementById(id)?.scrollIntoView({ block: 'start' });
+  }, [loaded]);
 
   const edit =
     <T,>(set: (v: T) => void) =>
@@ -215,7 +257,9 @@ function ProfileOverview() {
   if (profile.isLoading) return <Skeleton className="h-96 w-full" />;
   if (profile.isLoadingError) return <ErrorState message={String(profile.error)} onRetry={() => void profile.refetch()} />;
 
-  const problem = prefsProblem(prefs) ?? (markdown.trim() === '' ? 'The profile text is empty.' : null);
+  const problem = prefsProblem(prefs)
+    ?? (markdown.trim() === '' ? 'The profile text is empty.' : null)
+    ?? (markdown.length > MAX_PROFILE_CHARS ? `The profile text is ${(markdown.length - MAX_PROFILE_CHARS).toLocaleString()} characters over the limit. Shorten it to save.` : null);
   const onSave = () =>
     save.mutate(
       { markdown, preferences: prefs, answers },
@@ -231,18 +275,41 @@ function ProfileOverview() {
     <div className="space-y-5 pb-20">
       <ProfileHeader />
       <ProfileTabs />
-      <p className="-mt-2 text-xs text-muted">Changes to what you want or to the profile text rematch your jobs.</p>
+      <SectionLinks />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
-          <Card title="What you want">
-            <PreferencesFields
-              prefs={prefs}
-              answers={answers}
-              onPrefs={edit(setPrefs)}
-              onAnswers={edit(setAnswers)}
-            />
-          </Card>
+          <div id="want" className="scroll-mt-20">
+            <Card title="What you want">
+              <PreferencesFields
+                prefs={prefs}
+                answers={answers}
+                onPrefs={edit(setPrefs)}
+                onAnswers={edit(setAnswers)}
+              />
+            </Card>
+          </div>
+          <div id="text" className="scroll-mt-20">
+            <Card title="Profile text">
+              <ProfileEditor
+                value={markdown}
+                onChange={edit(setMarkdown)}
+                onDraft={() =>
+                  draft.mutate(
+                    { preferences: prefs, answers },
+                    {
+                      onSuccess: (r) => {
+                        setMarkdown(r.markdown);
+                        setDirty(true);
+                      },
+                    },
+                  )
+                }
+                drafting={draft.isPending}
+                draftError={errorOrNull(draft.error)}
+              />
+            </Card>
+          </div>
           <div id="application" className="scroll-mt-20">
             <Card title="Application details" hint="Filled into job applications by the Chrome extension.">
               <ApplicationDetails />
@@ -253,25 +320,6 @@ function ProfileOverview() {
               <SavedAnswers />
             </Card>
           </div>
-          <Card title="Profile text">
-            <ProfileEditor
-              value={markdown}
-              onChange={edit(setMarkdown)}
-              onDraft={() =>
-                draft.mutate(
-                  { preferences: prefs, answers },
-                  {
-                    onSuccess: (r) => {
-                      setMarkdown(r.markdown);
-                      setDirty(true);
-                    },
-                  },
-                )
-              }
-              drafting={draft.isPending}
-              draftError={errorOrNull(draft.error)}
-            />
-          </Card>
         </div>
         <div className="space-y-5 lg:sticky lg:top-20 lg:self-start">
           <ResumeCard resumeChars={resumeChars} onUploaded={setResumeChars} />
@@ -280,15 +328,19 @@ function ProfileOverview() {
       </div>
 
       {dirty && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/90 backdrop-blur lg:pl-56">
-          <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 px-4 py-3 md:px-6">
-            {(problem || save.error) && (
-              <span className="text-xs text-warn">{problem ?? errorOrNull(save.error)}</span>
-            )}
+        <div className="fixed inset-x-0 bottom-[calc(3.6rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-bg/90 backdrop-blur lg:bottom-0 lg:pl-56">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-end gap-x-3 gap-y-1 px-4 py-3 md:px-6">
+            <span className={clsx('mr-auto min-w-0 text-xs', problem || save.error ? 'text-warn' : 'text-muted')} role="status">
+              {problem ?? errorOrNull(save.error) ?? 'You have unsaved changes.'}
+            </span>
             <button
               type="button"
               onClick={() => {
+                // Back to what is saved, at once. A refetch that brings the same data
+                // changes nothing, so the form is put back from what is already here.
+                if (profile.data) load(profile.data);
                 setDirty(false);
+                save.reset();
                 void profile.refetch();
               }}
               className="rounded-lg px-3 py-2 text-xs text-muted hover:text-text"
