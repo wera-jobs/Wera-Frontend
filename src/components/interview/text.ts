@@ -26,3 +26,20 @@ const TAG_LABELS: Record<string, string> = {
 export function tagLabel(tag: string) {
   return TAG_LABELS[tag] ?? tag.charAt(0).toUpperCase() + tag.slice(1);
 }
+
+/**
+ * What a key press means in a round or a simulation: the index of a reply
+ * (A to D), 'next', or null. Shortcuts with Ctrl, Cmd or Alt are the
+ * browser's (Ctrl+C copies the question, it does not pick C), a held key
+ * does not answer the next question too, typing in a field is typing, and
+ * Enter on a button or link is that control's own press.
+ */
+export function practiceKey(e: KeyboardEvent): number | 'next' | null {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return null;
+  const t = e.target instanceof HTMLElement ? e.target : null;
+  if (t?.closest('input, textarea, select, [contenteditable="true"]')) return null;
+  if (e.key === 'ArrowRight') return 'next';
+  if (e.key === 'Enter') return t?.closest('button, a') ? null : 'next';
+  const n = e.key.length === 1 ? 'abcd'.indexOf(e.key.toLowerCase()) : -1;
+  return n >= 0 ? n : null;
+}

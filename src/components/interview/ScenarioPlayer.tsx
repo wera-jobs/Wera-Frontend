@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, Lightbulb, LoaderCircle, Mail, RotateCcw } from 
 import { useAnswerStep, useScenario, type Person, type ScenarioDetail, type StepReveal } from '../../api/interview';
 import { ErrorState, Skeleton } from '../States';
 import { DifficultyPill } from './bits';
-import { RATING, verdict } from './text';
+import { RATING, practiceKey, verdict } from './text';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -76,10 +76,10 @@ function Run({ id, data, onDone }: { id: string; data: ScenarioDetail; onDone: (
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (finished || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement) return;
-      const n = 'abcd'.indexOf(e.key.toLowerCase());
-      if (n >= 0 && !shown) choose(n);
-      if ((e.key === 'Enter' || e.key === 'ArrowRight') && shown) next();
+      if (finished) return;
+      const k = practiceKey(e);
+      if (typeof k === 'number' && !shown && k < (step?.choices.length ?? 0)) choose(k);
+      if (k === 'next' && shown) next();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
