@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { ArrowRight, Camera, Download, FileText, LoaderCircle, Save, UserRound } from 'lucide-react';
@@ -152,6 +152,35 @@ function ResumeCard({ resumeChars, onUploaded }: { resumeChars: number; onUpload
   );
 }
 
+const SECTIONS = [
+  ['want', 'What you want'],
+  ['text', 'Profile text'],
+  ['application', 'Application details'],
+  ['answers', 'Saved answers'],
+] as const;
+
+/** The page is long: a line of links to its sections, and what the first two do. */
+function SectionLinks() {
+  return (
+    <div className="-mt-2 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-xs">
+      <nav aria-label="On this page" className="flex flex-wrap gap-1">
+        {SECTIONS.map(([id, label]) => (
+          <a key={id} href={`#${id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+              window.history.replaceState(window.history.state, '', `#${id}`);
+            }}
+            className="rounded-full border border-border bg-surface px-2.5 py-1 font-medium text-muted hover:border-accent/40 hover:text-text">
+            {label}
+          </a>
+        ))}
+      </nav>
+      <p className="text-muted sm:ml-auto">What you want and the profile text decide your matches. Saving them rematches your jobs.</p>
+    </div>
+  );
+}
+
 function ProfileTabs() {
   const tab = ({ isActive }: { isActive: boolean }) =>
     clsx(
@@ -246,18 +275,41 @@ function ProfileOverview() {
     <div className="space-y-5 pb-20">
       <ProfileHeader />
       <ProfileTabs />
-      <p className="-mt-2 text-xs text-muted">Changes to what you want or to the profile text rematch your jobs.</p>
+      <SectionLinks />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
-          <Card title="What you want">
-            <PreferencesFields
-              prefs={prefs}
-              answers={answers}
-              onPrefs={edit(setPrefs)}
-              onAnswers={edit(setAnswers)}
-            />
-          </Card>
+          <div id="want" className="scroll-mt-20">
+            <Card title="What you want">
+              <PreferencesFields
+                prefs={prefs}
+                answers={answers}
+                onPrefs={edit(setPrefs)}
+                onAnswers={edit(setAnswers)}
+              />
+            </Card>
+          </div>
+          <div id="text" className="scroll-mt-20">
+            <Card title="Profile text">
+              <ProfileEditor
+                value={markdown}
+                onChange={edit(setMarkdown)}
+                onDraft={() =>
+                  draft.mutate(
+                    { preferences: prefs, answers },
+                    {
+                      onSuccess: (r) => {
+                        setMarkdown(r.markdown);
+                        setDirty(true);
+                      },
+                    },
+                  )
+                }
+                drafting={draft.isPending}
+                draftError={errorOrNull(draft.error)}
+              />
+            </Card>
+          </div>
           <div id="application" className="scroll-mt-20">
             <Card title="Application details" hint="Filled into job applications by the Chrome extension.">
               <ApplicationDetails />
@@ -268,25 +320,6 @@ function ProfileOverview() {
               <SavedAnswers />
             </Card>
           </div>
-          <Card title="Profile text">
-            <ProfileEditor
-              value={markdown}
-              onChange={edit(setMarkdown)}
-              onDraft={() =>
-                draft.mutate(
-                  { preferences: prefs, answers },
-                  {
-                    onSuccess: (r) => {
-                      setMarkdown(r.markdown);
-                      setDirty(true);
-                    },
-                  },
-                )
-              }
-              drafting={draft.isPending}
-              draftError={errorOrNull(draft.error)}
-            />
-          </Card>
         </div>
         <div className="space-y-5 lg:sticky lg:top-20 lg:self-start">
           <ResumeCard resumeChars={resumeChars} onUploaded={setResumeChars} />
