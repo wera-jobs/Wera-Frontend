@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.18.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.17.2...wera-frontend-v0.18.0) (2026-11-14)
+
+
+### Features
+
+* **profile:** ask before leaving with unsaved edits, and show when details are unsaved ([4534920](https://github.com/wera-jobs/Wera-Frontend/commit/45349206e4afac665da6c89999024f44443aa0d1))
+* **profile:** put the profile text after what you want, with links to each section ([18d4049](https://github.com/wera-jobs/Wera-Frontend/commit/18d40490eb5e39346e01f4be248142d0f89d0afb))
+
+
+### Bug Fixes
+
+* **interview:** keep Back on the practice page, and say when a round cannot start ([0b8dbf3](https://github.com/wera-jobs/Wera-Frontend/commit/0b8dbf3f7b8781977001f193560d05da1c067a5e))
+* **interview:** leave browser shortcuts alone and recover when an answer is not saved ([e32a298](https://github.com/wera-jobs/Wera-Frontend/commit/e32a298a7bb1f09292dcb366a92afde7226f4576))
+* **profile:** put the form back to what is saved on Discard ([b49fcb2](https://github.com/wera-jobs/Wera-Frontend/commit/b49fcb209fb52f2faebc26f57c0bd0d1c04d9494))
+* **profile:** refuse profile text over the limit before saving ([343f4a8](https://github.com/wera-jobs/Wera-Frontend/commit/343f4a8aefe1860687be09d55947ef2fa68e043a))
+* **profile:** take the same resume file again, and say when an answer could not be forgotten ([838183e](https://github.com/wera-jobs/Wera-Frontend/commit/838183e7f4d839f51897a300596fdd7f18cd6b1e))
+
 ## [0.17.2](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.17.1...wera-frontend-v0.17.2) (2026-11-11)
 
 
