@@ -200,7 +200,23 @@ function ProfileOverview() {
     setAnswers(p.answers ?? {});
     setMarkdown(p.markdown);
     setResumeChars(p.resume_chars);
+  };
+  // Load the saved profile into the form (again after each save).
+  const [loadedFrom, setLoadedFrom] = useState<typeof profile.data>(undefined);
+  if (profile.data && profile.data !== loadedFrom && !dirty) {
+    setLoadedFrom(profile.data);
+    load(profile.data);
   }
+  // Leaving with edits not saved asks first.
+  useUnsavedGuard(dirty);
+  // A link to a section of this page (/profile#text): the page loads after the browser
+  // looked for the anchor, so go there once the form is up. The two sections lower down
+  // go to theirs when their own data has arrived (they grow as it does).
+  const loaded = !!profile.data;
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (loaded && (id === 'want' || id === 'text')) document.getElementById(id)?.scrollIntoView({ block: 'start' });
+  }, [loaded]);
 
   const edit =
     <T,>(set: (v: T) => void) =>
@@ -279,11 +295,11 @@ function ProfileOverview() {
       </div>
 
       {dirty && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-bg/90 backdrop-blur lg:pl-56">
-          <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 px-4 py-3 md:px-6">
-            {(problem || save.error) && (
-              <span className="text-xs text-warn">{problem ?? errorOrNull(save.error)}</span>
-            )}
+        <div className="fixed inset-x-0 bottom-[calc(3.6rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-bg/90 backdrop-blur lg:bottom-0 lg:pl-56">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-end gap-x-3 gap-y-1 px-4 py-3 md:px-6">
+            <span className={clsx('mr-auto min-w-0 text-xs', problem || save.error ? 'text-warn' : 'text-muted')} role="status">
+              {problem ?? errorOrNull(save.error) ?? 'You have unsaved changes.'}
+            </span>
             <button
               type="button"
               onClick={() => {
