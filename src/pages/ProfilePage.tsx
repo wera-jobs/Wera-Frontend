@@ -11,7 +11,8 @@ import { ErrorState, Skeleton } from '../components/States';
 import { money, relTime } from '../lib/format';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
-import { ProfileEditor } from '../profile/ProfileEditor';
+import { useUnsavedGuard } from '../lib/useUnsavedGuard';
+import { MAX_PROFILE_CHARS, ProfileEditor } from '../profile/ProfileEditor';
 import { DEFAULT_PREFS, PreferencesFields, prefsProblem } from '../profile/PreferencesFields';
 import { ResumeUpload } from '../profile/ResumeUpload';
 import { ApplicationDetails } from '../profile/ApplicationDetails';
@@ -211,7 +212,9 @@ function ProfileOverview() {
   if (profile.isLoading) return <Skeleton className="h-96 w-full" />;
   if (profile.isLoadingError) return <ErrorState message={String(profile.error)} onRetry={() => void profile.refetch()} />;
 
-  const problem = prefsProblem(prefs) ?? (markdown.trim() === '' ? 'The profile text is empty.' : null);
+  const problem = prefsProblem(prefs)
+    ?? (markdown.trim() === '' ? 'The profile text is empty.' : null)
+    ?? (markdown.length > MAX_PROFILE_CHARS ? `The profile text is ${(markdown.length - MAX_PROFILE_CHARS).toLocaleString()} characters over the limit. Shorten it to save.` : null);
   const onSave = () =>
     save.mutate(
       { markdown, preferences: prefs, answers },
