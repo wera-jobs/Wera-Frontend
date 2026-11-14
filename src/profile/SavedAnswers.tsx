@@ -67,7 +67,8 @@ export function SavedAnswers() {
   const top = useRef<HTMLDivElement>(null);
   const ready = q.isSuccess;
   useEffect(() => {
-    if (ready && window.location.hash === '#answers') top.current?.scrollIntoView({ block: 'start' });
+    // The section's own wrapper keeps clear of the page header (scroll-mt): scroll to it, not to this list.
+    if (ready && window.location.hash === '#answers') (document.getElementById('answers') ?? top.current)?.scrollIntoView({ block: 'start' });
   }, [ready]);
   if (q.isPending) return <Skeleton className="h-32 w-full" />;
   if (q.isLoadingError) return <p className="text-xs text-bad">{errorMessage(q.error, 'Could not load your saved answers')}</p>;
