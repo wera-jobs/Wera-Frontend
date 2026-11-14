@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { trackForTitle, quizQuery } from '../api/interview';
+import { practiceKey } from '../components/interview/text';
 import { jsonBody, mockApi, renderApp } from '../test/render';
 import InterviewPage from './InterviewPage';
 
@@ -119,6 +120,66 @@ describe('InterviewPage', () => {
     expect(fetchMock.mock.calls.filter(([u]) => (u as string | URL).toString().includes('/answer'))).toHaveLength(2);
   });
 
+  it('ends a round with what was missed: the question, the pick, the answer and why', async () => {
+    routes({
+      'GET /api/interview/quiz': () => ({ questions }),
+      'POST /api/interview/questions/1/answer': () => ({ correct: true, answer: 1, explanation: 'Indexes find rows fast.' }),
+      'POST /api/interview/questions/2/answer': () => ({ correct: false, answer: 1, explanation: 'Close with the result.' }),
+    });
+    renderApp(<InterviewPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Lookups/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Next/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Reflection/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Finish/ }));
+    const missed = within(await screen.findByRole('region', { name: 'What you missed (1)' }));
+    expect(missed.getByText('What does R stand for in STAR?')).toBeInTheDocument();
+    expect(missed.getByText('Reflection')).toBeInTheDocument();
+    expect(missed.getByText('Result')).toBeInTheDocument();
+    expect(missed.getByText('Close with the result.')).toBeInTheDocument();
+    // The question answered right is not listed.
+    expect(missed.queryByText('What does an index speed up?')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /Back to practice/ }));
+    expect(await screen.findByRole('heading', { name: 'Question rounds' })).toBeInTheDocument();
+  });
+
+  it('leaves browser shortcuts alone: Ctrl+C copies, it does not pick C', async () => {
+    const fetchMock = routes({ 'GET /api/interview/quiz': () => ({ questions }) });
+    renderApp(<InterviewPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    await screen.findByText('What does an index speed up?');
+    await userEvent.keyboard('{Control>}c{/Control}');
+    await userEvent.keyboard('{Meta>}a{/Meta}');
+    await userEvent.keyboard('{Alt>}d{/Alt}');
+    expect(fetchMock.mock.calls.some(([u]) => (u as string | URL).toString().includes('/answer'))).toBe(false);
+    expect(screen.getByRole('button', { name: /Backups/ })).toBeEnabled();
+  });
+
+  it('opens the question again when an answer could not be saved, and says so', async () => {
+    let fail = true;
+    routes({
+      'GET /api/interview/quiz': () => ({ questions }),
+      'POST /api/interview/questions/1/answer': () => (fail ? new Response('{"error":"down"}', { status: 503 }) : { correct: true, answer: 1, explanation: 'Indexes find rows fast.' }),
+    });
+    renderApp(<InterviewPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Lookups/ }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Could not save your answer/);
+    // Not stuck: the choices take a press again.
+    fail = false;
+    await userEvent.click(screen.getByRole('button', { name: /Lookups/ }));
+    expect(await screen.findByText('Correct')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('says so when a round cannot start', async () => {
+    routes({ 'GET /api/interview/quiz': () => new Response('{"error":"down"}', { status: 503 }) });
+    renderApp(<InterviewPage />);
+    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Start 10 questions/ })).toBeEnabled();
+  });
+
   it('plays a simulation: read the email, reply, see every rating and the debrief', async () => {
     const sent: unknown[] = [];
     routes({
@@ -186,6 +247,26 @@ describe('InterviewPage', () => {
 });
 
 describe('interview helpers', () => {
+  it('reads a key press as a reply, next, or nothing', () => {
+    const key = (init: KeyboardEventInit, target: HTMLElement = document.body) => {
+      const e = new KeyboardEvent('keydown', { bubbles: true, ...init });
+      Object.defineProperty(e, 'target', { value: target });
+      return practiceKey(e);
+    };
+    expect(key({ key: 'b' })).toBe(1);
+    expect(key({ key: 'D' })).toBe(3);
+    expect(key({ key: 'Enter' })).toBe('next');
+    expect(key({ key: 'ArrowRight' })).toBe('next');
+    expect(key({ key: 'c', ctrlKey: true })).toBeNull();
+    expect(key({ key: 'a', metaKey: true })).toBeNull();
+    expect(key({ key: 'a', repeat: true })).toBeNull();
+    expect(key({ key: 'e' })).toBeNull();
+    // Typing in a field is typing, and Enter on a button is that button's press.
+    expect(key({ key: 'a' }, document.createElement('textarea'))).toBeNull();
+    expect(key({ key: 'Enter' }, document.createElement('button'))).toBeNull();
+    expect(key({ key: 'a' }, document.createElement('button'))).toBe(0);
+  });
+
   it('maps job titles to tracks', () => {
     expect(trackForTitle('Senior Backend Engineer')).toBe('backend');
     expect(trackForTitle('Software Engineer II')).toBe('backend');
