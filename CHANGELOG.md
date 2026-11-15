@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.18.0...wera-frontend-v0.19.0) (2026-11-15)
+
+
+### Features
+
+* **interview:** reorganize the practice page into one screen ([fe1eb94](https://github.com/wera-jobs/Wera-Frontend/commit/fe1eb9485b3bfdfec0da9f8687b5c74d354f2e91))
+
 ## [0.18.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.17.2...wera-frontend-v0.18.0) (2026-11-14)
 
 
