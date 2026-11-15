@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.19.0...wera-frontend-v0.20.0) (2026-11-15)
+
+
+### Features
+
+* **interview:** redesign the practice page around one next step ([9ad39de](https://github.com/wera-jobs/Wera-Frontend/commit/9ad39deea5a59220303063a74a44f2e15afd835b))
+
 ## [0.19.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.18.0...wera-frontend-v0.19.0) (2026-11-15)
 
 
