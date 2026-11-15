@@ -56,7 +56,7 @@ test('a new user from sign-up to account deletion', async ({ page }) => {
 
   // Interview practice: answer one question and get an explanation.
   await page.goto('/interview');
-  await page.getByRole('button', { name: /Start 10 questions/ }).click();
+  await page.getByRole('button', { name: 'Start 10 questions: All topics' }).click();
   await page.getByRole('button', { name: /^A/ }).first().click();
   await expect(page.getByText(/Correct|Not quite/)).toBeVisible();
 
