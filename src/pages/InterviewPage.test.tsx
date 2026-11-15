@@ -72,6 +72,13 @@ describe('InterviewPage', () => {
     const backend = await screen.findByRole('radio', { name: /Backend engineer/ });
     expect(backend).toHaveAttribute('aria-checked', 'true');
     expect(within(backend).getByText('For you')).toBeInTheDocument();
+    // Where the user stands is one strip of four figures, not four cards.
+    const stats = within(screen.getByLabelText('Your practice'));
+    expect(stats.getAllByRole('term').map((t) => t.textContent)).toEqual(['Day streak', 'This week', 'Accuracy', 'Simulations']);
+    // The topics of a round are one list, with the whole track first and chosen.
+    const topics = within(screen.getByRole('group', { name: 'Topic' })).getAllByRole('button');
+    expect(topics.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
+    expect(topics[0]).toHaveTextContent('All topics');
     expect(screen.getByText('3')).toBeInTheDocument(); // the streak
     expect(screen.getByText('50%')).toBeInTheDocument(); // 1 of 2 in the track's domains
     expect(screen.getByText('Your first week on the API team')).toBeInTheDocument();
