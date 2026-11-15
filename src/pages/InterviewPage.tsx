@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import {
-  ArrowRight, Brain, CalendarCheck, Flame, GraduationCap, History, Lightbulb, LoaderCircle, Mail, MessagesSquare, Sparkles, Target,
+  ArrowRight, CalendarCheck, Flame, History, Lightbulb, LoaderCircle, Mail, Target,
 } from 'lucide-react';
 import {
   trackForTitle, useDomains, useScenarios, useStartQuiz, useTracks,
@@ -48,22 +48,39 @@ function rememberTrack(id: string) {
   }
 }
 
+/** The roles, as a row of tabs on one line (it scrolls sideways on a phone). */
 function TrackBar({ tracks, value, suggested, onChange }: { tracks: Track[]; value: string; suggested: string; onChange: (id: string) => void }) {
   // On a phone the roles scroll sideways: the chosen one is brought into view, not left off screen.
   const bar = useRef<HTMLDivElement>(null);
   useEffect(() => {
     bar.current?.querySelector('[aria-checked="true"]')?.scrollIntoView?.({ block: 'nearest', inline: 'center' });
   }, [value]);
+  // More roles off the right edge: the row fades out there, so it reads as a row that goes on.
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = bar.current;
+    if (!el) return;
+    const check = () => setMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 8);
+    check();
+    el.addEventListener('scroll', check, { passive: true });
+    window.addEventListener('resize', check);
+    return () => {
+      el.removeEventListener('scroll', check);
+      window.removeEventListener('resize', check);
+    };
+  }, [tracks.length]);
   return (
-    <div ref={bar} role="radiogroup" aria-label="Role" className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0">
+    <div ref={bar} role="radiogroup" aria-label="Role"
+      style={more ? { maskImage: 'linear-gradient(to right, black calc(100% - 48px), transparent)' } : undefined}
+      className="-mx-4 flex gap-0.5 overflow-x-auto border-b border-border px-4 [scrollbar-width:none] sm:mx-0 sm:px-0">
       {tracks.map((t) => {
         const on = t.id === value;
         return (
           <button key={t.id} role="radio" aria-checked={on} onClick={() => onChange(t.id)}
-            className={clsx('inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition-colors duration-200',
-              on ? 'border-accent/50 bg-accent/10 font-medium text-accent' : 'border-border bg-surface text-muted hover:border-accent/30 hover:text-text')}>
+            className={clsx('-mb-px inline-flex shrink-0 items-center gap-1.5 border-b-2 px-2 py-2.5 text-sm whitespace-nowrap transition-colors duration-150',
+              on ? 'border-accent font-medium text-accent' : 'border-transparent text-muted hover:text-text')}>
             {t.label}
-            {t.id === suggested && <span className={clsx('rounded-full px-1.5 text-[10px] font-semibold', on ? 'bg-accent/15' : 'bg-surface-2 text-faint')}>For you</span>}
+            {t.id === suggested && <span className={clsx('rounded-full px-1.5 text-[10px] font-semibold', on ? 'bg-accent/10' : 'bg-surface-2 text-faint')}>For you</span>}
           </button>
         );
       })}
@@ -73,14 +90,17 @@ function TrackBar({ tracks, value, suggested, onChange }: { tracks: Track[]; val
 
 function Stat({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-card border border-border bg-surface px-4 py-3">
-      <div className="flex items-center gap-1.5 text-xs text-muted">{icon}{label}</div>
-      <div className="mt-1 font-mono text-2xl font-semibold tabular-nums text-text">{value}</div>
-      {hint && <div className="mt-0.5 truncate text-[11px] text-faint">{hint}</div>}
+    <div className="bg-surface px-4 py-3">
+      <dt className="flex items-center gap-1.5 text-xs text-muted">{icon}{label}</dt>
+      <dd className="mt-0.5 flex items-baseline gap-2">
+        <span className="font-mono text-xl font-semibold tabular-nums text-text">{value}</span>
+        {hint && <span className="min-w-0 truncate text-[11px] text-faint">{hint}</span>}
+      </dd>
     </div>
   );
 }
 
+/** Where the user stands in this track, as one quiet strip: the page's work is below it. */
 function PracticeStats({ practice, domains, sims, track }: { practice?: Practice; domains: DomainStat[]; sims: ScenarioCard[]; track: Track }) {
   const inTrack = domains.filter((d) => track.domains.includes(d.domain));
   const answered = inTrack.reduce((a, d) => a + d.answered, 0);
@@ -89,14 +109,13 @@ function PracticeStats({ practice, domains, sims, track }: { practice?: Practice
   const done = mine.filter((s) => s.progress.best >= 0).length;
   const streak = practice?.streak ?? 0;
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <Stat icon={<Flame className="size-3.5" />} label="Day streak" value={String(streak)}
-        hint={streak ? 'Practice today to keep it' : 'Answer one question to start'} />
+    <dl aria-label="Your practice" className="grid grid-cols-2 gap-px overflow-hidden rounded-card border border-border bg-border lg:grid-cols-4">
+      <Stat icon={<Flame className="size-3.5" />} label="Day streak" value={String(streak)} hint={streak ? 'practice today to keep it' : 'answer one to start'} />
       <Stat icon={<CalendarCheck className="size-3.5" />} label="This week" value={String(practice?.week ?? 0)} hint="answers and replies" />
       <Stat icon={<Target className="size-3.5" />} label="Accuracy" value={answered ? `${Math.round((right / answered) * 100)}%` : '-'}
-        hint={answered ? `${right} of ${answered} in this track` : 'No questions answered yet'} />
-      <Stat icon={<Mail className="size-3.5" />} label="Simulations" value={`${done}/${mine.length}`} hint="finished in this track" />
-    </div>
+        hint={answered ? `${right} of ${answered} in this role` : 'no answers yet'} />
+      <Stat icon={<Mail className="size-3.5" />} label="Simulations" value={`${done}/${mine.length}`} hint="finished in this role" />
+    </dl>
   );
 }
 
@@ -104,12 +123,14 @@ function UpcomingJob({ id, title, company, onPractice }: { id: number; title: st
   const job = useJob(id);
   const topics = job.data?.deep?.raw.interview_topics ?? [];
   return (
-    <li className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4 sm:flex-row sm:items-start">
+    <li className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start">
       <div className="min-w-0 flex-1">
-        <Link to={`/jobs/${id}`} className="text-sm font-semibold text-text hover:text-accent">{title}</Link>
-        <div className="text-xs text-muted">{company}</div>
+        <div className="flex flex-wrap items-baseline gap-x-2">
+          <Link to={`/jobs/${id}`} className="text-sm font-semibold text-text hover:text-accent">{title}</Link>
+          <span className="text-xs text-muted">{company}</span>
+        </div>
         {topics.length > 0 ? (
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-1.5 space-y-1">
             {topics.slice(0, 3).map((t, i) => (
               <li key={i} className="flex gap-2 text-[13px] leading-snug text-muted">
                 <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-accent" /><span className="line-clamp-2">{t}</span>
@@ -117,7 +138,7 @@ function UpcomingJob({ id, title, company, onPractice }: { id: number; title: st
             ))}
           </ul>
         ) : job.isLoading ? <Skeleton className="mt-2 h-8 w-3/4" /> : (
-          <p className="mt-2 text-[13px] text-faint">Open the job for Wera&apos;s full review and the topics it expects.</p>
+          <p className="mt-1 text-[13px] text-faint">Open the job for Wera&apos;s full review and the topics it expects.</p>
         )}
       </div>
       <button onClick={() => onPractice(trackForTitle(title))}
@@ -128,47 +149,62 @@ function UpcomingJob({ id, title, company, onPractice }: { id: number; title: st
   );
 }
 
+/** Jobs the user is interviewing for: what each is likely to ask, and the role to practice for it. */
 function Upcoming({ onPractice }: { onPractice: (track: string) => void }) {
   const jobs = useJobs({ status: 'interviewing', limit: 3 });
   const list = jobs.data?.jobs ?? [];
   if (!list.length) return null;
   return (
-    <section aria-labelledby="upcoming" className="space-y-3">
-      <h2 id="upcoming" className="flex items-center gap-2 text-sm font-semibold text-text"><Sparkles className="size-4 text-accent" /> Your interviews</h2>
-      <ul className="grid gap-3 lg:grid-cols-2">
+    <section aria-labelledby="upcoming" className="space-y-2.5">
+      <h2 id="upcoming" className="text-base font-semibold text-text">Your interviews</h2>
+      <ul className="divide-y divide-border rounded-card border border-border bg-surface">
         {list.map((j) => <UpcomingJob key={j.id} id={j.id} title={j.title} company={j.company} onPractice={onPractice} />)}
       </ul>
     </section>
   );
 }
 
-function SimCard({ s, onOpen, i }: { s: ScenarioCard; onOpen: () => void; i: number }) {
+function SimCard({ s, onOpen }: { s: ScenarioCard; onOpen: () => void }) {
   const p = s.progress;
   const going = p.answered > 0 && p.answered < s.steps;
   return (
-    <button onClick={onOpen} style={{ animationDelay: `${i * 40}ms` }}
-      className="anim-rise group flex flex-col rounded-card border border-border bg-surface p-4 text-left transition-all duration-200 hover:-translate-y-px hover:border-accent/40">
-      <div className="flex items-center gap-2">
-        <span className="rounded-lg bg-accent/10 p-1.5 text-accent"><Mail className="size-4" /></span>
-        <span className="text-[11px] text-muted">{s.role}</span>
-        <span className="ml-auto"><DifficultyPill d={s.difficulty} /></span>
-      </div>
-      <h3 className="mt-3 text-[15px] leading-snug font-semibold text-text">{s.title}</h3>
-      <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-muted">{s.blurb}</p>
-      <div className="mt-3 flex flex-wrap gap-1">
-        {s.skills.map((k) => <span key={k} className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] text-muted">{k}</span>)}
-      </div>
-      <div className="mt-auto flex items-center gap-2 pt-4">
-        <span className="flex gap-1" title={s.cast.map((c) => `${c.name}, ${c.role}`).join('\n')}>
-          {s.cast.slice(0, 4).map((c) => <PersonMark key={c.name} name={c.name} size="sm" />)}
+    <button onClick={onOpen}
+      className="group block w-full rounded-card border border-border bg-surface p-4 text-left transition-colors duration-150 hover:border-accent/40">
+      <span className="flex items-start gap-3">
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] leading-snug font-semibold text-text">{s.title}</span>
+          <span className="mt-0.5 block text-xs text-muted">{s.role} · {s.steps} emails</span>
         </span>
-        <span className="text-[11px] text-faint">{s.steps} emails</span>
+        <DifficultyPill d={s.difficulty} />
+      </span>
+      <span className="mt-2 line-clamp-2 block text-[13px] leading-relaxed text-muted">{s.blurb}</span>
+      <span className="mt-1.5 block truncate text-[11px] text-faint">Tests {s.skills.join(', ').toLowerCase()}</span>
+      <span className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+        <span className="flex -space-x-1" title={s.cast.map((c) => `${c.name}, ${c.role}`).join('\n')}>
+          {s.cast.slice(0, 4).map((c) => <span key={c.name} className="rounded-full ring-2 ring-surface"><PersonMark name={c.name} size="sm" /></span>)}
+        </span>
+        {going && (
+          // How far the run got, an email a dot.
+          <span className="flex gap-1" aria-hidden>
+            {Array.from({ length: s.steps }, (_, i) => <span key={i} className={clsx('size-1.5 rounded-full', i < p.answered ? 'bg-accent' : 'bg-surface-2')} />)}
+          </span>
+        )}
+        {!going && p.best >= 0 && <span className="text-[11px] text-faint tabular-nums">Best {p.best}/{s.max_points}</span>}
         <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-accent">
-          {going ? `Continue ${p.answered}/${s.steps}` : p.best >= 0 ? `Best ${p.best}/${s.max_points} · Again` : 'Start'}
+          {going ? `Continue ${p.answered}/${s.steps}` : p.best >= 0 ? 'Run it again' : 'Start'}
           <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
         </span>
-      </div>
+      </span>
     </button>
+  );
+}
+
+function SectionHead({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h2 id={id} className="text-base font-semibold text-text">{title}</h2>
+      <p className="mt-0.5 text-[13px] leading-relaxed text-muted">{children}</p>
+    </div>
   );
 }
 
@@ -176,18 +212,34 @@ function Simulations({ sims, track, onOpen }: { sims: ScenarioCard[]; track: Tra
   const mine = track.scenarios.map((id) => sims.find((s) => s.id === id)).filter((s): s is ScenarioCard => !!s);
   return (
     <section aria-labelledby="sims" className="space-y-3">
-      <div>
-        <h2 id="sims" className="text-sm font-semibold text-text">Work simulations</h2>
-        <p className="mt-0.5 text-[13px] text-muted">
-          A few days on the job, as emails. Pick a reply to each, then see how every option rates and why, like the situational rounds in big-tech loops.
-        </p>
-      </div>
+      <SectionHead id="sims" title="Work simulations">
+        A few days on the job, told as emails. Pick a reply to each, then see how every option rates and why.
+      </SectionHead>
       {mine.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {mine.map((s, i) => <SimCard key={s.id} s={s} i={i} onOpen={() => onOpen(s.id)} />)}
+        <div className="space-y-3">
+          {mine.map((s) => <SimCard key={s.id} s={s} onOpen={() => onOpen(s.id)} />)}
         </div>
-      ) : <p className="text-sm text-muted">No simulations for this role yet.</p>}
+      ) : <p className="rounded-card border border-dashed border-border px-4 py-6 text-center text-sm text-muted">No simulations for this role yet.</p>}
     </section>
+  );
+}
+
+/** One topic of a round: its name, how much of it is answered, and how much of that was right. */
+function TopicRow({ d, on, onPick }: { d: DomainStat; on: boolean; onPick: () => void }) {
+  const pct = d.questions ? Math.round((d.answered / d.questions) * 100) : 0;
+  return (
+    <button onClick={onPick} aria-pressed={on}
+      className={clsx('flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-150', on ? 'bg-accent/[0.06]' : 'hover:bg-surface-2/60')}>
+      <span aria-hidden className={clsx('grid size-4 shrink-0 place-items-center rounded-full border', on ? 'border-accent' : 'border-border')}>
+        {on && <span className="size-2 rounded-full bg-accent" />}
+      </span>
+      <span className={clsx('min-w-0 flex-1 truncate text-sm', on ? 'font-semibold text-text' : 'font-medium text-text')}>{d.domain || 'All topics'}</span>
+      <span aria-hidden className="hidden h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-surface-2 sm:block lg:hidden xl:block">
+        <span className="block h-full rounded-full bg-accent transition-all duration-700" style={{ width: `${pct}%` }} />
+      </span>
+      <span className="w-24 shrink-0 text-right text-[11px] text-muted tabular-nums">{d.answered}/{d.questions} answered</span>
+      <span className="w-16 shrink-0 text-right text-[11px] text-faint tabular-nums">{d.answered > 0 ? `${Math.round((d.correct / d.answered) * 100)}% right` : ''}</span>
+    </button>
   );
 }
 
@@ -199,79 +251,60 @@ function Rounds({ track, domains, practice, starting, onStart }: {
   const [diff, setDiff] = useState<Difficulty | ''>('');
   const [stack, setStack] = useState<string[]>([]);
   const list = track.domains.map((d) => domains.find((x) => x.domain === d)).filter((d): d is DomainStat => !!d);
-  const all = { domain: '', kind: 'technical' as const, questions: list.reduce((a, d) => a + d.questions, 0), answered: list.reduce((a, d) => a + d.answered, 0), correct: list.reduce((a, d) => a + d.correct, 0) };
+  const all: DomainStat = { domain: '', kind: 'technical', questions: list.reduce((a, d) => a + d.questions, 0), answered: list.reduce((a, d) => a + d.answered, 0), correct: list.reduce((a, d) => a + d.correct, 0) };
   const tags = track.stack.slice(0, 10);
   const toggle = (t: string) => setStack((s) => (s.includes(t) ? s.filter((x) => x !== t) : [...s, t]));
   const missed = practice?.missed ?? 0;
   return (
     <section aria-labelledby="rounds" className="space-y-3">
-      <div className="flex flex-wrap items-end gap-2">
-        <div>
-          <h2 id="rounds" className="text-sm font-semibold text-text">Question rounds</h2>
-          <p className="mt-0.5 text-[13px] text-muted">Ten quick questions on what this loop covers, new ones first. Pick your stack to see those questions first.</p>
+      <SectionHead id="rounds" title="Question rounds">
+        Ten quick questions on what this role&apos;s interviews cover, new ones first. Pick a topic, or take them all.
+      </SectionHead>
+      <div className="overflow-hidden rounded-card border border-border bg-surface">
+        <div role="group" aria-label="Topic" className="divide-y divide-border">
+          {[all, ...list].map((d) => <TopicRow key={d.domain || 'all'} d={d} on={domain === d.domain} onPick={() => setDomain(d.domain)} />)}
         </div>
-        {missed > 0 && (
-          <button onClick={() => onStart({ domain: '', difficulty: '', stack: [], missed: true })} disabled={starting}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text hover:border-accent/40 hover:text-accent">
-            <History className="size-3.5" /> Review {missed} missed
-          </button>
-        )}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {[all, ...list].map((d, i) => {
-          const on = domain === d.domain;
-          const pct = d.questions ? Math.round((d.answered / d.questions) * 100) : 0;
-          const Icon = !d.domain ? GraduationCap : d.kind === 'behavioral' ? MessagesSquare : d.kind === 'product' ? Lightbulb : Brain;
-          return (
-            <button key={d.domain || 'all'} onClick={() => setDomain(d.domain)} aria-pressed={on} style={{ animationDelay: `${i * 35}ms` }}
-              className={clsx('anim-rise rounded-card border bg-surface p-4 text-left transition-all duration-200 hover:-translate-y-px',
-                on ? 'border-accent/50 ring-2 ring-accent/15' : 'border-border hover:border-accent/30')}>
-              <div className="flex items-center gap-2">
-                <span className={clsx('rounded-lg p-1.5', on ? 'bg-accent/15 text-accent' : 'bg-surface-2 text-muted')}><Icon className="size-4" /></span>
-                <span className="text-sm font-semibold text-text">{d.domain || 'All topics'}</span>
-              </div>
-              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
-                <div className="h-full rounded-full bg-accent transition-all duration-700" style={{ width: `${pct}%` }} />
-              </div>
-              <div className="mt-1.5 flex justify-between text-[11px] text-faint tabular-nums">
-                <span>{d.answered}/{d.questions} answered</span>
-                {d.answered > 0 && <span>{Math.round((d.correct / d.answered) * 100)}% right</span>}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-      <div className="space-y-3 rounded-card border border-border bg-surface p-4">
-        {tags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 text-sm text-muted">Your stack</span>
-            {tags.map((t) => {
-              const on = stack.includes(t.tag);
-              return (
-                <button key={t.tag} onClick={() => toggle(t.tag)} aria-pressed={on}
-                  className={clsx('rounded-full border px-2.5 py-1 text-xs transition-colors',
-                    on ? 'border-accent/50 bg-accent/10 font-medium text-accent' : 'border-border text-muted hover:text-text')}>
-                  {tagLabel(t.tag)}
+        <div className="space-y-3 border-t border-border bg-surface-2/40 p-4">
+          {tags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="mr-1 w-full text-xs font-medium text-muted sm:w-auto" title="Questions on these come first">Your stack</span>
+              {tags.map((t) => {
+                const on = stack.includes(t.tag);
+                return (
+                  <button key={t.tag} onClick={() => toggle(t.tag)} aria-pressed={on}
+                    className={clsx('rounded-full border px-2.5 py-1 text-xs transition-colors',
+                      on ? 'border-accent/50 bg-accent/10 font-medium text-accent' : 'border-border bg-surface text-muted hover:text-text')}>
+                    {tagLabel(t.tag)}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
+            <span className="text-xs font-medium text-muted">Difficulty</span>
+            <div role="radiogroup" aria-label="Difficulty" className="inline-flex rounded-lg border border-border bg-surface-2 p-0.5">
+              {DIFFS.map((d) => (
+                <button key={d.label} role="radio" aria-checked={diff === d.value} onClick={() => setDiff(d.value)}
+                  className={clsx('rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200',
+                    diff === d.value ? 'bg-surface text-text shadow-sm' : 'text-muted hover:text-text')}>
+                  {d.label}
                 </button>
-              );
-            })}
-          </div>
-        )}
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm text-muted">Difficulty</span>
-          <div role="radiogroup" aria-label="Difficulty" className="inline-flex rounded-lg border border-border bg-surface-2 p-0.5">
-            {DIFFS.map((d) => (
-              <button key={d.label} role="radio" aria-checked={diff === d.value} onClick={() => setDiff(d.value)}
-                className={clsx('rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200',
-                  diff === d.value ? 'bg-surface text-text shadow-sm' : 'text-muted hover:text-text')}>
-                {d.label}
+              ))}
+            </div>
+            <div className="flex w-full flex-wrap justify-end gap-2 sm:ml-auto sm:w-auto">
+              {missed > 0 && (
+                <button onClick={() => onStart({ domain: '', difficulty: '', stack: [], missed: true })} disabled={starting}
+                  title="The questions you last answered wrong"
+                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text hover:border-accent/40 hover:text-accent disabled:opacity-60 sm:flex-none">
+                  <History className="size-4" /> Review {missed} missed
+                </button>
+              )}
+              <button onClick={() => onStart({ domain, difficulty: diff, stack })} disabled={starting}
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg hover:bg-accent/85 disabled:opacity-60 sm:flex-none">
+                {starting ? <LoaderCircle className="size-4 animate-spin" /> : <ArrowRight className="size-4" />} Start 10 questions
               </button>
-            ))}
+            </div>
           </div>
-          <button onClick={() => onStart({ domain, difficulty: diff, stack })} disabled={starting}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-bg hover:bg-accent/85 disabled:opacity-60">
-            {starting ? <LoaderCircle className="size-4 animate-spin" /> : <ArrowRight className="size-4" />} Start 10 questions
-          </button>
         </div>
       </div>
     </section>
@@ -317,9 +350,9 @@ export default function InterviewPage() {
   };
 
   const header = (
-    <header className="mb-6">
+    <header className="mb-5">
       <h1 className="text-[28px] leading-tight font-semibold">Interview prep</h1>
-      <p className="mt-1 text-sm text-muted">Practice for the loop your role gets: work simulations told as emails, and quick question rounds for your stack.</p>
+      <p className="mt-1 text-sm text-muted">Practice for the interviews your role gets: question rounds for your stack, and work simulations told as emails.</p>
     </header>
   );
 
@@ -338,34 +371,43 @@ export default function InterviewPage() {
     );
   }
   if (tracks.isLoading || domains.isLoading) {
-    return <div className="mx-auto max-w-5xl pb-10">{header}<Skeleton className="h-96 w-full" /></div>;
+    return <div className="mx-auto max-w-6xl pb-10">{header}<Skeleton className="h-96 w-full" /></div>;
   }
   const failed = tracks.isLoadingError ? tracks : domains.isLoadingError ? domains : null;
   if (failed) {
-    return <div className="mx-auto max-w-5xl pb-10">{header}<ErrorState message={String(failed.error)} onRetry={() => void failed.refetch()} /></div>;
+    return <div className="mx-auto max-w-6xl pb-10">{header}<ErrorState message={String(failed.error)} onRetry={() => void failed.refetch()} /></div>;
   }
-  if (!track) return <div className="mx-auto max-w-5xl pb-10">{header}<EmptyState title="Practice is on its way" hint="Check back soon." /></div>;
+  if (!track) return <div className="mx-auto max-w-6xl pb-10">{header}<EmptyState title="Practice is on its way" hint="Check back soon." /></div>;
   const d = domains.data?.domains ?? [];
   const s = sims.data?.scenarios ?? [];
+  // Top to bottom: who you are practicing as, where you stand, the interviews you have
+  // coming, then the two ways to practice side by side.
   return (
-    <div className="mx-auto max-w-5xl space-y-8 pb-10">
+    <div className="mx-auto max-w-6xl space-y-6 pb-10">
       <div>
         {header}
         <TrackBar tracks={list} value={trackId} suggested={suggested} onChange={pickTrack} />
-        <p className="mt-2 text-[13px] text-muted">{track.blurb}</p>
+        <p className="mt-3 text-[13px] text-muted">{track.blurb}</p>
       </div>
       <PracticeStats practice={domains.data?.practice} domains={d} sims={s} track={track} />
       <Upcoming onPractice={pickTrack} />
-      {sims.isLoading ? <Skeleton className="h-56 w-full" /> : <Simulations sims={s} track={track} onOpen={(id) => setParam('sim', id)} />}
-      <Rounds key={track.id} track={track} domains={d} practice={domains.data?.practice} starting={start.isPending}
-        onStart={(v) => start.mutate({ ...v, track: track.id }, {
-          onSuccess: (r) => {
-            setQuiz(r.questions);
-            if (r.questions.length) setParam('round', '1');
-          },
-        })} />
-      {start.isError ? <p role="alert" className="text-sm text-bad">{errorMessage(start.error, 'Could not start a round. Check your connection and try again.')}</p>
-        : quiz && !quiz.length && <p role="status" className="text-sm text-muted">No questions match that choice yet. Try another difficulty or stack.</p>}
+      <div className="grid grid-cols-1 items-start gap-x-6 gap-y-8 lg:grid-cols-5">
+        {/* min-w-0: a long line that must not wrap (a card's skills) may not widen the column past the screen. */}
+        <div className="min-w-0 space-y-3 lg:col-span-3">
+          <Rounds key={track.id} track={track} domains={d} practice={domains.data?.practice} starting={start.isPending}
+            onStart={(v) => start.mutate({ ...v, track: track.id }, {
+              onSuccess: (r) => {
+                setQuiz(r.questions);
+                if (r.questions.length) setParam('round', '1');
+              },
+            })} />
+          {start.isError ? <p role="alert" className="text-sm text-bad">{errorMessage(start.error, 'Could not start a round. Check your connection and try again.')}</p>
+            : quiz && !quiz.length && <p role="status" className="text-sm text-muted">No questions match that choice yet. Try another difficulty or stack.</p>}
+        </div>
+        <div className="min-w-0 lg:col-span-2">
+          {sims.isLoading ? <Skeleton className="h-56 w-full" /> : <Simulations sims={s} track={track} onOpen={(id) => setParam('sim', id)} />}
+        </div>
+      </div>
     </div>
   );
 }
