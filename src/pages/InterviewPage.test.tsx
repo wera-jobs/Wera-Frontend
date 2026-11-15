@@ -1,8 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
-import { trackForTitle, quizQuery } from '../api/interview';
+import { trackForTitle, quizQuery, type ScenarioCard } from '../api/interview';
 import { practiceKey } from '../components/interview/text';
+import { upNext } from '../components/interview/next';
 import { jsonBody, mockApi, renderApp } from '../test/render';
 import InterviewPage from './InterviewPage';
 
@@ -23,7 +24,7 @@ const tracks = {
   ],
 };
 
-const card = {
+const card: ScenarioCard = {
   id: 'backend-first-week', tracks: ['backend'], title: 'Your first week on the API team', role: 'Backend engineer',
   blurb: 'You join the API team.', difficulty: 'medium', steps: 2, max_points: 4, skills: ['Ramping up', 'Ownership under pressure'],
   cast: [{ name: 'Amara Osei', role: 'Senior backend engineer' }, { name: 'Priya Nair', role: 'Engineering manager' }],
@@ -66,31 +67,36 @@ afterEach(() => {
 });
 
 describe('InterviewPage', () => {
-  it('opens on the suggested track with its stats, simulations and rounds', async () => {
+  it('opens on the suggested role: where the user stands, one next step, and the rounds', async () => {
     routes();
     renderApp(<InterviewPage />);
-    const backend = await screen.findByRole('radio', { name: /Backend engineer/ });
-    expect(backend).toHaveAttribute('aria-checked', 'true');
-    expect(within(backend).getByText('For you')).toBeInTheDocument();
-    // Where the user stands is one strip of four figures, not four cards.
-    const stats = within(screen.getByLabelText('Your practice'));
-    expect(stats.getAllByRole('term').map((t) => t.textContent)).toEqual(['Day streak', 'This week', 'Accuracy', 'Simulations']);
-    // The topics of a round are one list, with the whole track first and chosen.
-    const topics = within(screen.getByRole('group', { name: 'Topic' })).getAllByRole('button');
-    expect(topics.map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
-    expect(topics[0]).toHaveTextContent('All topics');
-    expect(screen.getByText('3')).toBeInTheDocument(); // the streak
-    expect(screen.getByText('50%')).toBeInTheDocument(); // 1 of 2 in the track's domains
-    expect(screen.getByText('Your first week on the API team')).toBeInTheDocument();
-    // Only the track's domains, and its stack.
-    expect(screen.getByRole('button', { name: /Databases/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Web & frontend/ })).not.toBeInTheDocument();
+    const role = await screen.findByRole('combobox', { name: 'Role' });
+    expect(role).toHaveValue('backend');
+    expect(within(role).getByRole('option', { name: 'Backend engineer (for you)' })).toBeInTheDocument();
+    expect(screen.getByText('APIs and databases.')).toBeInTheDocument();
+    // Where the user stands is one line.
+    const progress = within(screen.getByRole('list', { name: 'Your practice' }));
+    expect(progress.getByText('3')).toBeInTheDocument(); // the streak
+    expect(progress.getByText('50%')).toBeInTheDocument(); // 1 of 2 in the role's domains
+    // One next step: the missed questions come before new topics.
+    expect(screen.getByRole('heading', { name: 'Review 2 questions you missed' })).toBeInTheDocument();
+    // The rounds tab: only the role's topics, each with its own Start, and the stack.
+    expect(screen.getByRole('tab', { name: /Question rounds/ })).toHaveAttribute('aria-selected', 'true');
+    const topics = within(screen.getByRole('list', { name: 'Topics' }));
+    expect(topics.getByRole('button', { name: 'Start 10 questions: Databases' })).toBeInTheDocument();
+    expect(topics.queryByRole('button', { name: /Web & frontend/ })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'SQL' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Review 2 missed/ })).toBeInTheDocument();
+    expect(topics.getByRole('button', { name: /Review 2 missed/ })).toBeInTheDocument();
+    // Simulations wait behind their tab.
+    expect(screen.queryByText('Your first week on the API team')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('tab', { name: /Work simulations/ }));
+    expect(screen.getByText('Your first week on the API team')).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('radio', { name: /Frontend engineer/ }));
-    expect(await screen.findByRole('button', { name: /Web & frontend/ })).toBeInTheDocument();
+    await userEvent.selectOptions(role, 'frontend');
+    expect(await screen.findByText('The browser.')).toBeInTheDocument();
     expect(screen.getByText('No simulations for this role yet.')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('tab', { name: /Question rounds/ }));
+    expect(screen.getByRole('button', { name: 'Start 10 questions: Web & frontend' })).toBeInTheDocument();
     expect(localStorage.getItem('wera.interview.track')).toBe('frontend');
   });
 
@@ -109,7 +115,7 @@ describe('InterviewPage', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'SQL' }));
     await userEvent.click(screen.getByRole('radio', { name: 'Easy' }));
-    await userEvent.click(screen.getByRole('button', { name: /Start 10 questions/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Start 10 questions: All topics' }));
 
     expect(await screen.findByText('What does an index speed up?')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Lookups/ }));
@@ -134,7 +140,7 @@ describe('InterviewPage', () => {
       'POST /api/interview/questions/2/answer': () => ({ correct: false, answer: 1, explanation: 'Close with the result.' }),
     });
     renderApp(<InterviewPage />);
-    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Start 10 questions: All topics' }));
     await userEvent.click(await screen.findByRole('button', { name: /Lookups/ }));
     await userEvent.click(await screen.findByRole('button', { name: /Next/ }));
     await userEvent.click(await screen.findByRole('button', { name: /Reflection/ }));
@@ -147,13 +153,13 @@ describe('InterviewPage', () => {
     // The question answered right is not listed.
     expect(missed.queryByText('What does an index speed up?')).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: /Back to practice/ }));
-    expect(await screen.findByRole('heading', { name: 'Question rounds' })).toBeInTheDocument();
+    expect(await screen.findByRole('tab', { name: /Question rounds/ })).toBeInTheDocument();
   });
 
   it('leaves browser shortcuts alone: Ctrl+C copies, it does not pick C', async () => {
     const fetchMock = routes({ 'GET /api/interview/quiz': () => ({ questions }) });
     renderApp(<InterviewPage />);
-    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Start 10 questions: All topics' }));
     await screen.findByText('What does an index speed up?');
     await userEvent.keyboard('{Control>}c{/Control}');
     await userEvent.keyboard('{Meta>}a{/Meta}');
@@ -169,7 +175,7 @@ describe('InterviewPage', () => {
       'POST /api/interview/questions/1/answer': () => (fail ? new Response('{"error":"down"}', { status: 503 }) : { correct: true, answer: 1, explanation: 'Indexes find rows fast.' }),
     });
     renderApp(<InterviewPage />);
-    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Start 10 questions: All topics' }));
     await userEvent.click(await screen.findByRole('button', { name: /Lookups/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent(/Could not save your answer/);
     // Not stuck: the choices take a press again.
@@ -182,9 +188,9 @@ describe('InterviewPage', () => {
   it('says so when a round cannot start', async () => {
     routes({ 'GET /api/interview/quiz': () => new Response('{"error":"down"}', { status: 503 }) });
     renderApp(<InterviewPage />);
-    await userEvent.click(await screen.findByRole('button', { name: /Start 10 questions/ }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Start 10 questions: All topics' }));
     expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Start 10 questions/ })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Start 10 questions: All topics' })).toBeEnabled();
   });
 
   it('plays a simulation: read the email, reply, see every rating and the debrief', async () => {
@@ -201,7 +207,8 @@ describe('InterviewPage', () => {
       },
     });
     renderApp(<InterviewPage />);
-    await userEvent.click(await screen.findByRole('button', { name: /Your first week on the API team/ }));
+    await userEvent.click(await screen.findByRole('tab', { name: /Work simulations/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Start: Your first week on the API team' }));
 
     const email = await screen.findByRole('article', { name: /Welcome! Your first ticket/ });
     expect(within(email).getByText('Senior backend engineer')).toBeInTheDocument();
@@ -249,11 +256,29 @@ describe('InterviewPage', () => {
     renderApp(<InterviewPage />);
     expect(await screen.findByText('React rendering and state')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Practice for it/ }));
-    expect(screen.getByRole('radio', { name: /Frontend engineer/ })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByRole('combobox', { name: 'Role' })).toHaveValue('frontend');
   });
 });
 
 describe('interview helpers', () => {
+  it('picks one next step: a half-done simulation, then missed questions, then the least-done topic, then a new simulation', () => {
+    const t = tracks.tracks[0];
+    const d = [
+      { domain: 'APIs & backend', kind: 'technical' as const, questions: 10, answered: 6, correct: 3 },
+      { domain: 'Databases', kind: 'technical' as const, questions: 6, answered: 1, correct: 1 },
+      { domain: 'Behavioral', kind: 'behavioral' as const, questions: 8, answered: 8, correct: 4 },
+    ];
+    const going = { ...card, progress: { answered: 1, points: 2, best: -1 } };
+    expect(upNext(t, d, [going], { streak: 0, week: 0, missed: 3 })).toMatchObject({ kind: 'sim' });
+    expect(upNext(t, d, [card], { streak: 0, week: 0, missed: 3 })).toEqual({ kind: 'missed', count: 3 });
+    // Databases has the most left to see (1 of 6); Behavioral is done.
+    expect(upNext(t, d, [card], { streak: 0, week: 0, missed: 0 })).toMatchObject({ kind: 'topic', domain: { domain: 'Databases' } });
+    const done = d.map((x) => ({ ...x, answered: x.questions }));
+    expect(upNext(t, done, [card])).toMatchObject({ kind: 'start-sim', sim: { id: 'backend-first-week' } });
+    expect(upNext(t, done, [{ ...card, progress: { answered: 0, points: 0, best: 3 } }])).toBeNull();
+  });
+
+
   it('reads a key press as a reply, next, or nothing', () => {
     const key = (init: KeyboardEventInit, target: HTMLElement = document.body) => {
       const e = new KeyboardEvent('keydown', { bubbles: true, ...init });
