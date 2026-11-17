@@ -103,6 +103,35 @@ function AutoImport({ filename, onFallback }: { filename: string; onFallback: ()
 }
 
 /**
+ * The resume file was uploaded after the main resume was last changed (say
+ * the user started from the template, then uploaded their own): offer to
+ * rebuild from it rather than keep showing the older resume.
+ */
+function NewerUpload({ filename, onDismiss }: { filename: string; onDismiss: () => void }) {
+  const imp = useImportResume();
+  const rebuild = () => imp.mutate({ source: 'profile', replace: true }, {
+    onSuccess: (doc) => toast.success(doc.notes.length ? `Rebuilt from ${filename}. ${doc.notes.length} line${doc.notes.length === 1 ? '' : 's'} to check.` : `Rebuilt from ${filename}.`),
+    onError: (e) => toast.error(`Could not read ${filename}: ${errorMessage(e, 'Something went wrong')}`),
+  });
+  return (
+    <div role="status" className="flex flex-wrap items-center gap-3 rounded-card border border-accent/30 bg-accent/5 px-4 py-3">
+      <Upload className="size-4 shrink-0 text-accent" />
+      <p className="min-w-0 flex-1 text-sm">
+        You uploaded <span className="font-semibold">{filename}</span> after this resume was last changed.
+        <span className="block text-xs text-muted">Rebuilding replaces this resume with it. Tailored copies stay as they are.</span>
+      </p>
+      <div className="flex items-center gap-2">
+        <button onClick={onDismiss} disabled={imp.isPending} className="rounded-lg px-2 py-1.5 text-xs text-muted hover:text-text">Keep this one</button>
+        <button onClick={rebuild} disabled={imp.isPending}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-60">
+          {imp.isPending && <LoaderCircle className="size-3.5 animate-spin" />} Rebuild from {filename}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/**
  * The Resume tab of the profile: the editable resume (prefilled from the
  * uploaded one), its tailored copies, and the live preview.
  */
@@ -113,6 +142,7 @@ export function ResumeSection() {
   const profile = useProfile();
   const [reimport, setReimport] = useState(false);
   const [manual, setManual] = useState(false);
+  const [kept, setKept] = useState<string | null>(null);
   const fallback = useCallback(() => setManual(true), []);
   const base = list.data?.resumes.find((r) => r.job_id == null);
   const id = params.id ? Number(params.id) : (base?.id ?? null);
@@ -130,8 +160,13 @@ export function ResumeSection() {
     if (!background) return <AutoImport filename={upload} onFallback={fallback} />;
   }
 
+  const file = profile.data?.resume_file;
+  const newer = file && base && id === base.id && !reimport && kept !== file.uploaded_at
+    && Date.parse(file.uploaded_at) > Date.parse(base.updated_at) ? file : null;
+
   return (
     <div className="space-y-5">
+      {newer && <NewerUpload key={newer.uploaded_at} filename={newer.filename} onDismiss={() => setKept(newer.uploaded_at)} />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">Edit your resume, keep it to one page, and tailor a copy for any job from its Resume tab.</p>
         {resumes.length > 0 && (
