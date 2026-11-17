@@ -47,19 +47,6 @@ function UserMenu() {
 }
 
 
-/** "v0.3.0 · api v0.3.0": what is running, for bug reports (commits in the tooltip). */
-function Versions() {
-  const health = useHealth();
-  const web = `v${__APP_VERSION__}`;
-  const api = health.data?.version;
-  return (
-    <span className="truncate font-mono" title={`web ${web} (${__APP_COMMIT__}) · api ${api ?? '?'} (${health.data?.commit ?? '?'})`}>
-      {web}
-      {api && <> · api {api}</>}
-    </span>
-  );
-}
-
 function HealthDot({ pulse = false }: { pulse?: boolean }) {
   const health = useHealth();
   return (
@@ -172,11 +159,6 @@ export function AppShell() {
           ))}
         </nav>
         <UserMenu />
-        <div className="flex items-center gap-2 border-t border-border px-5 py-3 text-[11px] text-faint">
-          <HealthDot />
-          <Versions />
-          <ThemeToggle className="ml-auto -my-1" />
-        </div>
       </aside>
 
       {/* Main column */}
@@ -204,7 +186,7 @@ export function AppShell() {
             <div className="ml-auto flex shrink-0 items-center gap-3">
               <TopBarMeta />
               <HealthDot pulse={running} />
-              <ThemeToggle className="lg:hidden" />
+              <ThemeToggle />
             </div>
           </div>
         </header>
