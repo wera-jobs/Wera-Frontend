@@ -82,6 +82,46 @@ describe('ResumeSection', () => {
     expect(imports).toBe(0);
   });
 
+  it('offers to rebuild from a resume uploaded after the current one', async () => {
+    let body: Record<string, unknown> = {};
+    let updated = '2026-10-10T00:00:00Z';
+    stubApi({
+      'GET /api/profile': () => ({ resume_chars: 900, resume_file: { filename: 'New_CV.pdf', uploaded_at: '2026-10-12T00:00:00Z' } }),
+      'GET /api/resumes': () => ({ resumes: [{ id: 3, title: 'My resume', job_id: null, updated_at: updated }] }),
+      'POST /api/resumes/import': (init) => {
+        body = jsonBody(init);
+        updated = '2026-10-12T00:00:05Z';
+        return doc({ updated_at: updated, data: { ...doc().data, name: 'Ada Byron' } });
+      },
+      'GET /api/resumes/3': () => doc({ updated_at: updated }),
+      'POST /api/resumes/preview': preview,
+    });
+    renderApp(<ResumeSection />, { path: '/profile/resume', route: '/profile/resume/:id?' });
+    expect(await screen.findByText(/after this resume was last changed/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Rebuild from New_CV.pdf' }));
+    await waitFor(() => expect(body).toEqual({ source: 'profile', replace: true }));
+    expect(await screen.findByLabelText('Name')).toHaveValue('Ada Byron');
+    await waitFor(() => expect(screen.queryByText(/after this resume was last changed/)).not.toBeInTheDocument());
+  });
+
+  it('says nothing about an upload older than the resume, and can keep the resume', async () => {
+    let file = { filename: 'Old_CV.pdf', uploaded_at: '2026-10-01T00:00:00Z' };
+    stubApi({
+      'GET /api/profile': () => ({ resume_chars: 900, resume_file: file }),
+      'GET /api/resumes': () => ({ resumes: [{ id: 3, title: 'My resume', job_id: null, updated_at: '2026-10-10T00:00:00Z' }] }),
+      'GET /api/resumes/3': () => doc(),
+      'POST /api/resumes/preview': preview,
+    });
+    const { unmount } = renderApp(<ResumeSection />, { path: '/profile/resume', route: '/profile/resume/:id?' });
+    expect(await screen.findByLabelText('Name')).toHaveValue('Ada Lovelace');
+    expect(screen.queryByText(/after this resume was last changed/)).not.toBeInTheDocument();
+    unmount();
+    file = { filename: 'New_CV.pdf', uploaded_at: '2026-10-12T00:00:00Z' };
+    renderApp(<ResumeSection />, { path: '/profile/resume', route: '/profile/resume/:id?' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Keep this one' }));
+    expect(screen.queryByText(/after this resume was last changed/)).not.toBeInTheDocument();
+  });
+
   it('offers the manual choices when the background build failed', async () => {
     stubApi({
       'GET /api/profile': () => ({ resume_chars: 900, resume_file: { filename: 'Ada_CV.pdf', uploaded_at: '2026-10-01T00:00:00Z' } }),
