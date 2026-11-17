@@ -1,13 +1,13 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { Link } from 'react-router-dom';
-import { Bell, Download, EyeOff, KeyRound, LoaderCircle, MailCheck, Palette, Puzzle, ShieldAlert, SlidersHorizontal } from 'lucide-react';
+import { Bell, Check, Copy, Download, EyeOff, Info, KeyRound, LoaderCircle, MailCheck, Palette, Puzzle, ShieldAlert, SlidersHorizontal } from 'lucide-react';
 import { useConnections, useDisconnect } from '../api/extension';
 import { useExtension } from '../lib/extension';
 import { relTime } from '../lib/format';
 import { sendVerification, useAuthConfig, useChangePassword, useDeleteAccount, useMe } from '../api/auth';
 import { api, errorMessage, errorOrNull } from '../api/client';
-import { useHideCompany, useIndustryLabel, useSaveSettings, useSettings } from '../api/hooks';
+import { useHealth, useHideCompany, useIndustryLabel, useSaveSettings, useSettings } from '../api/hooks';
 import type { AppStatus, Job, JobList, Settings } from '../api/types';
 import { Field } from '../components/Field';
 import { INPUT_CLS } from '../lib/styles';
@@ -250,6 +250,37 @@ function DeleteAccount() {
   );
 }
 
+/** What is running, for bug reports: the dashboard and the server, with their commits. */
+function About() {
+  const health = useHealth();
+  const [copied, setCopied] = useState(false);
+  const web = `v${__APP_VERSION__}`;
+  const server = health.data ? health.data.version.replace(/^(\d)/, 'v$1') : health.isError ? 'Unreachable' : 'Checking…';
+  const info = `Wera dashboard ${web} (${__APP_COMMIT__}) · server ${server}${health.data?.commit ? ` (${health.data.commit})` : ''} · ${navigator.userAgent}`;
+  const copy = () => {
+    void navigator.clipboard?.writeText(info).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    }, () => toast.error('Could not copy. Select the versions above instead.'));
+  };
+  return (
+    <>
+      <Row label="Dashboard"><span className="font-mono text-xs text-muted" title={`commit ${__APP_COMMIT__}`}>{web}</span></Row>
+      <Row label="Server">
+        <span className={clsx('inline-flex items-center gap-1.5 font-mono text-xs', health.isError ? 'text-bad' : 'text-muted')} title={health.data?.commit ? `commit ${health.data.commit}` : undefined}>
+          <span aria-hidden className={clsx('size-1.5 rounded-full', health.data ? 'bg-good' : health.isError ? 'bg-bad' : 'bg-warn')} />
+          {server}
+        </span>
+      </Row>
+      <Row label="Version details" hint="Paste these into a bug report so we know exactly what you were running.">
+        <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs font-medium text-text hover:border-accent/40">
+          {copied ? <Check className="size-3.5 text-good" /> : <Copy className="size-3.5" />} {copied ? 'Copied' : 'Copy'}
+        </button>
+      </Row>
+    </>
+  );
+}
+
 export default function SettingsPage() {
   useDocumentTitle('Settings');
   const me = useMe();
@@ -356,6 +387,10 @@ export default function SettingsPage() {
             <Download className="size-3.5" /> Download CSV
           </button>
         </Row>
+      </Section>
+
+      <Section icon={Info} title="About">
+        <About />
       </Section>
 
       <Section icon={ShieldAlert} title="Danger zone" tone="danger">
