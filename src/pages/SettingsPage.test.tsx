@@ -136,4 +136,22 @@ describe('SettingsPage: Chrome extension', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Disconnect' }));
     expect(await screen.findByText(/No browser connected/)).toBeInTheDocument();
   });
+
+  it('shows the dashboard and server versions under About and copies them', async () => {
+    mockApi({
+      'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'A', is_admin: false, created_at: '' }, avatar_version: null }),
+      'GET /api/settings': () => settings,
+      'GET /api/industries': () => ({ industries: [] }),
+      'GET /healthz': () => ({ version: '0.21.0', commit: 'abc1234' }),
+    });
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    renderApp(<SettingsPage />);
+    expect(await screen.findByRole('heading', { name: 'About' })).toBeInTheDocument();
+    expect(await screen.findByText('v0.21.0')).toHaveAttribute('title', 'commit abc1234');
+    expect(screen.getByText(`v${__APP_VERSION__}`)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('server v0.21.0 (abc1234)')));
+    expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument();
+  });
 });
