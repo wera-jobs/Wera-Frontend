@@ -142,16 +142,16 @@ describe('SettingsPage: Chrome extension', () => {
       'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'A', is_admin: false, created_at: '' }, avatar_version: null }),
       'GET /api/settings': () => settings,
       'GET /api/industries': () => ({ industries: [] }),
-      'GET /healthz': () => ({ version: '0.21.0', commit: 'abc1234' }),
+      'GET /healthz': () => ({ version: '9.8.7', commit: 'abc1234' }),
     });
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     renderApp(<SettingsPage />);
     expect(await screen.findByRole('heading', { name: 'About' })).toBeInTheDocument();
-    expect(await screen.findByText('v0.21.0')).toHaveAttribute('title', 'commit abc1234');
+    expect(await screen.findByText('v9.8.7')).toHaveAttribute('title', 'commit abc1234');
     expect(screen.getByText(`v${__APP_VERSION__}`)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Copy' }));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('server v0.21.0 (abc1234)')));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringContaining('server v9.8.7 (abc1234)')));
     expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument();
   });
 });
