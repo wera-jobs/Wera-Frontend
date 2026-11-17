@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.21.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.20.0...wera-frontend-v0.21.0) (2026-11-17)
+
+
+### Features
+
+* **layout:** put the theme toggle in the top bar on every screen ([3d9e2c6](https://github.com/wera-jobs/Wera-Frontend/commit/3d9e2c6de5cb32b5f71ce06dd963e96b56dff029))
+* **settings:** move the version line to Settings &gt; About ([9d0a701](https://github.com/wera-jobs/Wera-Frontend/commit/9d0a701da2018a4164ec7417a5e13cfe2e4c1130))
+
+
+### Bug Fixes
+
+* **resume:** offer to rebuild from a resume uploaded after the current one ([c53c19f](https://github.com/wera-jobs/Wera-Frontend/commit/c53c19f1a7c2110a757e70910d22c6754c18eb68)), closes [#147](https://github.com/wera-jobs/Wera-Frontend/issues/147)
+
 ## [0.20.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.19.0...wera-frontend-v0.20.0) (2026-11-15)
 
 
