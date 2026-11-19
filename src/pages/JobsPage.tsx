@@ -11,6 +11,7 @@ import { stepId } from '../lib/format';
 import { handOffJob } from '../lib/extension';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { AddJobDialog } from '../components/AddJobDialog';
+import { SavedSearchBar } from '../components/SavedSearches';
 
 const PAGE = 50;
 
@@ -173,6 +174,8 @@ export default function JobsPage() {
           }}
         />
       )}
+
+      <SavedSearchBar />
 
       <FilterBar
         values={values}
