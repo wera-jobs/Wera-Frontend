@@ -78,6 +78,7 @@ export function stubApi(overrides: Record<string, Handler> = {}) {
     'GET /api/auth/config': () => ({ signup_enabled: true, mail_enabled: false }),
     'GET /api/profile': () => profile,
     'GET /api/profile/options': () => options,
+    'GET /api/profile/suggestions': () => ({ suggestions: [] }),
     'GET /api/industries': () => industries,
     'GET /api/today': () => today,
     'GET /api/jobs': () => jobs,

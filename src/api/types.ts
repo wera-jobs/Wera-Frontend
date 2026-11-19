@@ -9,6 +9,9 @@ export type AppStatus =
   | 'rejected'
   | 'not_interested';
 
+/** Why the user passed on a job (Not interested), when they said. */
+export type DismissReason = 'too_senior' | 'too_junior' | 'location' | 'field' | 'company' | 'pay' | 'other';
+
 /** A scored job's parts of fit, each 0-10, and whether something rules it out. */
 export interface FitParts {
   role: number;
@@ -70,6 +73,7 @@ export interface Job {
   fit_parts?: FitParts | null;
   /** Posted in the last three days and found by Wera within a day of it: applying now is early. */
   early?: boolean;
+  dismiss_reason?: DismissReason | null;
 }
 
 export interface DeepGap {
@@ -192,6 +196,15 @@ export interface User {
   created_at: string;
   /** Unix time of the profile picture (null when there is none). */
   avatar_version?: number | null;
+}
+
+/** A preference change suggested by the reasons the user gave for passing on jobs. */
+export interface TuneSuggestion {
+  reason: string;
+  count: number;
+  text: string;
+  /** The full preferences with the change made; null means review them by hand. */
+  preferences: Preferences | null;
 }
 
 export interface Preferences {

@@ -5,6 +5,7 @@ import { useLatestRun, useStats, useStatusWithUndo, useToday } from '../api/hook
 import { useProfile } from '../api/profile';
 import type { AppStatus, Job } from '../api/types';
 import { ExtensionPromo } from '../components/ExtensionPromo';
+import { TuneSuggestions } from '../components/TuneSuggestions';
 import { CHIP_BUTTON, JobCard } from '../components/JobCard';
 import { JobDrawer } from '../components/JobDrawer';
 import { ScoreRing } from '../components/ScoreRing';
@@ -266,6 +267,7 @@ export default function TodayPage() {
         <EmptyState icon={<Sun className="size-5 text-faint" />} title={`Nothing posted in the last ${WITHIN.find(([d]) => d === within)?.[1].toLowerCase()} to review.`} />
       ) : (
         <>
+          <TuneSuggestions />
           <ExtensionPromo />
           {top && <TopPick job={top} passedOver={passedOver} onOpen={open} onStatus={setStatus} />}
           {visible.length > 0 && (
