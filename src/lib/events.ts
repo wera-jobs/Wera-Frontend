@@ -19,3 +19,17 @@ export const whenText = (iso: string, withTime = true) =>
     day: 'numeric',
     ...(withTime ? { hour: 'numeric', minute: '2-digit' } : {}),
   });
+
+/** How the dashboard names each resume kind. */
+export const RESUME_KINDS: [string, string][] = [
+  ['tailored', 'Tailored for this job'],
+  ['base', 'Main resume'],
+  ['upload', 'Uploaded file'],
+];
+
+/** "Tailored for this job + letter", for the tracker. */
+export function resumeText(r: { kind: string; letter: boolean } | null | undefined): string {
+  if (!r || (!r.kind && !r.letter)) return '';
+  const kind = RESUME_KINDS.find(([k]) => k === r.kind)?.[1] ?? '';
+  return [kind, r.letter ? (kind ? '+ letter' : 'Cover letter') : ''].filter(Boolean).join(' ');
+}

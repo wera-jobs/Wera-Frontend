@@ -11,7 +11,7 @@ const day = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
 describe('tracker data', () => {
   it('lists every application with the soonest next step first, and the archive on its own', async () => {
     const tracked = [
-      { ...base, id: 701, title: 'Later Role', company: 'Acme', application_status: 'applied' as const, next_step: 'Follow up', next_step_at: day(5) },
+      { ...base, id: 701, title: 'Later Role', company: 'Acme', application_status: 'applied' as const, next_step: 'Follow up', next_step_at: day(5), resume_used: { kind: 'tailored' as const, name: 'Ada.pdf', letter: true, by: 'extension' as const } },
       { ...base, id: 702, title: 'Sooner Role', company: 'Globex', application_status: 'interviewing' as const, next_step: 'Send the take-home', next_step_at: day(1) },
       { ...base, id: 703, title: 'No Step Role', company: 'Initech', application_status: 'saved' as const },
     ];
@@ -44,6 +44,7 @@ describe('tracker data', () => {
       'No Step RoleIInitech',
     ]);
     expect(screen.getByRole('region', { name: 'Applied' })).toHaveClass('hidden');
+    expect(screen.getByText('Tailored for this job + letter')).toBeInTheDocument();
 
     await userEvent.click(within(views).getByRole('button', { name: 'Archived' }));
     expect(await screen.findByText('Old Role')).toBeInTheDocument();
@@ -88,6 +89,11 @@ describe('tracker data', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
     await waitFor(() => expect(added).toHaveLength(1));
     expect(added[0]).toMatchObject({ kind: 'interview', with: 'Sam', at: new Date('2026-12-01T15:00').toISOString() });
+
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Sent with it/), 'tailored');
+    await waitFor(() => expect(patched).toContainEqual({ resume_kind: 'tailored' }));
+    await userEvent.click(within(dialog).getByRole('checkbox', { name: 'Cover letter' }));
+    await waitFor(() => expect(patched).toContainEqual({ letter_sent: true }));
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Archive' }));
     await waitFor(() => expect(patched).toContainEqual({ archived: true }));
