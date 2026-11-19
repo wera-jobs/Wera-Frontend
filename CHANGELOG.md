@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.24.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.23.0...wera-frontend-v0.24.0) (2026-11-19)
+
+
+### Features
+
+* **today:** ask why after Not interested, and suggest preference changes ([7207407](https://github.com/wera-jobs/Wera-Frontend/commit/7207407415ccd2002d270cedd0a629a0fda49136)), closes [#180](https://github.com/wera-jobs/Wera-Frontend/issues/180)
+* **today:** filter by how recently a job was posted, and flag early ones ([8a41272](https://github.com/wera-jobs/Wera-Frontend/commit/8a4127265a1065fcad175eb24dbcfd72fcb89f6b)), closes [#179](https://github.com/wera-jobs/Wera-Frontend/issues/179)
+* **tracker:** next steps, contacts, interviews, a list view and an archive ([071e9c4](https://github.com/wera-jobs/Wera-Frontend/commit/071e9c455e2aed53616be984936ac2f0ba58d244)), closes [#181](https://github.com/wera-jobs/Wera-Frontend/issues/181)
+
 ## [0.23.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.22.0...wera-frontend-v0.23.0) (2026-11-19)
 
 
