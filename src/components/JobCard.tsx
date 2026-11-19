@@ -21,8 +21,13 @@ export function JobCard({
   onOpen,
   onQuickStatus,
   quickActions = true,
+  checked,
+  onCheck,
 }: {
   job: Job;
+  /** Picked for a bulk action; with onCheck, the card gets a checkbox. */
+  checked?: boolean;
+  onCheck?: () => void;
   /** Position in the grid; drives the staggered entrance delay. */
   index?: number;
   onOpen: (id: number) => void;
@@ -43,6 +48,15 @@ export function JobCard({
         <div className="flex shrink-0 flex-col items-center gap-1">
           <ScoreRing score={job.fit_score} estimate={job.estimated_score} ai={job.estimate_ai} />
           {job.fit_score != null && <span className="text-[10px] font-medium text-faint">{verdictLabel[verdictOf(job.fit_score)].replace(' fit', '')}</span>}
+          {onCheck && (
+            <input
+              type="checkbox"
+              checked={!!checked}
+              onChange={onCheck}
+              aria-label={`Select ${job.title} at ${job.company}`}
+              className="relative z-10 mt-1 size-4 cursor-pointer accent-accent"
+            />
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
