@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.28.0...wera-frontend-v0.29.0) (2026-11-19)
+
+
+### Features
+
+* **tracker:** show and set the resume and letter sent with each application ([ab0c222](https://github.com/wera-jobs/Wera-Frontend/commit/ab0c2223fe9da32551c0af55bdceeb78a8606c9c))
+
 ## [0.28.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.27.0...wera-frontend-v0.28.0) (2026-11-19)
 
 
