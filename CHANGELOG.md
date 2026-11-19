@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.31.0...wera-frontend-v0.32.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** find someone to refer you, from the job view ([f021906](https://github.com/wera-jobs/Wera-Frontend/commit/f0219062162c9fb525f390286799a9c0525bc25d)), closes [#183](https://github.com/wera-jobs/Wera-Frontend/issues/183)
+* **settings:** import tracked jobs from a CSV ([1758ce5](https://github.com/wera-jobs/Wera-Frontend/commit/1758ce521eba081397884a8c4d0db12e40059d9d)), closes [#181](https://github.com/wera-jobs/Wera-Frontend/issues/181)
+
 ## [0.31.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.30.0...wera-frontend-v0.31.0) (2026-11-19)
 
 
