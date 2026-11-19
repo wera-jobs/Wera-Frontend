@@ -94,11 +94,13 @@ export function stubApi(overrides: Record<string, Handler> = {}) {
     'GET /api/ext/tokens': () => ({ connections: [] }),
     'GET /api/applicant/answers': () => ({ answers: [] }),
     'GET /api/autofill-runs': () => ({ runs: [] }),
+    'GET /api/events': () => ({ events: [] }),
     // Every listed job opens with the fixture detail (description etc.).
     ...Object.fromEntries(
       [...jobs.jobs, ...today.jobs, job].flatMap((j): [string, Handler][] => [
         [`GET /api/jobs/${j.id}`, () => ({ ...job, ...j, description: POSTING, deep: null })],
         [`GET /api/jobs/${j.id}/cover-letter`, () => new Response('{"error":"none"}', { status: 404 })],
+        [`GET /api/jobs/${j.id}/events`, () => ({ events: [] })],
       ]),
     ),
     ...overrides,

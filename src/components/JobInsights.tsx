@@ -7,6 +7,7 @@ import { Ban } from 'lucide-react';
 import { useUpdateApplication } from '../api/hooks';
 import type { AppStatus, DeepAnalysis, FitParts, JobDetail } from '../api/types';
 import { absTime, compact, money, payText, prettyReason, relTime, toYou, verdictLabel, verdictOf } from '../lib/format';
+import { ApplicationDetails } from './ApplicationDetails';
 import { Badge } from './Badge';
 import { AddedBadge, AutofilledBadge, CategoryChips, SponsorshipBadge, WorkModeBadge } from './JobBadges';
 import { JobH1B } from './JobH1B';
@@ -253,6 +254,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
           aria-label="Application notes"
           className="mt-2.5 w-full resize-y rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs leading-relaxed text-text placeholder:text-faint transition-colors duration-150 hover:border-accent/40"
         />
+        {job.application_status && <ApplicationDetails key={job.id} job={job} />}
       </Section>
     </>
   );
