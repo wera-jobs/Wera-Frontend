@@ -7,7 +7,10 @@ import {
 import { api, ApiError, errorMessage, retryWhileDown } from './client';
 import { toast } from '../lib/toast';
 import type {
+  AppEvent,
   AppStatus,
+  Contact,
+  EventKind,
   CompaniesList,
   DismissReason,
   Job,
@@ -31,6 +34,8 @@ export interface JobsParams {
   sponsorship?: string;
   work_mode?: string;
   status?: string;
+  /** 1: only archived applications. */
+  archived?: number;
   since?: string;
   posted_within?: number;
   sort?: string;
@@ -390,5 +395,62 @@ export function useReadPosting() {
   return useMutation({
     mutationFn: (v: { url: string; text: string }) =>
       api<JobDraft>('/api/ext/extract', { method: 'POST', body: JSON.stringify({ url: v.url, title: '', text: v.text }) }),
+  });
+}
+
+/** Changes an application's next step, contact or archived state; fields left out stay. */
+export function usePatchApplication() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: number; next_step?: string; next_step_at?: string; contact?: Contact; clear_contact?: boolean; archived?: boolean }) => {
+      const { id, ...body } = v;
+      return api<JobDetail>(`/api/jobs/${id}/application`, { method: 'PATCH', body: JSON.stringify(body) });
+    },
+    onSuccess: (job) => {
+      const cur = qc.getQueryData<JobDetail>(['job', job.id]);
+      if (cur) qc.setQueryData(['job', job.id], { ...cur, ...job, description: cur.description, deep: cur.deep });
+    },
+    onError: (err) => toast.error(`Couldn't save: ${errorMessage(err, 'network error')}`),
+    onSettled: async () => {
+      await qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'job' });
+    },
+  });
+}
+
+/** An application's interviews and other dated steps, soonest first. */
+export function useJobEvents(id: number | null, enabled = true) {
+  return useQuery({
+    queryKey: ['events', id],
+    queryFn: () => api<{ events: AppEvent[] }>(`/api/jobs/${id}/events`),
+    enabled: id != null && enabled,
+  });
+}
+
+/** The user's events over the coming days, across applications. */
+export function useUpcomingEvents(days = 14) {
+  return useQuery({
+    queryKey: ['events', 'upcoming', days],
+    queryFn: () => api<{ events: AppEvent[] }>(`/api/events?days=${days}`),
+  });
+}
+
+export function useAddEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: number; at: string; kind: EventKind; with: string; notes?: string }) => {
+      const { id, ...body } = v;
+      return api<AppEvent>(`/api/jobs/${id}/events`, { method: 'POST', body: JSON.stringify(body) });
+    },
+    onError: (err) => toast.error(`Couldn't add it: ${errorMessage(err, 'network error')}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['events'] }),
+  });
+}
+
+export function useDeleteEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { jobId: number; id: number }) => api<void>(`/api/jobs/${v.jobId}/events/${v.id}`, { method: 'DELETE' }),
+    onError: (err) => toast.error(`Couldn't delete it: ${errorMessage(err, 'network error')}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['events'] }),
   });
 }

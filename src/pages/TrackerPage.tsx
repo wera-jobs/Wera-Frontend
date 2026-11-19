@@ -8,11 +8,12 @@ import type { AppStatus, Job } from '../api/types';
 import { AutofilledBadge, ClosedBadge } from '../components/JobBadges';
 import { JobDrawer } from '../components/JobDrawer';
 import { StatusSelect } from '../components/StatusSelect';
+import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
-import { ExternalLink, EyeOff, KanbanSquare, Search } from 'lucide-react';
+import { Archive, ExternalLink, EyeOff, KanbanSquare, List, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const COLUMNS: AppStatus[] = ['saved', 'applied', 'interviewing', 'offer', 'rejected'];
@@ -72,6 +73,7 @@ function KanbanCard({
           <AutofilledBadge at={job.autofilled_at} />
           <ClosedBadge at={job.closed_at} />
         </div>
+        <NextStep job={job} className="mt-1" />
       </div>
       <div className="mt-2 flex items-center gap-1.5">
         <StatusSelect
@@ -341,6 +343,7 @@ export default function TrackerPage() {
   const [stage, setStage] = useState<AppStatus>('saved');
   const [drawerId, setDrawerId] = useState<number | null>(null);
   const [dragging, setDragging] = useState<Job | null>(null);
+  const [view, setView] = useState<'board' | 'list' | 'archived'>('board');
   // A small move or a short press before a drag, so clicks, the status menu and scrolling keep working.
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -386,6 +389,29 @@ export default function TrackerPage() {
               className="w-full rounded-lg border border-border bg-surface py-1.5 pr-2.5 pl-8 text-xs text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
             />
           </label>
+          <div role="group" aria-label="View" className="inline-flex rounded-lg border border-border bg-surface p-0.5">
+            {(
+              [
+                ['board', 'Board', KanbanSquare],
+                ['list', 'List', List],
+                ['archived', 'Archived', Archive],
+              ] as const
+            ).map(([v, label, Icon]) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={view === v}
+                onClick={() => setView(v)}
+                className={clsx(
+                  'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                  view === v ? 'bg-accent/10 text-accent' : 'text-muted hover:text-text',
+                )}
+              >
+                <Icon className="size-3.5" />
+                {label}
+              </button>
+            ))}
+          </div>
           <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted select-none">
           <input
             type="checkbox"
@@ -399,8 +425,11 @@ export default function TrackerPage() {
         </div>
       </header>
 
-      {empty && <TrackerEmpty />}
-      {!empty && (
+      {empty && view !== 'archived' && <TrackerEmpty />}
+      {!empty && <Upcoming onOpen={setDrawerId} />}
+      {view === 'list' && !empty && <TrackerList statuses={columns} matches={(j) => matches(j, query)} onOpen={setDrawerId} onStatus={onStatus} />}
+      {view === 'archived' && <ArchivedList matches={(j) => matches(j, query)} onOpen={setDrawerId} onStatus={onStatus} />}
+      {view === 'board' && !empty && (
         <div role="tablist" aria-label="Stages" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:hidden">
           {columns.map((st) => (
             <StageTab key={st} status={st} query={query} selected={st === shownStage} onSelect={() => setStage(st)} />
@@ -416,7 +445,7 @@ export default function TrackerPage() {
       >
         <div
           className={clsx(
-            empty && 'hidden',
+            (empty || view !== 'board') && 'hidden',
             // On a wide screen the board fits the window and each column scrolls.
             'grid gap-3 sm:grid-cols-2 xl:h-[calc(100svh-12rem)] xl:min-h-96 xl:grid-cols-5 xl:grid-rows-1',
             showNI && 'xl:grid-cols-6',

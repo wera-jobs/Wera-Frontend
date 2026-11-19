@@ -22,6 +22,28 @@ export interface FitParts {
   blocker: boolean;
 }
 
+/** The one person an application is with. Link is an email address or a URL. */
+export interface Contact {
+  name: string;
+  role: string;
+  link: string;
+}
+
+export type EventKind = 'phone_screen' | 'interview' | 'onsite' | 'assessment' | 'offer_call' | 'other';
+
+/** A dated step in an application: an interview, a screen, a take-home due. */
+export interface AppEvent {
+  id: number;
+  job_id: number;
+  at: string;
+  kind: EventKind;
+  with: string;
+  notes: string;
+  /** The job's, in lists across jobs. */
+  title?: string;
+  company?: string;
+}
+
 export interface Job {
   id: number;
   company_id: number;
@@ -53,6 +75,12 @@ export interface Job {
   reason: string | null;
   application_status: AppStatus | null;
   application_notes: string | null;
+  /** The tracker's next step on this application, and when it's due. */
+  next_step?: string | null;
+  next_step_at?: string | null;
+  contact?: Contact | null;
+  /** Set when the application is archived: off the board, history kept. */
+  archived_at?: string | null;
   /**
    * Shown until the full AI score arrives: the AI's quick grade when
    * estimate_ai, else a local relevance estimate (35..85).
