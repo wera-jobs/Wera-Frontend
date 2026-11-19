@@ -122,7 +122,43 @@ export function useSaveApplicant() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (a: Applicant) => api<ApplicantView>('/api/applicant', { method: 'PUT', body: JSON.stringify(a) }),
-    onSuccess: (r) => qc.setQueryData(['applicant'], r),
+    onSuccess: (r) => {
+      qc.setQueryData(['applicant'], r);
+      void qc.invalidateQueries({ queryKey: ['applicant', 'conflicts'] });
+    },
+  });
+}
+
+/** One fact the application details and the profile disagree on (see /api/applicant/conflicts). */
+export interface DetailsConflict {
+  key: string;
+  label: string;
+  /** What the application details say, in words. */
+  details: string;
+  /** What the profile says, in words. */
+  elsewhere: string;
+  /** Keeping the details leaves the profile text saying the old thing until it is redrafted. */
+  redraft: boolean;
+}
+
+export function useDetailsConflicts() {
+  return useQuery({
+    queryKey: ['applicant', 'conflicts'],
+    queryFn: () => api<{ conflicts: DetailsConflict[] }>('/api/applicant/conflicts'),
+  });
+}
+
+/** Settles one disagreement: the side not kept is updated to match. */
+export function useResolveConflict() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { key: string; keep: 'details' | 'profile' }) =>
+      api<{ conflicts: DetailsConflict[] }>('/api/applicant/conflicts/resolve', { method: 'POST', body: JSON.stringify(v) }),
+    onSuccess: (r) => {
+      qc.setQueryData(['applicant', 'conflicts'], r);
+      void qc.invalidateQueries({ queryKey: ['applicant'], exact: true });
+      void qc.invalidateQueries({ queryKey: ['profile'] });
+    },
   });
 }
 
