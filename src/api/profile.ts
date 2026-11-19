@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, retryWhileDown } from './client';
-import type { Answers, MyUsage, Preferences, Profile, ProfileOptions, Suggestions } from './types';
+import type { Answers, MyUsage, Preferences, Profile, ProfileOptions, Suggestions, TuneSuggestion } from './types';
 
 /**
  * Fills in lists the server may send as null (a profile started by a resume
@@ -130,5 +130,14 @@ export function useSaveProfile() {
       qc.setQueryData(['profile'], normalizeProfile(profile));
       void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'profile' });
     },
+  });
+}
+
+/** Preference changes suggested by repeated reasons for passing on jobs. */
+export function useTuneSuggestions() {
+  return useQuery({
+    queryKey: ['tune-suggestions'],
+    queryFn: () => api<{ suggestions: TuneSuggestion[] }>('/api/profile/suggestions'),
+    staleTime: 60_000,
   });
 }
