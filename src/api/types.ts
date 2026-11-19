@@ -51,6 +51,11 @@ export interface Job {
   autofilled_at?: string | null;
   /** When the posting came down (null: still open). */
   closed_at?: string | null;
+  /** The pay the posting states (min = max for one figure); null when it states none. */
+  pay_min?: number | null;
+  pay_max?: number | null;
+  pay_currency?: string | null;
+  pay_period?: 'hour' | 'year' | null;
 }
 
 export interface DeepGap {

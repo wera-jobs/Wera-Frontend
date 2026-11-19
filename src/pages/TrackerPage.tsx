@@ -9,7 +9,7 @@ import { AutofilledBadge, ClosedBadge } from '../components/JobBadges';
 import { JobDrawer } from '../components/JobDrawer';
 import { StatusSelect } from '../components/StatusSelect';
 import { Skeleton } from '../components/States';
-import { relTime, verdictColor, verdictOf } from '../lib/format';
+import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
 import { ExternalLink, EyeOff, KanbanSquare, Search } from 'lucide-react';
@@ -68,6 +68,7 @@ function KanbanCard({
               : ''}
             {relTime(job.first_seen_at)}
           </span>
+          {payText(job, true) && <span className="font-medium text-muted">{payText(job, true)}</span>}
           <AutofilledBadge at={job.autofilled_at} />
           <ClosedBadge at={job.closed_at} />
         </div>
