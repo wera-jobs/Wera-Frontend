@@ -5,7 +5,7 @@ import { useState } from 'react';
 import clsx from 'clsx';
 import { Ban } from 'lucide-react';
 import { useUpdateApplication } from '../api/hooks';
-import type { AppStatus, DeepAnalysis, JobDetail } from '../api/types';
+import type { AppStatus, DeepAnalysis, FitParts, JobDetail } from '../api/types';
 import { absTime, compact, money, payText, prettyReason, relTime, toYou, verdictLabel, verdictOf } from '../lib/format';
 import { Badge } from './Badge';
 import { AddedBadge, AutofilledBadge, CategoryChips, SponsorshipBadge, WorkModeBadge } from './JobBadges';
@@ -94,6 +94,36 @@ function DeepSection({ deep }: { deep: DeepAnalysis }) {
   );
 }
 
+// The parts of fit in the order they weigh in the score (see the API's scoring.Ratings.Score).
+const FIT_PARTS: { key: keyof Omit<FitParts, 'blocker'>; label: string }[] = [
+  { key: 'role', label: 'The work' },
+  { key: 'skills', label: 'Skills' },
+  { key: 'seniority', label: 'Level' },
+  { key: 'domain', label: 'Field' },
+  { key: 'location', label: 'Place' },
+];
+
+const partWord = (n: number) => (n >= 7 ? 'Strong' : n >= 4 ? 'Partly' : 'Weak');
+const partTone = (n: number) => (n >= 7 ? 'bg-good' : n >= 4 ? 'bg-warn' : 'bg-bad');
+
+/** How the score breaks down: each part of fit as the scorer rated it. */
+export function FitBreakdown({ parts }: { parts: FitParts }) {
+  return (
+    <div className="mt-3 space-y-1.5" aria-label="How the score breaks down">
+      {FIT_PARTS.map(({ key, label }) => (
+        <div key={key} className="grid grid-cols-[4.5rem_1fr_3rem] items-center gap-2 text-[11px]">
+          <span className="text-muted">{label}</span>
+          <span className="h-1.5 overflow-hidden rounded-full bg-surface-2" role="img" aria-label={`${label}: ${parts[key]} of 10`}>
+            <span className={clsx('block h-full rounded-full', partTone(parts[key]))} style={{ width: `${parts[key] * 10}%` }} />
+          </span>
+          <span className="text-right text-faint">{partWord(parts[key])}</span>
+        </div>
+      ))}
+      {parts.blocker && <p className="pt-1 text-[11px] text-bad">Something in the posting may rule you out: the reason above says what.</p>}
+    </div>
+  );
+}
+
 export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean }) {
   const update = useUpdateApplication();
   const [notes, setNotes] = useState<string | null>(null); // null: mirror the server (reset per job by key)
@@ -150,6 +180,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
           <div className="min-w-0">
             <div className="text-sm font-semibold text-text">{verdictLabel[verdict]}</div>
             {job.reason && <p className="mt-1 text-xs leading-relaxed text-muted">{toYou(job.reason)}</p>}
+            {job.fit_parts && <FitBreakdown parts={job.fit_parts} />}
           </div>
         </div>
       ) : (
