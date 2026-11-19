@@ -10,6 +10,7 @@ import { useLogout, useMe } from '../api/auth';
 import { ConnectionBanner } from './ConnectionBanner';
 import { NAV } from './nav';
 import { ThemeToggle } from '../lib/theme';
+import { NotificationBell } from '../components/NotificationBell';
 import { Logo } from '../components/Logo';
 import { Avatar } from '../components/Avatar';
 import { CommandPalette } from '../components/CommandPalette';
@@ -187,6 +188,7 @@ export function AppShell() {
             <div className="ml-auto flex shrink-0 items-center gap-3">
               <TopBarMeta />
               <HealthDot pulse={running} />
+              <NotificationBell />
               <ThemeToggle />
             </div>
           </div>
