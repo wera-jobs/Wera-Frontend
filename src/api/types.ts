@@ -9,6 +9,9 @@ export type AppStatus =
   | 'rejected'
   | 'not_interested';
 
+/** Why the user passed on a job (Not interested), when they said. */
+export type DismissReason = 'too_senior' | 'too_junior' | 'location' | 'field' | 'company' | 'pay' | 'other';
+
 /** A scored job's parts of fit, each 0-10, and whether something rules it out. */
 export interface FitParts {
   role: number;
@@ -17,6 +20,28 @@ export interface FitParts {
   domain: number;
   location: number;
   blocker: boolean;
+}
+
+/** The one person an application is with. Link is an email address or a URL. */
+export interface Contact {
+  name: string;
+  role: string;
+  link: string;
+}
+
+export type EventKind = 'phone_screen' | 'interview' | 'onsite' | 'assessment' | 'offer_call' | 'other';
+
+/** A dated step in an application: an interview, a screen, a take-home due. */
+export interface AppEvent {
+  id: number;
+  job_id: number;
+  at: string;
+  kind: EventKind;
+  with: string;
+  notes: string;
+  /** The job's, in lists across jobs. */
+  title?: string;
+  company?: string;
 }
 
 export interface Job {
@@ -50,6 +75,12 @@ export interface Job {
   reason: string | null;
   application_status: AppStatus | null;
   application_notes: string | null;
+  /** The tracker's next step on this application, and when it's due. */
+  next_step?: string | null;
+  next_step_at?: string | null;
+  contact?: Contact | null;
+  /** Set when the application is archived: off the board, history kept. */
+  archived_at?: string | null;
   /**
    * Shown until the full AI score arrives: the AI's quick grade when
    * estimate_ai, else a local relevance estimate (35..85).
@@ -68,6 +99,9 @@ export interface Job {
   pay_period?: 'hour' | 'year' | null;
   /** The ratings (0-10) the fit score was computed from; null for older scores. */
   fit_parts?: FitParts | null;
+  /** Posted in the last three days and found by Wera within a day of it: applying now is early. */
+  early?: boolean;
+  dismiss_reason?: DismissReason | null;
 }
 
 export interface DeepGap {
@@ -190,6 +224,15 @@ export interface User {
   created_at: string;
   /** Unix time of the profile picture (null when there is none). */
   avatar_version?: number | null;
+}
+
+/** A preference change suggested by the reasons the user gave for passing on jobs. */
+export interface TuneSuggestion {
+  reason: string;
+  count: number;
+  text: string;
+  /** The full preferences with the change made; null means review them by hand. */
+  preferences: Preferences | null;
 }
 
 export interface Preferences {

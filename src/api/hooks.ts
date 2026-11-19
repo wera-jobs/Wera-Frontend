@@ -7,8 +7,12 @@ import {
 import { api, ApiError, errorMessage, retryWhileDown } from './client';
 import { toast } from '../lib/toast';
 import type {
+  AppEvent,
   AppStatus,
+  Contact,
+  EventKind,
   CompaniesList,
+  DismissReason,
   Job,
   JobDetail,
   JobList,
@@ -30,6 +34,8 @@ export interface JobsParams {
   sponsorship?: string;
   work_mode?: string;
   status?: string;
+  /** 1: only archived applications. */
+  archived?: number;
   since?: string;
   posted_within?: number;
   sort?: string;
@@ -155,7 +161,7 @@ export const inReview = (status: AppStatus | null | undefined) => status == null
 export function useUpdateApplication() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: number; status: AppStatus | null; notes?: string }) =>
+    mutationFn: (v: { id: number; status: AppStatus | null; notes?: string; reason?: DismissReason }) =>
       v.status == null
         ? api<JobDetail>(`/api/jobs/${v.id}/application`, { method: 'DELETE' })
         : api<JobDetail>(`/api/jobs/${v.id}/application`, {
@@ -167,7 +173,12 @@ export function useUpdateApplication() {
       const prev = new Map<QueryKey, unknown>();
       const patch = (j: Job): Job =>
         j.id === v.id
-          ? { ...j, application_status: v.status, application_notes: v.notes ?? j.application_notes }
+          ? {
+              ...j,
+              application_status: v.status,
+              application_notes: v.notes ?? j.application_notes,
+              dismiss_reason: v.status === 'not_interested' ? (v.reason ?? null) : null,
+            }
           : j;
       const lists = [
         ...qc.getQueriesData<JobList>({ queryKey: ['jobs'] }),
@@ -213,26 +224,52 @@ const STATUS_DONE: Record<AppStatus, string> = {
   not_interested: 'Marked not interested',
 };
 
+/** The reasons offered after Not interested, in the order shown. */
+export const DISMISS_REASONS: [DismissReason, string][] = [
+  ['too_senior', 'Too senior'],
+  ['too_junior', 'Too junior'],
+  ['location', 'Location'],
+  ['field', 'Not my field'],
+  ['company', 'This company'],
+  ['pay', 'Pay'],
+];
+
+// Reasons about the job itself teach the ranker; pay says nothing a posting's text shows.
+const LEARNS: DismissReason[] = ['too_senior', 'too_junior', 'location', 'field', 'company'];
+
 /**
  * Sets a status and says so in a toast with Undo, which puts back the
  * status the job had (none included). For one-click actions on cards,
- * where a slip is easy.
+ * where a slip is easy. Not interested also asks why, in one optional tap,
+ * so Wera shows fewer jobs like it.
  */
 export function useStatusWithUndo() {
   const update = useUpdateApplication();
   return (job: Pick<Job, 'id' | 'title' | 'application_status' | 'application_notes'>, status: AppStatus) => {
     const before = job.application_status ?? null;
     if (before === status) return;
-    update.mutate(
-      { id: job.id, status },
-      {
-        onSuccess: () =>
-          toast.success(`${STATUS_DONE[status]}: ${job.title}`, {
-            label: 'Undo',
-            run: () => update.mutate({ id: job.id, status: before, notes: job.application_notes ?? undefined }),
-          }),
-      },
-    );
+    const undo = {
+      label: 'Undo',
+      run: () => update.mutate({ id: job.id, status: before, notes: job.application_notes ?? undefined }),
+    };
+    const why =
+      status === 'not_interested'
+        ? {
+            prompt: 'Why? Wera will show fewer like it.',
+            options: DISMISS_REASONS.map(([reason, label]) => ({
+              label,
+              run: () =>
+                update.mutate(
+                  { id: job.id, status, reason },
+                  {
+                    onSuccess: () =>
+                      toast.success(LEARNS.includes(reason) ? 'Thanks: jobs like this will rank lower.' : 'Thanks, noted.', undo),
+                  },
+                ),
+            })),
+          }
+        : undefined;
+    update.mutate({ id: job.id, status }, { onSuccess: () => toast.success(`${STATUS_DONE[status]}: ${job.title}`, undo, why) });
   };
 }
 
@@ -358,5 +395,62 @@ export function useReadPosting() {
   return useMutation({
     mutationFn: (v: { url: string; text: string }) =>
       api<JobDraft>('/api/ext/extract', { method: 'POST', body: JSON.stringify({ url: v.url, title: '', text: v.text }) }),
+  });
+}
+
+/** Changes an application's next step, contact or archived state; fields left out stay. */
+export function usePatchApplication() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: number; next_step?: string; next_step_at?: string; contact?: Contact; clear_contact?: boolean; archived?: boolean }) => {
+      const { id, ...body } = v;
+      return api<JobDetail>(`/api/jobs/${id}/application`, { method: 'PATCH', body: JSON.stringify(body) });
+    },
+    onSuccess: (job) => {
+      const cur = qc.getQueryData<JobDetail>(['job', job.id]);
+      if (cur) qc.setQueryData(['job', job.id], { ...cur, ...job, description: cur.description, deep: cur.deep });
+    },
+    onError: (err) => toast.error(`Couldn't save: ${errorMessage(err, 'network error')}`),
+    onSettled: async () => {
+      await qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'job' });
+    },
+  });
+}
+
+/** An application's interviews and other dated steps, soonest first. */
+export function useJobEvents(id: number | null, enabled = true) {
+  return useQuery({
+    queryKey: ['events', id],
+    queryFn: () => api<{ events: AppEvent[] }>(`/api/jobs/${id}/events`),
+    enabled: id != null && enabled,
+  });
+}
+
+/** The user's events over the coming days, across applications. */
+export function useUpcomingEvents(days = 14) {
+  return useQuery({
+    queryKey: ['events', 'upcoming', days],
+    queryFn: () => api<{ events: AppEvent[] }>(`/api/events?days=${days}`),
+  });
+}
+
+export function useAddEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: number; at: string; kind: EventKind; with: string; notes?: string }) => {
+      const { id, ...body } = v;
+      return api<AppEvent>(`/api/jobs/${id}/events`, { method: 'POST', body: JSON.stringify(body) });
+    },
+    onError: (err) => toast.error(`Couldn't add it: ${errorMessage(err, 'network error')}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['events'] }),
+  });
+}
+
+export function useDeleteEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { jobId: number; id: number }) => api<void>(`/api/jobs/${v.jobId}/events/${v.id}`, { method: 'DELETE' }),
+    onError: (err) => toast.error(`Couldn't delete it: ${errorMessage(err, 'network error')}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['events'] }),
   });
 }

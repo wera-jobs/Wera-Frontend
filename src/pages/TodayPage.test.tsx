@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { ApplyCheck } from '../components/ApplyCheck';
 import { Toasts } from '../lib/toast';
-import { fixtures, stubApi } from '../test/fixtures';
+import { fixtures, profile, stubApi } from '../test/fixtures';
 import { jsonBody, renderApp } from '../test/render';
 import TodayPage from './TodayPage';
 
@@ -45,6 +45,26 @@ describe('Today', () => {
     stubApi({ 'GET /api/today': () => ({ ...fixtures.today, jobs: [old, fresh] }) });
     renderApp(<TodayPage />);
     expect(await screen.findByText(/Best fit among postings from the last 60 days: a higher score below is on older postings/)).toBeInTheDocument();
+  });
+
+  it('narrows to recent postings, and marks the ones the user can be early to', async () => {
+    const ago = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+    const fresh = { ...jobs[0], id: 9001, title: 'Fresh Role', posted_at: ago(5), first_seen_at: ago(4), early: true };
+    const recent = { ...jobs[1], id: 9002, title: 'Recent Role', posted_at: ago(50), first_seen_at: ago(40), early: false };
+    const old = { ...jobs[2], id: 9003, title: 'Old Role', posted_at: ago(24 * 20), first_seen_at: ago(24 * 20), early: false };
+    stubApi({ 'GET /api/today': () => ({ ...fixtures.today, jobs: [fresh, recent, old] }) });
+    renderApp(<TodayPage />);
+    await screen.findByRole('button', { name: /Fresh Role/ });
+    expect(screen.getAllByText('Be early')).toHaveLength(1);
+    const group = screen.getByRole('group', { name: 'Posted within' });
+    await userEvent.click(within(group).getByRole('button', { name: '24 hours' }));
+    expect(screen.queryByRole('button', { name: /Recent Role/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Fresh Role/ })).toBeInTheDocument();
+    await userEvent.click(within(group).getByRole('button', { name: '3 days' }));
+    expect(screen.getByRole('button', { name: /Recent Role/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Old Role/ })).toBeNull();
+    await userEvent.click(within(group).getByRole('button', { name: 'Any time' }));
+    expect(await screen.findByRole('button', { name: /Old Role/ })).toBeInTheDocument();
   });
 
   it('says nothing extra when the top pick is also the best score', async () => {
@@ -111,6 +131,71 @@ describe('Today', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Undo' }));
     await waitFor(() => expect(sent).toContainEqual({ method: 'DELETE' }));
     expect(await screen.findByRole('button', { name: `Top pick: ${top.title} at ${top.company}` })).toBeInTheDocument();
+  });
+
+  it('asks why after Not interested, and sends the reason picked', async () => {
+    const sent: unknown[] = [];
+    let list = freshJobs;
+    stubApi({ ...freshToday,
+      'GET /api/today': () => ({ ...fixtures.today, jobs: list }),
+      [`PUT /api/jobs/${top.id}/application`]: (init) => {
+        sent.push(jsonBody(init));
+        list = jobs.slice(1);
+        return { ...top, application_status: 'not_interested' };
+      },
+    });
+    renderApp(
+      <>
+        <TodayPage />
+        <Toasts />
+      </>,
+    );
+    const pick = await screen.findByRole('button', { name: `Top pick: ${top.title} at ${top.company}` });
+    await userEvent.click(within(pick.closest('article')!).getByRole('button', { name: /Not interested/ }));
+    const why = await screen.findByRole('group', { name: /Why\?/ });
+    await userEvent.click(within(why).getByRole('button', { name: 'Too senior' }));
+    await waitFor(() => expect(sent).toContainEqual({ id: top.id, status: 'not_interested', reason: 'too_senior' }));
+    expect(await screen.findByText('Thanks: jobs like this will rank lower.')).toBeInTheDocument();
+  });
+
+  it('suggests a preference change from repeated reasons, and saves it only on yes', async () => {
+    const saved: unknown[] = [];
+    const preferences = { ...profile.preferences, max_years_required: 4 };
+    stubApi({ ...freshToday,
+      'GET /api/profile/suggestions': () => ({
+        suggestions: [{ reason: 'too_senior', count: 3, text: 'You passed on 3 jobs as too senior. Hide jobs asking for more than 4 years?', preferences }],
+      }),
+      'PUT /api/profile': (init) => {
+        saved.push(jsonBody(init));
+        return profile;
+      },
+    });
+    renderApp(
+      <>
+        <TodayPage />
+        <Toasts />
+      </>,
+    );
+    expect(await screen.findByRole('heading', { name: /Hide jobs asking for more than 4 years/ })).toBeInTheDocument();
+    expect(saved).toEqual([]);
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, update' }));
+    await waitFor(() => expect(saved).toHaveLength(1));
+    expect(saved[0]).toMatchObject({ preferences: { max_years_required: 4 } });
+    await waitFor(() => expect(screen.queryByRole('heading', { name: /Hide jobs asking/ })).toBeNull());
+  });
+
+  it('hides a suggestion on Not now', async () => {
+    localStorage.removeItem('wera.tuneDismissed');
+    stubApi({ ...freshToday,
+      'GET /api/profile/suggestions': () => ({
+        suggestions: [{ reason: 'field', count: 3, text: "You passed on 3 jobs as not your field. Review the roles you're looking for?", preferences: null }],
+      }),
+    });
+    renderApp(<TodayPage />);
+    expect(await screen.findByRole('link', { name: 'Review preferences' })).toHaveAttribute('href', '/profile#want');
+    await userEvent.click(screen.getByRole('button', { name: 'Not now' }));
+    expect(screen.queryByRole('link', { name: 'Review preferences' })).toBeNull();
+    localStorage.removeItem('wera.tuneDismissed');
   });
 
   it('keeps browsing in the job view after the open job leaves the list', async () => {

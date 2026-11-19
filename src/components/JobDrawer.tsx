@@ -15,13 +15,13 @@ import {
   PenLine,
   X,
 } from 'lucide-react';
-import { useHideCompany, useJob, useScoreJob, useUpdateApplication } from '../api/hooks';
+import { useHideCompany, useJob, useScoreJob, useStatusWithUndo, useUpdateApplication } from '../api/hooks';
 import { CoverLetterPanel } from './CoverLetterPanel';
 import { JobResumePanel } from './JobResumePanel';
 import { toast } from '../lib/toast';
 import type { AppStatus, JobDetail } from '../api/types';
 import { Description } from './Description';
-import { ClosedBadge, IndustryBadge, OldPostingBadge, StatusPill } from './JobBadges';
+import { ClosedBadge, IndustryBadge, EarlyBadge, OldPostingBadge, StatusPill } from './JobBadges';
 import { Skeleton } from './States';
 import { Insights } from './JobInsights';
 import { absTime, relTime } from '../lib/format';
@@ -73,6 +73,7 @@ function Header({ job }: { job: JobDetail }) {
         <IndustryBadge value={job.industry} />
         <StatusPill value={job.application_status} />
         <ClosedBadge at={job.closed_at} />
+        <EarlyBadge job={job} />
         <OldPostingBadge job={job} />
       </div>
       <h2 className="mt-2 text-xl leading-snug font-semibold text-balance text-text md:text-2xl">{job.title}</h2>
@@ -158,6 +159,7 @@ export function JobDrawer({
 
   const setStatus = (status: AppStatus) =>
     job && update.mutate({ id: job.id, status, notes: job.application_notes ?? '' });
+  const setWithUndo = useStatusWithUndo();
   const extension = useExtension();
   const [tab, setTab] = useState<'posting' | 'letter' | 'resume'>('posting');
   const [tabJob, setTabJob] = useState(jobId);
@@ -335,7 +337,7 @@ export function JobDrawer({
               {tab === 'letter' ? 'Back to posting' : 'Cover letter'}
             </button>
             <button
-              onClick={() => setStatus('not_interested')}
+              onClick={() => job && setWithUndo(job, 'not_interested')}
               disabled={job.application_status === 'not_interested'}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-medium text-muted transition-colors duration-150 hover:border-bad/40 hover:text-bad disabled:cursor-default disabled:opacity-50"
             >

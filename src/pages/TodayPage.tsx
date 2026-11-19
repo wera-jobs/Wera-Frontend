@@ -5,11 +5,12 @@ import { useLatestRun, useStats, useStatusWithUndo, useToday } from '../api/hook
 import { useProfile } from '../api/profile';
 import type { AppStatus, Job } from '../api/types';
 import { ExtensionPromo } from '../components/ExtensionPromo';
+import { TuneSuggestions } from '../components/TuneSuggestions';
 import { CHIP_BUTTON, JobCard } from '../components/JobCard';
 import { JobDrawer } from '../components/JobDrawer';
 import { ScoreRing } from '../components/ScoreRing';
 import { StatTile } from '../components/StatTile';
-import { OLD_POSTING_DAYS, OldPostingBadge, PostedAge, StatusPill } from '../components/JobBadges';
+import { EarlyBadge, OLD_POSTING_DAYS, OldPostingBadge, PostedAge, StatusPill } from '../components/JobBadges';
 import { EmptyState, ErrorState, SkeletonRows } from '../components/States';
 import { daysUp, jobMeta, relTime, stepId, toYou } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
@@ -23,6 +24,13 @@ type TodayFilter = 'new' | 'strong' | 'sponsors';
 const DAY_MS = 24 * 60 * 60_000;
 /** The most jobs /api/today returns; at the cap there are more. */
 const TODAY_CAP = 100;
+
+const WITHIN: [number, string][] = [
+  [0, 'Any time'],
+  [1, '24 hours'],
+  [3, '3 days'],
+  [7, 'Week'],
+];
 
 const FILTERS: Record<TodayFilter, { test: (j: Job, now: number) => boolean; empty: string; label: string }> = {
   new: { test: (j, now) => now - new Date(j.first_seen_at).getTime() < DAY_MS, label: 'new in the last 24 hours', empty: 'No match to review came in the last 24 hours.' },
@@ -49,6 +57,7 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
               {job.fit_score == null ? 'Top estimate' : 'Top pick'}
             </span>
             <StatusPill value={job.application_status} />
+            <EarlyBadge job={job} />
             <OldPostingBadge job={job} />
           </div>
           <h2 className="mt-1.5 line-clamp-2 text-lg leading-snug font-semibold text-text">
@@ -131,6 +140,7 @@ export default function TodayPage() {
   const latest = useLatestRun();
   const setStatus = useStatusWithUndo();
   const [filter, setFilter] = useState<TodayFilter | null>(null);
+  const [within, setWithin] = useState(0);
   const [shown, setShown] = useState(PAGE);
   // The drawer steps through the list as it was when the job was opened,
   // so a job dealt with in the drawer (and gone from Today) keeps its place.
@@ -141,7 +151,9 @@ export default function TodayPage() {
   const all: Job[] = data?.jobs ?? [];
   const estimatedCount = all.filter((j) => j.fit_score == null).length;
   const count = (f: TodayFilter) => all.filter((j) => FILTERS[f].test(j, now)).length;
-  const jobs = filter ? all.filter((j) => FILTERS[filter].test(j, now)) : all;
+  const tiled = filter ? all.filter((j) => FILTERS[filter].test(j, now)) : all;
+  // How recently the posting went up: under a day, three days, a week (0: any time).
+  const jobs = within ? tiled.filter((j) => daysUp(j) < within) : tiled;
   const toggle = (f: TodayFilter) => {
     setFilter((cur) => (cur === f ? null : f));
     setShown(PAGE);
@@ -154,7 +166,7 @@ export default function TodayPage() {
   // The top pick leads the full list: the best job still worth applying
   // to, so not one up for months while a fresher one waits. A filtered
   // list is just the list.
-  const top = filter ? null : (jobs.find((j) => daysUp(j) <= OLD_POSTING_DAYS) ?? jobs[0] ?? null);
+  const top = filter || within ? null : (jobs.find((j) => daysUp(j) <= OLD_POSTING_DAYS) ?? jobs[0] ?? null);
   const rest = jobs.filter((j) => j !== top);
   // Older postings that score higher than the top pick: said on the card, so the order explains itself.
   const topScore = top ? (top.fit_score ?? top.estimated_score ?? 0) : 0;
@@ -202,6 +214,24 @@ export default function TodayPage() {
         <StatTile label="Applied this week" value={stats.data?.applications_per_week ?? '—'} sub="see your tracker" to="/tracker" />
       </div>
 
+      <div className="flex flex-wrap items-center gap-1.5 text-xs" role="group" aria-label="Posted within">
+        <span className="mr-1 text-muted">Posted</span>
+        {WITHIN.map(([days, label]) => (
+          <button
+            key={days}
+            type="button"
+            aria-pressed={within === days}
+            onClick={() => {
+              setWithin(days);
+              setShown(PAGE);
+            }}
+            className={`rounded-full border px-2.5 py-1 font-medium transition-colors ${within === days ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text'}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {filter && (
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted" role="status">
           Showing {jobs.length} {FILTERS[filter].label}.
@@ -233,8 +263,11 @@ export default function TodayPage() {
         />
       ) : jobs.length === 0 && filter ? (
         <EmptyState icon={<Sun className="size-5 text-faint" />} title={FILTERS[filter].empty} />
+      ) : jobs.length === 0 && within ? (
+        <EmptyState icon={<Sun className="size-5 text-faint" />} title={`Nothing posted in the last ${WITHIN.find(([d]) => d === within)?.[1].toLowerCase()} to review.`} />
       ) : (
         <>
+          <TuneSuggestions />
           <ExtensionPromo />
           {top && <TopPick job={top} passedOver={passedOver} onOpen={open} onStatus={setStatus} />}
           {visible.length > 0 && (

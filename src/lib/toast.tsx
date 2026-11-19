@@ -13,24 +13,28 @@ export interface ToastItem {
   text: string;
   /** One button beside the text, such as Undo; pressing it closes the toast. */
   action?: ToastAction;
+  /** An optional question under the text, answered with one tap, such as why. */
+  choices?: { prompt: string; options: ToastAction[] };
 }
 
 const listeners = new Set<(t: ToastItem) => void>();
 let seq = 0;
 
-function emit(kind: ToastItem['kind'], text: string, action?: ToastAction) {
-  const item: ToastItem = { id: ++seq, kind, text, action };
+function emit(kind: ToastItem['kind'], text: string, action?: ToastAction, choices?: ToastItem['choices']) {
+  const item: ToastItem = { id: ++seq, kind, text, action, choices };
   for (const l of listeners) l(item);
 }
 
 export const toast = {
-  success: (text: string, action?: ToastAction) => emit('success', text, action),
+  success: (text: string, action?: ToastAction, choices?: ToastItem['choices']) => emit('success', text, action, choices),
   error: (text: string, action?: ToastAction) => emit('error', text, action),
 };
 
 const TTL = 4200;
 /** A toast with an action stays longer: there is something to decide. */
 const TTL_ACTION = 7000;
+/** A toast asking a question stays longer still: it takes reading. */
+const TTL_CHOICES = 12000;
 
 export function Toasts() {
   const [items, setItems] = useState<ToastItem[]>([]);
@@ -40,7 +44,7 @@ export function Toasts() {
       setItems((xs) => [...xs, t]);
       window.setTimeout(() => {
         setItems((xs) => xs.filter((x) => x.id !== t.id));
-      }, t.action ? TTL_ACTION : TTL);
+      }, t.choices ? TTL_CHOICES : t.action ? TTL_ACTION : TTL);
     };
     listeners.add(handle);
     return () => {
@@ -63,7 +67,29 @@ export function Toasts() {
           ) : (
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-bad" />
           )}
-          <span className="min-w-0 break-words text-text">{t.text}</span>
+          <div className="min-w-0">
+            <span className="break-words text-text">{t.text}</span>
+            {t.choices && (
+              <div className="mt-2" role="group" aria-label={t.choices.prompt}>
+                <div className="text-xs text-muted">{t.choices.prompt}</div>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {t.choices.options.map((c) => (
+                    <button
+                      key={c.label}
+                      type="button"
+                      onClick={() => {
+                        setItems((xs) => xs.filter((x) => x.id !== t.id));
+                        c.run();
+                      }}
+                      className="rounded-full border border-border bg-surface-2 px-2.5 py-1 text-xs font-medium text-text transition-colors hover:border-accent/40 hover:text-accent"
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           {t.action && (
             <button
               onClick={() => {
