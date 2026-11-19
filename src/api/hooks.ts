@@ -561,3 +561,16 @@ export function useFollowCompany() {
     onSettled: (_d, _e, v) => qc.invalidateQueries({ queryKey: ['company', v.id] }),
   });
 }
+
+export type EmailKind = 'follow_up' | 'thank_you' | 'referral_request' | 'offer_reply';
+
+/** Drafts an email about a tracked job; nothing is stored or sent. */
+export function useEmailDraft() {
+  return useMutation({
+    mutationFn: (v: { id: number; kind: EmailKind; request?: string }) =>
+      api<{ subject: string; body: string; needs: string }>(`/api/jobs/${v.id}/email-draft`, {
+        method: 'POST',
+        body: JSON.stringify({ kind: v.kind, request: v.request ?? '' }),
+      }),
+  });
+}

@@ -6,6 +6,7 @@ import { Archive, ArchiveRestore, CalendarPlus, X } from 'lucide-react';
 import { useAddEvent, useDeleteEvent, useJobEvents, usePatchApplication } from '../api/hooks';
 import type { Contact, EventKind, JobDetail } from '../api/types';
 import { EVENT_KINDS, RESUME_KINDS, eventKindLabel, whenText } from '../lib/events';
+import { EmailDrafts } from './EmailDrafts';
 import { toast } from '../lib/toast';
 
 // A date input's value (the user's own day) and back. A day-only step is due at 9:00 that morning.
@@ -105,6 +106,8 @@ export function ApplicationDetails({ job }: { job: JobDetail }) {
       </div>
 
       <Events jobId={job.id} />
+
+      <EmailDrafts job={job} />
 
       <button
         type="button"
