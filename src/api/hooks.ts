@@ -8,6 +8,7 @@ import { api, ApiError, errorMessage, retryWhileDown } from './client';
 import { toast } from '../lib/toast';
 import type {
   AppEvent,
+  AppNotification,
   AppStatus,
   Contact,
   EventKind,
@@ -452,5 +453,31 @@ export function useDeleteEvent() {
     mutationFn: (v: { jobId: number; id: number }) => api<void>(`/api/jobs/${v.jobId}/events/${v.id}`, { method: 'DELETE' }),
     onError: (err) => toast.error(`Couldn't delete it: ${errorMessage(err, 'network error')}`),
     onSettled: () => qc.invalidateQueries({ queryKey: ['events'] }),
+  });
+}
+
+/** The newest in-app notices and how many are unread; checked every two minutes. */
+export function useNotifications() {
+  return useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => api<{ notifications: AppNotification[]; unread: number }>('/api/notifications'),
+    refetchInterval: 120_000,
+    staleTime: 30_000,
+  });
+}
+
+/** Marks some notices read, or all of them with no ids. */
+export function useReadNotifications() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: number[] = []) => api<void>('/api/notifications/read', { method: 'POST', body: JSON.stringify({ ids }) }),
+    onMutate: (ids: number[] = []) => {
+      const cur = qc.getQueryData<{ notifications: AppNotification[]; unread: number }>(['notifications']);
+      if (!cur) return;
+      const now = new Date().toISOString();
+      const notifications = cur.notifications.map((n) => (!n.read_at && (ids.length === 0 || ids.includes(n.id)) ? { ...n, read_at: now } : n));
+      qc.setQueryData(['notifications'], { notifications, unread: notifications.filter((n) => !n.read_at).length });
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
   });
 }
