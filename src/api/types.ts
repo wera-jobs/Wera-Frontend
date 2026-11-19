@@ -68,6 +68,8 @@ export interface Job {
   pay_period?: 'hour' | 'year' | null;
   /** The ratings (0-10) the fit score was computed from; null for older scores. */
   fit_parts?: FitParts | null;
+  /** Posted in the last three days and found by Wera within a day of it: applying now is early. */
+  early?: boolean;
 }
 
 export interface DeepGap {

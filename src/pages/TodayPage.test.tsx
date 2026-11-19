@@ -47,6 +47,26 @@ describe('Today', () => {
     expect(await screen.findByText(/Best fit among postings from the last 60 days: a higher score below is on older postings/)).toBeInTheDocument();
   });
 
+  it('narrows to recent postings, and marks the ones the user can be early to', async () => {
+    const ago = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+    const fresh = { ...jobs[0], id: 9001, title: 'Fresh Role', posted_at: ago(5), first_seen_at: ago(4), early: true };
+    const recent = { ...jobs[1], id: 9002, title: 'Recent Role', posted_at: ago(50), first_seen_at: ago(40), early: false };
+    const old = { ...jobs[2], id: 9003, title: 'Old Role', posted_at: ago(24 * 20), first_seen_at: ago(24 * 20), early: false };
+    stubApi({ 'GET /api/today': () => ({ ...fixtures.today, jobs: [fresh, recent, old] }) });
+    renderApp(<TodayPage />);
+    await screen.findByRole('button', { name: /Fresh Role/ });
+    expect(screen.getAllByText('Be early')).toHaveLength(1);
+    const group = screen.getByRole('group', { name: 'Posted within' });
+    await userEvent.click(within(group).getByRole('button', { name: '24 hours' }));
+    expect(screen.queryByRole('button', { name: /Recent Role/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Fresh Role/ })).toBeInTheDocument();
+    await userEvent.click(within(group).getByRole('button', { name: '3 days' }));
+    expect(screen.getByRole('button', { name: /Recent Role/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Old Role/ })).toBeNull();
+    await userEvent.click(within(group).getByRole('button', { name: 'Any time' }));
+    expect(await screen.findByRole('button', { name: /Old Role/ })).toBeInTheDocument();
+  });
+
   it('says nothing extra when the top pick is also the best score', async () => {
     stubApi(freshToday);
     renderApp(<TodayPage />);
