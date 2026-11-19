@@ -7,6 +7,7 @@ import {
 import { api, ApiError, errorMessage, retryWhileDown } from './client';
 import { toast } from '../lib/toast';
 import type {
+  AppAnalytics,
   SavedSearch,
   AppEvent,
   AppNotification,
@@ -511,5 +512,14 @@ export function useDeleteSearch() {
     },
     onError: (err) => toast.error(`Couldn't delete the search: ${errorMessage(err, 'network error')}`),
     onSettled: () => qc.invalidateQueries({ queryKey: ['searches'] }),
+  });
+}
+
+/** The progress summary of the user's applications. */
+export function useAppAnalytics(enabled = true) {
+  return useQuery({
+    queryKey: ['analytics', 'applications'],
+    queryFn: () => api<AppAnalytics>('/api/analytics/applications'),
+    enabled,
   });
 }

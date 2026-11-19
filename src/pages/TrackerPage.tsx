@@ -10,11 +10,12 @@ import { JobDrawer } from '../components/JobDrawer';
 import { CompanyLogo } from '../components/CompanyLogo';
 import { StatusSelect } from '../components/StatusSelect';
 import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
+import { Progress } from '../components/Progress';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
-import { Archive, ExternalLink, EyeOff, KanbanSquare, List, Search } from 'lucide-react';
+import { Archive, ExternalLink, EyeOff, KanbanSquare, List, Search, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const COLUMNS: AppStatus[] = ['saved', 'applied', 'interviewing', 'offer', 'rejected'];
@@ -347,7 +348,7 @@ export default function TrackerPage() {
   const [stage, setStage] = useState<AppStatus>('saved');
   const [drawerId, setDrawerId] = useState<number | null>(null);
   const [dragging, setDragging] = useState<Job | null>(null);
-  const [view, setView] = useState<'board' | 'list' | 'archived'>('board');
+  const [view, setView] = useState<'board' | 'list' | 'archived' | 'progress'>('board');
   // A small move or a short press before a drag, so clicks, the status menu and scrolling keep working.
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -399,6 +400,7 @@ export default function TrackerPage() {
                 ['board', 'Board', KanbanSquare],
                 ['list', 'List', List],
                 ['archived', 'Archived', Archive],
+                ['progress', 'Progress', TrendingUp],
               ] as const
             ).map(([v, label, Icon]) => (
               <button
@@ -429,9 +431,10 @@ export default function TrackerPage() {
         </div>
       </header>
 
-      {empty && view !== 'archived' && <TrackerEmpty />}
+      {empty && (view === 'board' || view === 'list') && <TrackerEmpty />}
       {!empty && <Upcoming onOpen={setDrawerId} />}
       {view === 'list' && !empty && <TrackerList statuses={columns} matches={(j) => matches(j, query)} onOpen={setDrawerId} onStatus={onStatus} />}
+      {view === 'progress' && <Progress />}
       {view === 'archived' && <ArchivedList matches={(j) => matches(j, query)} onOpen={setDrawerId} onStatus={onStatus} />}
       {view === 'board' && !empty && (
         <div role="tablist" aria-label="Stages" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:hidden">

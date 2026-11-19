@@ -65,6 +65,16 @@ export interface SavedSearch {
   created_at: string;
 }
 
+/** How a user's applications are going (GET /api/analytics/applications). */
+export interface AppAnalytics {
+  now: Record<string, number>;
+  reached: { applied: number; interviewing: number; offer: number };
+  weeks: { week: string; applied: number; responded: number; interview: number }[];
+  sources: { source: string; applied: number; responded: number; interview: number }[];
+  days_to_interview: number | null;
+  days_to_offer: number | null;
+}
+
 export interface Job {
   id: number;
   company_id: number;
