@@ -101,6 +101,8 @@ export interface Job {
   fit_parts?: FitParts | null;
   /** Posted in the last three days and found by Wera within a day of it: applying now is early. */
   early?: boolean;
+  /** Where Wera serves the company's logo; absent when it has none. */
+  logo_url?: string;
   dismiss_reason?: DismissReason | null;
 }
 

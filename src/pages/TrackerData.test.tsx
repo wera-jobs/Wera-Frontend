@@ -39,9 +39,9 @@ describe('tracker data', () => {
     await userEvent.click(within(views).getByRole('button', { name: 'List' }));
     const rows = within(screen.getByRole('table')).getAllByRole('row').slice(1);
     expect(rows.map((r) => within(r).getAllByRole('button')[0].textContent)).toEqual([
-      'Sooner RoleGlobex',
-      'Later RoleAcme',
-      'No Step RoleInitech',
+      'Sooner RoleGGlobex',
+      'Later RoleAAcme',
+      'No Step RoleIInitech',
     ]);
     expect(screen.getByRole('region', { name: 'Applied' })).toHaveClass('hidden');
 

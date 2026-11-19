@@ -8,6 +8,7 @@ import type { AppStatus, Job } from '../api/types';
 import { eventKindLabel, whenText } from '../lib/events';
 import { relTime } from '../lib/format';
 import { StatusSelect } from './StatusSelect';
+import { CompanyLogo } from './CompanyLogo';
 import { EmptyState, Skeleton } from './States';
 
 /** The next step on a card or row: what, and when, overdue in red. */
@@ -117,7 +118,10 @@ function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; o
               <td className="px-3 py-2">
                 <button type="button" onClick={() => onOpen(job.id)} className="block w-full min-w-0 text-left">
                   <span className="block truncate font-medium text-text">{job.title}</span>
-                  <span className="block truncate text-muted">{job.company}</span>
+                  <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-muted">
+                    <CompanyLogo name={job.company} url={job.logo_url} />
+                    <span className="truncate">{job.company}</span>
+                  </span>
                 </button>
                 <NextStep job={job} className="md:hidden" />
               </td>

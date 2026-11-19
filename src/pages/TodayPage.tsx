@@ -5,6 +5,7 @@ import { useLatestRun, useStats, useStatusWithUndo, useToday } from '../api/hook
 import { useProfile } from '../api/profile';
 import type { AppStatus, Job } from '../api/types';
 import { ExtensionPromo } from '../components/ExtensionPromo';
+import { CompanyLogo } from '../components/CompanyLogo';
 import { TuneSuggestions } from '../components/TuneSuggestions';
 import { CHIP_BUTTON, JobCard } from '../components/JobCard';
 import { JobDrawer } from '../components/JobDrawer';
@@ -70,7 +71,10 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
               {job.title}
             </button>
           </h2>
-          <div className="mt-0.5 truncate text-sm text-muted">{job.company}</div>
+          <div className="mt-0.5 flex min-w-0 items-center gap-2 text-sm text-muted">
+            <CompanyLogo name={job.company} url={job.logo_url} size="md" />
+            <span className="truncate">{job.company}</span>
+          </div>
           {passedOver > 0 && (
             <p className="mt-1 text-[11px] text-faint">
               Best fit among postings from the last {OLD_POSTING_DAYS} days: {passedOver === 1 ? 'a higher score below is' : `${passedOver} higher scores below are`} on older postings, which are often filled.

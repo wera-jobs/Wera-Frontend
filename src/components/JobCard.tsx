@@ -1,5 +1,6 @@
 import { Ban, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
 import { ScoreRing } from './ScoreRing';
+import { CompanyLogo } from './CompanyLogo';
 import { Badge } from './Badge';
 import { AutofilledBadge, CategoryChips, EarlyBadge, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
 import { jobMeta, toYou, verdictLabel, verdictOf } from '../lib/format';
@@ -56,7 +57,10 @@ export function JobCard({
                   {job.title}
                 </button>
               </h3>
-              <div className="mt-0.5 truncate text-xs text-muted">{job.company}</div>
+              <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
+                <CompanyLogo name={job.company} url={job.logo_url} />
+                <span className="truncate">{job.company}</span>
+              </div>
             </div>
             <span className="flex shrink-0 flex-col items-end gap-1">
               <StatusPill value={job.application_status} />

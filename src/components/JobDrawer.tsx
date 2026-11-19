@@ -4,7 +4,6 @@ import {
   Ban,
   Bookmark,
   BookmarkCheck,
-  Building2,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -22,6 +21,7 @@ import { toast } from '../lib/toast';
 import type { AppStatus, JobDetail } from '../api/types';
 import { Description } from './Description';
 import { ClosedBadge, IndustryBadge, EarlyBadge, OldPostingBadge, StatusPill } from './JobBadges';
+import { CompanyLogo } from './CompanyLogo';
 import { Skeleton } from './States';
 import { Insights } from './JobInsights';
 import { absTime, relTime } from '../lib/format';
@@ -79,7 +79,7 @@ function Header({ job }: { job: JobDetail }) {
       <h2 className="mt-2 text-xl leading-snug font-semibold text-balance text-text md:text-2xl">{job.title}</h2>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
-          <Building2 className="size-3.5 text-faint" />
+          <CompanyLogo name={job.company} url={job.logo_url} size="md" />
           <span className="font-medium text-text">{job.company}</span>
           {job.department && <span className="text-faint">· {job.department}</span>}
         </span>
