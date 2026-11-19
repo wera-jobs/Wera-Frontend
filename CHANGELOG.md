@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.25.0...wera-frontend-v0.26.0) (2026-11-19)
+
+
+### Features
+
+* **shell:** a notifications bell for strong matches, closed postings and reminders ([5159c2a](https://github.com/wera-jobs/Wera-Frontend/commit/5159c2a14484c97857584f11d5ee3cc868220a06)), closes [#186](https://github.com/wera-jobs/Wera-Frontend/issues/186)
+
 ## [0.25.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.24.0...wera-frontend-v0.25.0) (2026-11-19)
 
 
