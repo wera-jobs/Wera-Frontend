@@ -53,6 +53,16 @@ export function PostedAge({ job }: { job: Pick<Job, 'posted_at' | 'first_seen_at
   return <span title={`Posted ${absTime(at)}${found}`}>{relTime(at)}</span>;
 }
 
+/** Marks a posting the user can be early to: up for under three days and found within a day of going up. */
+export function EarlyBadge({ job }: { job: Pick<Job, 'early' | 'posted_at' | 'first_seen_at'> }) {
+  if (!job.early) return null;
+  return (
+    <span title={`Posted ${relTime(listedAt(job))}. Applying now puts you among the first.`}>
+      <Badge variant="good">Be early</Badge>
+    </span>
+  );
+}
+
 /** Marks a posting that has been up for months: often filled already, or kept up for show. */
 export function OldPostingBadge({ job }: { job: Pick<Job, 'posted_at' | 'first_seen_at' | 'closed_at'> }) {
   const days = daysUp(job);

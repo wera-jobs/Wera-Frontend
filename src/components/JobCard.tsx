@@ -1,7 +1,7 @@
 import { Ban, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
 import { ScoreRing } from './ScoreRing';
 import { Badge } from './Badge';
-import { AutofilledBadge, CategoryChips, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
+import { AutofilledBadge, CategoryChips, EarlyBadge, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
 import { jobMeta, toYou, verdictLabel, verdictOf } from '../lib/format';
 import type { AppStatus, Job } from '../api/types';
 
@@ -68,6 +68,7 @@ export function JobCard({
             <span className="shrink-0">
               · <PostedAge job={job} />
             </span>
+            <EarlyBadge job={job} />
             <OldPostingBadge job={job} />
             {job.sponsorship === 'yes' && (
               <Badge variant="good" className="shrink-0">
