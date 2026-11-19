@@ -12,6 +12,7 @@ import { handOffJob } from '../lib/extension';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { AddJobDialog } from '../components/AddJobDialog';
 import { SavedSearchBar } from '../components/SavedSearches';
+import { BulkBar } from '../components/BulkBar';
 
 const PAGE = 50;
 
@@ -114,7 +115,27 @@ export default function JobsPage() {
 
   const quickStatus = useStatusWithUndo();
 
-  // Keyboard: j/k move selection, Enter opens, o opens the posting.
+  // Jobs picked for a bulk action (ids, so a refetch keeps them); shift-click picks a range.
+  const [checked, setChecked] = useState<Set<number>>(() => new Set());
+  const [anchor, setAnchor] = useState<number | null>(null);
+  const picked = jobs.filter((j) => checked.has(j.id));
+  const toggle = useCallback(
+    (i: number, range = false) => {
+      const next = new Set(checked);
+      const on = !checked.has(jobs[i].id);
+      const [from, to] = range && anchor != null ? [Math.min(anchor, i), Math.max(anchor, i)] : [i, i];
+      for (let k = from; k <= to; k++) {
+        if (on) next.add(jobs[k].id);
+        else next.delete(jobs[k].id);
+      }
+      setChecked(next);
+      setAnchor(i);
+    },
+    [checked, anchor, jobs],
+  );
+  const allOnPage = jobs.length > 0 && picked.length === jobs.length;
+
+  // Keyboard: j/k move the cursor, Enter opens, o opens the posting, x selects for a bulk action.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
@@ -130,6 +151,8 @@ export default function JobsPage() {
       } else if (e.key === 'Enter') {
         const job = jobs[sel];
         if (job) openDrawer(job.id);
+      } else if (e.key === 'x') {
+        if (jobs[sel]) toggle(sel);
       } else if (e.key === 'o') {
         const job = jobs[sel];
         if (job) {
@@ -140,7 +163,7 @@ export default function JobsPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [jobs, sel, openDrawer, drawerId, adding]);
+  }, [jobs, sel, openDrawer, drawerId, adding, toggle]);
 
   return (
     <div className="space-y-4">
@@ -151,7 +174,7 @@ export default function JobsPage() {
             {isFetching ? 'Loading…' : `${jobs.length} shown${jobs.length === PAGE ? '+' : ''}`}
             <span className="hidden md:inline">
               {' '}· <span className="font-mono">j/k</span> to move · <span className="font-mono">Enter</span>{' '}
-              opens · <span className="font-mono">o</span> opens posting
+              opens · <span className="font-mono">o</span> opens posting · <span className="font-mono">x</span> selects
             </span>
           </p>
         </div>
@@ -164,6 +187,8 @@ export default function JobsPage() {
           </button>
         </div>
       </header>
+
+      <BulkBar jobs={picked} onDone={() => setChecked(new Set())} />
 
       {adding && (
         <AddJobDialog
@@ -207,6 +232,15 @@ export default function JobsPage() {
             <table className="hidden w-full min-w-[720px] sm:table">
               <thead>
                 <tr className="border-b border-border text-left text-[10px] font-medium tracking-wide text-faint uppercase">
+                  <th className="w-8 py-2.5 pl-3">
+                    <input
+                      type="checkbox"
+                      checked={allOnPage}
+                      onChange={() => setChecked(allOnPage ? new Set() : new Set(jobs.map((j) => j.id)))}
+                      aria-label="Select every job on this page"
+                      className="size-3.5 cursor-pointer accent-accent"
+                    />
+                  </th>
                   <th className="w-14 px-3 py-2.5">Score</th>
                   <th className="px-3 py-2.5">Title</th>
                   <th className="px-3 py-2.5">Company</th>
@@ -226,6 +260,8 @@ export default function JobsPage() {
                     job={job}
                     index={i}
                     selected={i === sel}
+                    checked={checked.has(job.id)}
+                    onCheck={(range) => toggle(i, range)}
                     onOpen={openDrawer}
                   />
                 ))}
@@ -243,6 +279,8 @@ export default function JobsPage() {
                 onOpen={openDrawer}
                 onQuickStatus={quickStatus}
                 quickActions={false}
+                checked={checked.has(job.id)}
+                onCheck={() => toggle(i)}
               />
             ))}
           </div>

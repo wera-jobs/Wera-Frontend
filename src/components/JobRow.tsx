@@ -9,12 +9,18 @@ export function JobRow({
   job,
   index = 0,
   selected,
+  checked,
+  onCheck,
   onOpen,
 }: {
   job: Job;
   /** Position on the page; drives the staggered entrance delay. */
   index?: number;
+  /** The keyboard cursor (j/k) is on this row. */
   selected?: boolean;
+  /** Picked for a bulk action; with onCheck, the row gets a checkbox. */
+  checked?: boolean;
+  onCheck?: (range: boolean) => void;
   onOpen: (id: number) => void;
 }) {
   const verdict = verdictOf(job.fit_score);
@@ -32,6 +38,18 @@ export function JobRow({
       )}
       style={{ animationDelay: `${Math.min(index * 24, 360)}ms` }}
     >
+      {onCheck && (
+        <td className="w-8 py-2.5 pl-3" onClick={(e) => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={!!checked}
+            onChange={() => {}}
+            onClick={(e) => onCheck(e.shiftKey)}
+            aria-label={`Select ${job.title} at ${job.company}`}
+            className="size-3.5 cursor-pointer accent-accent"
+          />
+        </td>
+      )}
       <td className="px-3 py-2.5">
         <span className={clsx('font-mono text-sm font-semibold', verdictColor[verdict])}>
           {job.fit_score ?? (job.estimated_score != null ? (
