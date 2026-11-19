@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  capitalize, compact, jobMeta, minutesUntil, money, pct, prettyReason, relTime, runDuration, shortLocation, stepId, toYou, verdictOf,
+  capitalize, compact, jobMeta, minutesUntil, money, payText, pct, prettyReason, relTime, runDuration, shortLocation, stepId, toYou, verdictOf,
 } from './format';
 
 describe('verdictOf', () => {
@@ -96,5 +96,22 @@ describe('jobMeta', () => {
   it('drops what the AI could not tell', () => {
     expect(jobMeta({ location_summary: 'San Francisco, CA', location_raw: null, work_mode: 'unknown', seniority: 'entry', years_required: 1 }))
       .toBe('San Francisco, CA · Entry · 1+ yrs');
+  });
+});
+
+describe('pay', () => {
+  const job = (pay_min: number | null, pay_max: number | null, pay_period: 'hour' | 'year' | null = 'year', pay_currency = 'USD') => ({ pay_min, pay_max, pay_period, pay_currency });
+  it('reads as the posting states it, in the extension\'s form', () => {
+    expect(payText(job(120000, 150000))).toBe('$120K – $150K a year');
+    expect(payText(job(95000, 112500))).toBe('$95K – $112.5K a year');
+    expect(payText(job(25.5, 31, 'hour'))).toBe('$25.50 – $31 an hour');
+    expect(payText(job(80000, 80000))).toBe('$80K a year');
+    expect(payText(job(125100, 175100, 'year', 'CAD'))).toBe('CA$125.1K – CA$175.1K a year');
+    expect(payText(job(null, null, null))).toBe('');
+  });
+  it('is short on cards, and joins a job\'s other facts', () => {
+    expect(payText(job(25, 31, 'hour'), true)).toBe('$25 – $31/hr');
+    expect(jobMeta({ location_summary: 'Austin, TX', location_raw: 'Austin, TX', work_mode: 'remote', seniority: 'mid', years_required: 3, ...job(120000, 150000) }))
+      .toBe('Austin, TX · Remote · Mid · 3+ yrs · $120K – $150K');
   });
 });

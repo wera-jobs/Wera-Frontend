@@ -183,13 +183,17 @@ export function stepId(ids: number[], current: number, dir: -1 | 1): number | nu
  * One quiet line of what a job is: where, how, what level, how many years.
  * Values the AI could not tell ("unknown") are left out.
  */
-export function jobMeta(job: Pick<Job, 'location_summary' | 'location_raw' | 'work_mode' | 'seniority' | 'years_required'>): string {
+export function jobMeta(
+  job: Pick<Job, 'location_summary' | 'location_raw' | 'work_mode' | 'seniority' | 'years_required'> &
+    Partial<Pick<Job, 'pay_min' | 'pay_max' | 'pay_currency' | 'pay_period'>>,
+): string {
   const known = (v: string | null | undefined) => (v && v !== 'unknown' ? capitalize(v) : null);
   return [
     shortLocation(job),
     known(job.work_mode),
     known(job.seniority),
     job.years_required != null ? `${job.years_required}+ yrs` : null,
+    payText(job, true) || null,
   ]
     .filter((m) => m && m !== '—')
     .join(' · ');
@@ -218,4 +222,22 @@ export function toYou(text: string): string {
     .replace(new RegExp(String.raw`\b(for|to|fits|suits|with|than) ${WHO}\b`, 'gi'), (_m, prep: string) => `${prep} you`)
     .replace(/\bhis\b/g, 'your')
     .replace(/\bHis\b/g, 'Your');
+}
+
+const PAY_SIGN: Record<string, string> = { USD: '$', CAD: 'CA$', AUD: 'A$', NZD: 'NZ$', SGD: 'S$', HKD: 'HK$' };
+
+/** 120000 as "$120K", 112500 as "$112.5K", 45.5 as "$45.50" (the extension's form). */
+function payAmount(n: number, sign: string): string {
+  if (n >= 1000) return `${sign}${Number.isInteger(n / 1000) ? n / 1000 : (n / 1000).toFixed(1)}K`;
+  return `${sign}${Number.isInteger(n) ? n : n.toFixed(2)}`;
+}
+
+/** The pay a posting states, as "$120K – $150K a year" or "$25 an hour"; '' when it states none. */
+export function payText(job: Pick<Job, 'pay_min' | 'pay_max' | 'pay_currency' | 'pay_period'>, short = false): string {
+  if (job.pay_min == null) return '';
+  const sign = PAY_SIGN[job.pay_currency ?? 'USD'] ?? `${job.pay_currency} `;
+  const lo = payAmount(job.pay_min, sign);
+  const hi = job.pay_max != null && job.pay_max !== job.pay_min ? payAmount(job.pay_max, sign) : '';
+  const per = job.pay_period === 'hour' ? (short ? '/hr' : ' an hour') : short ? '' : ' a year';
+  return `${hi ? `${lo} – ${hi}` : lo}${per}`;
 }

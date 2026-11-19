@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import { Ban } from 'lucide-react';
 import { useUpdateApplication } from '../api/hooks';
 import type { AppStatus, DeepAnalysis, JobDetail } from '../api/types';
-import { absTime, compact, money, prettyReason, relTime, toYou, verdictLabel, verdictOf } from '../lib/format';
+import { absTime, compact, money, payText, prettyReason, relTime, toYou, verdictLabel, verdictOf } from '../lib/format';
 import { Badge } from './Badge';
 import { AddedBadge, AutofilledBadge, CategoryChips, SponsorshipBadge, WorkModeBadge } from './JobBadges';
 import { JobH1B } from './JobH1B';
@@ -158,6 +158,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
 
       <Section title="At a glance">
         <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+          <Fact label="Pay">{payText(job) || <span className="text-faint">Not stated in the posting</span>}</Fact>
           <Fact label="Seniority">{job.seniority ?? '—'}</Fact>
           <Fact label="Years required">{job.years_required != null ? `${job.years_required}+` : '—'}</Fact>
           <Fact label="Work mode">
