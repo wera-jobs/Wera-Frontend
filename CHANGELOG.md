@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.26.0...wera-frontend-v0.27.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** save the current filters as a named search ([b203608](https://github.com/wera-jobs/Wera-Frontend/commit/b2036087c4b82221af1cd0b38d7dc2aeef49712a)), closes [#187](https://github.com/wera-jobs/Wera-Frontend/issues/187)
+
 ## [0.26.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.25.0...wera-frontend-v0.26.0) (2026-11-19)
 
 
