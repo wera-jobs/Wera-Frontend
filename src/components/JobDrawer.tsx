@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { Link } from 'react-router-dom';
 import {
   Ban,
   Bookmark,
@@ -80,7 +81,9 @@ function Header({ job }: { job: JobDetail }) {
       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
           <CompanyLogo name={job.company} url={job.logo_url} size="md" />
-          <span className="font-medium text-text">{job.company}</span>
+          <Link to={`/companies/${job.company_id}`} className="font-medium text-text hover:text-accent hover:underline">
+            {job.company}
+          </Link>
           {job.department && <span className="text-faint">· {job.department}</span>}
         </span>
         {location && (

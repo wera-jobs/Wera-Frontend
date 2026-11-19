@@ -5,6 +5,7 @@ import { lazyPage } from '../lib/lazyPage';
 export const IndustriesPage = lazyPage(() => import('./IndustriesPage'));
 export const IndustryPage = lazyPage(() => import('./IndustryPage'));
 export const TrackerPage = lazyPage(() => import('./TrackerPage'));
+export const CompanyPage = lazyPage(() => import('./CompanyPage'));
 export const SponsorshipPage = lazyPage(() => import('./SponsorshipPage'));
 export const InterviewPage = lazyPage(() => import('./InterviewPage'));
 export const CommunityPage = lazyPage(() => import('./CommunityPage'));
