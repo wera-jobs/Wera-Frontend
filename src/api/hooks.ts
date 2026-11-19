@@ -7,6 +7,7 @@ import {
 import { api, ApiError, errorMessage, retryWhileDown } from './client';
 import { toast } from '../lib/toast';
 import type {
+  SavedSearch,
   AppEvent,
   AppNotification,
   AppStatus,
@@ -479,5 +480,36 @@ export function useReadNotifications() {
       qc.setQueryData(['notifications'], { notifications, unread: notifications.filter((n) => !n.read_at).length });
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+  });
+}
+
+/** The user's saved Jobs searches, oldest first. */
+export function useSavedSearches() {
+  return useQuery({
+    queryKey: ['searches'],
+    queryFn: () => api<{ searches: SavedSearch[] }>('/api/searches'),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useSaveSearch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { name: string; query: string }) => api<SavedSearch>('/api/searches', { method: 'POST', body: JSON.stringify(v) }),
+    onError: (err) => toast.error(`Couldn't save the search: ${errorMessage(err, 'network error')}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['searches'] }),
+  });
+}
+
+export function useDeleteSearch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api<void>(`/api/searches/${id}`, { method: 'DELETE' }),
+    onMutate: (id) => {
+      const cur = qc.getQueryData<{ searches: SavedSearch[] }>(['searches']);
+      if (cur) qc.setQueryData(['searches'], { searches: cur.searches.filter((s) => s.id !== id) });
+    },
+    onError: (err) => toast.error(`Couldn't delete the search: ${errorMessage(err, 'network error')}`),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['searches'] }),
   });
 }

@@ -11,6 +11,7 @@ import { ConnectionBanner } from './ConnectionBanner';
 import { NAV } from './nav';
 import { ThemeToggle } from '../lib/theme';
 import { NotificationBell } from '../components/NotificationBell';
+import { SidebarSearches } from '../components/SavedSearches';
 import { Logo } from '../components/Logo';
 import { Avatar } from '../components/Avatar';
 import { CommandPalette } from '../components/CommandPalette';
@@ -159,6 +160,7 @@ export function AppShell() {
               )}
             </NavLink>
           ))}
+          <SidebarSearches />
         </nav>
         <UserMenu />
       </aside>

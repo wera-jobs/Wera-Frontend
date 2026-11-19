@@ -57,6 +57,14 @@ export interface AppNotification {
   read_at: string | null;
 }
 
+/** A named set of Jobs filters: query is the Jobs page's query string. */
+export interface SavedSearch {
+  id: number;
+  name: string;
+  query: string;
+  created_at: string;
+}
+
 export interface Job {
   id: number;
   company_id: number;
