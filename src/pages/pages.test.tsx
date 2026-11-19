@@ -154,6 +154,34 @@ describe('other pages', () => {
     expect(sent).toEqual([{ id: saved.id, status: 'applied' }]);
   });
 
+  it('Tracker search narrows every stage, and a phone gets one stage at a time as tabs', async () => {
+    const two = [
+      { ...fixtures.jobs.jobs[0], id: 901, title: 'Platform Engineer', company: 'Acme', application_status: 'saved' as const },
+      { ...fixtures.jobs.jobs[0], id: 902, title: 'Data Analyst', company: 'Globex', application_status: 'saved' as const },
+    ];
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        const jobs = url.searchParams.get('status') === 'saved' ? two : [];
+        return { ...fixtures.jobs, total: jobs.length, jobs };
+      },
+    });
+    renderApp(<TrackerPage />);
+    const savedCol = await screen.findByRole('region', { name: 'Saved' });
+    await within(savedCol).findByText('Platform Engineer');
+    // Tabs (shown on phones) carry each stage's count; Saved is the one open.
+    const tabs = screen.getByRole('tablist', { name: 'Stages' });
+    expect(within(tabs).getByRole('tab', { name: /Saved 2/ })).toHaveAttribute('aria-selected', 'true');
+    // Only the open stage is shown on a phone; the others wait behind their tabs.
+    expect(screen.getByRole('region', { name: 'Applied' })).toHaveClass('hidden');
+    await userEvent.click(within(tabs).getByRole('tab', { name: /Applied/ }));
+    expect(screen.getByRole('region', { name: 'Applied' })).not.toHaveClass('hidden');
+
+    await userEvent.type(screen.getByLabelText('Search the tracker'), 'globex');
+    expect(within(savedCol).queryByText('Platform Engineer')).toBeNull();
+    expect(within(savedCol).getByText('Data Analyst')).toBeInTheDocument();
+    expect(within(tabs).getByRole('tab', { name: /Saved 1/ })).toBeInTheDocument();
+  });
+
   it('Industries shows each industry with its matches', async () => {
     stubApi();
     renderApp(<IndustriesPage />);
