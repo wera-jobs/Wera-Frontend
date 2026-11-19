@@ -405,7 +405,16 @@ export function useReadPosting() {
 export function usePatchApplication() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (v: { id: number; next_step?: string; next_step_at?: string; contact?: Contact; clear_contact?: boolean; archived?: boolean }) => {
+    mutationFn: (v: {
+      id: number;
+      next_step?: string;
+      next_step_at?: string;
+      contact?: Contact;
+      clear_contact?: boolean;
+      archived?: boolean;
+      resume_kind?: '' | 'tailored' | 'base' | 'upload';
+      letter_sent?: boolean;
+    }) => {
       const { id, ...body } = v;
       return api<JobDetail>(`/api/jobs/${id}/application`, { method: 'PATCH', body: JSON.stringify(body) });
     },

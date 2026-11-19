@@ -2,6 +2,7 @@
 // interview to offer, week by week and by applicant system.
 import { useState } from 'react';
 import { useAppAnalytics } from '../api/hooks';
+import type { AppAnalytics } from '../api/types';
 import { StatTile } from './StatTile';
 import { EmptyState, Skeleton } from './States';
 
@@ -93,31 +94,43 @@ export function Progress() {
         </div>
       </section>
 
-      {sources.length > 0 && (
-        <section aria-labelledby="sources-title" className="overflow-hidden rounded-card border border-border bg-surface">
-          <h2 id="sources-title" className="px-4 pt-4 text-sm font-semibold text-text">By applicant system</h2>
-          <table className="mt-2 w-full text-left text-xs">
-            <thead className="border-b border-border text-[11px] text-faint">
-              <tr>
-                <th scope="col" className="px-4 py-2 font-medium">System</th>
-                <th scope="col" className="px-4 py-2 text-right font-medium">Applied</th>
-                <th scope="col" className="px-4 py-2 text-right font-medium">Heard back</th>
-                <th scope="col" className="px-4 py-2 text-right font-medium">Interviews</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sources.map((s) => (
-                <tr key={s.source} className="border-b border-border last:border-0">
-                  <td className="px-4 py-2 text-text">{SOURCE[s.source] ?? s.source}</td>
-                  <td className="px-4 py-2 text-right font-mono">{s.applied}</td>
-                  <td className="px-4 py-2 text-right font-mono">{s.responded} <span className="text-faint">{pct(s.responded, s.applied)}</span></td>
-                  <td className="px-4 py-2 text-right font-mono">{s.interview}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
+      <Breakdown id="sources" title="By applicant system" first="System" rows={sources} name={(k) => SOURCE[k] ?? k} />
+      <Breakdown id="resumes" title="By resume sent" first="Resume" rows={data.resumes ?? []} name={(k) => RESUME[k] ?? k} />
     </div>
+  );
+}
+
+const RESUME: Record<string, string> = { tailored: 'Tailored for the job', base: 'Main resume', upload: 'Uploaded file', unknown: 'Not recorded' };
+
+function Breakdown({ id, title, first, rows, name }: { id: string; title: string; first: string; rows: AppAnalytics['sources']; name: (k: string) => string }) {
+  if (rows.length === 0) return null;
+  return (
+    <section aria-labelledby={`${id}-title`} className="overflow-hidden rounded-card border border-border bg-surface">
+      <h2 id={`${id}-title`} className="px-4 pt-4 text-sm font-semibold text-text">
+        {title}
+      </h2>
+      <table className="mt-2 w-full text-left text-xs">
+        <thead className="border-b border-border text-[11px] text-faint">
+          <tr>
+            <th scope="col" className="px-4 py-2 font-medium">{first}</th>
+            <th scope="col" className="px-4 py-2 text-right font-medium">Applied</th>
+            <th scope="col" className="px-4 py-2 text-right font-medium">Heard back</th>
+            <th scope="col" className="px-4 py-2 text-right font-medium">Interviews</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((s) => (
+            <tr key={s.source} className="border-b border-border last:border-0">
+              <td className="px-4 py-2 text-text">{name(s.source)}</td>
+              <td className="px-4 py-2 text-right font-mono">{s.applied}</td>
+              <td className="px-4 py-2 text-right font-mono">
+                {s.responded} <span className="text-faint">{pct(s.responded, s.applied)}</span>
+              </td>
+              <td className="px-4 py-2 text-right font-mono">{s.interview}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
