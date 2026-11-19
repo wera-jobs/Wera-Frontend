@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.21.0...wera-frontend-v0.22.0) (2026-11-19)
+
+
+### Features
+
+* **profile:** show where application details disagree with the profile ([185fe1a](https://github.com/wera-jobs/Wera-Frontend/commit/185fe1a15603072e3824ee7806e26059abdbd425))
+
 ## [0.21.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.20.0...wera-frontend-v0.21.0) (2026-11-17)
 
 
