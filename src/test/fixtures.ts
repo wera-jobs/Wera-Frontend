@@ -95,6 +95,7 @@ export function stubApi(overrides: Record<string, Handler> = {}) {
     'GET /api/applicant/answers': () => ({ answers: [] }),
     'GET /api/autofill-runs': () => ({ runs: [] }),
     'GET /api/events': () => ({ events: [] }),
+    'GET /api/notifications': () => ({ notifications: [], unread: 0 }),
     // Every listed job opens with the fixture detail (description etc.).
     ...Object.fromEntries(
       [...jobs.jobs, ...today.jobs, job].flatMap((j): [string, Handler][] => [

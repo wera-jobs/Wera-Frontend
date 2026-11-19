@@ -44,6 +44,19 @@ export interface AppEvent {
   company?: string;
 }
 
+/** An in-app notice. */
+export interface AppNotification {
+  id: number;
+  kind: 'strong_matches' | 'posting_closed' | 'reminder';
+  job_id: number | null;
+  title: string;
+  body: string;
+  /** A reminder's time: shown in the user's own zone. */
+  at: string | null;
+  created_at: string;
+  read_at: string | null;
+}
+
 export interface Job {
   id: number;
   company_id: number;
