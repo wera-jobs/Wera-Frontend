@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { LoaderCircle, Sparkles } from 'lucide-react';
+import { AlertTriangle, LoaderCircle, Sparkles } from 'lucide-react';
 import { errorMessage } from '../api/client';
 import { Link } from 'react-router-dom';
-import { useApplicant, useSaveApplicant, useSuggestApplicant, type Applicant, type ResumeJob, type ResumeSchool } from '../api/extension';
+import { useApplicant, useDetailsConflicts, useResolveConflict, useSaveApplicant, useSuggestApplicant, type Applicant, type ResumeJob, type ResumeSchool } from '../api/extension';
 import { INPUT_CLS } from '../lib/styles';
 import { Skeleton } from '../components/States';
 import { toast } from '../lib/toast';
@@ -140,6 +140,52 @@ function FromResume({ jobs, schools }: { jobs: ResumeJob[]; schools: ResumeSchoo
 }
 
 /**
+ * Where these details and the profile disagree (sponsorship, title,
+ * experience): the person says which is right, and the other follows.
+ * Until then the details win in applications and the profile in matching.
+ */
+function Conflicts() {
+  const q = useDetailsConflicts();
+  const resolve = useResolveConflict();
+  const list = q.data?.conflicts ?? [];
+  if (!list.length) return null;
+  const settle = (key: string, keep: 'details' | 'profile', redraft: boolean) =>
+    resolve.mutate({ key, keep }, {
+      onSuccess: () => toast.success(keep === 'details' && redraft ? 'Saved. Redraft your profile text so it says the same.' : 'Saved.'),
+      onError: (e) => toast.error(errorMessage(e, 'Could not save that')),
+    });
+  return (
+    <section aria-labelledby="conflicts-title" className="rounded-xl border border-warn/40 bg-warn/5 p-4">
+      <h3 id="conflicts-title" className="flex items-center gap-2 text-sm font-semibold text-text">
+        <AlertTriangle className="size-4 text-warn" /> Your profile and these details disagree
+      </h3>
+      <p className="mt-1 max-w-xl text-xs text-muted">
+        Applications use these details, and matching uses your profile. Pick which is right and the other is updated to match.
+      </p>
+      <ul className="mt-3 divide-y divide-border">
+        {list.map((c) => (
+          <li key={c.key} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5">
+            <span className="min-w-40 flex-1 text-sm font-medium text-text">{c.label}</span>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" disabled={resolve.isPending} onClick={() => settle(c.key, 'details', c.redraft)}
+                className="rounded-lg border border-border bg-surface px-3 py-1.5 text-left text-xs hover:border-accent/50 disabled:opacity-60">
+                <span className="block text-[11px] text-faint">These details</span>{' '}
+                <span className="font-medium text-text">{c.details}</span>
+              </button>
+              <button type="button" disabled={resolve.isPending} onClick={() => settle(c.key, 'profile', c.redraft)}
+                className="rounded-lg border border-border bg-surface px-3 py-1.5 text-left text-xs hover:border-accent/50 disabled:opacity-60">
+                <span className="block text-[11px] text-faint">Your profile</span>{' '}
+                <span className="font-medium text-text">{c.elsewhere}</span>
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+/**
  * The details the Chrome extension fills into application forms. Saved
  * separately from the profile (which only the matching uses).
  */
@@ -188,6 +234,7 @@ export function ApplicationDetails() {
 
   return (
     <div ref={top} className="space-y-5">
+      <Conflicts />
       <div className="flex flex-wrap items-center gap-2">
         <p className="mr-auto max-w-xl text-xs text-muted">
           The Wera Chrome extension fills these into application forms. It never submits; you review every form.

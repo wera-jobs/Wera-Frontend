@@ -97,3 +97,19 @@ describe('ApplicationDetails', () => {
     expect(title).toHaveValue('SRE intern II');
   });
 });
+
+describe('details that disagree with the profile', () => {
+  it('lists each disagreement and settles it the way the person picks', async () => {
+    let sent: Record<string, string> | null = null;
+    stubApi({
+      'GET /api/applicant/conflicts': () => ({ conflicts: [{ key: 'work_authorization', label: 'Work authorization and sponsorship', details: 'Authorized to work, no sponsorship needed', elsewhere: 'Authorized now, will need sponsorship later', redraft: true }] }),
+      'POST /api/applicant/conflicts/resolve': (init) => ((sent = jsonBody(init)), { conflicts: [] }),
+    });
+    renderApp(<><ApplicationDetails /><Toasts /></>);
+    expect(await screen.findByRole('heading', { name: /Your profile and these details disagree/ })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /These details\s*Authorized to work, no sponsorship needed/ }));
+    await waitFor(() => expect(sent).toEqual({ key: 'work_authorization', keep: 'details' }));
+    expect(await screen.findByText(/Redraft your profile text/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('heading', { name: /disagree/ })).toBeNull());
+  });
+});
