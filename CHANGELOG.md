@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.28.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.27.0...wera-frontend-v0.28.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** select several jobs and act on them together ([e896771](https://github.com/wera-jobs/Wera-Frontend/commit/e896771fab39a09b7b513c13aae472ca54ebbcc3)), closes [#188](https://github.com/wera-jobs/Wera-Frontend/issues/188)
+* **tracker:** a Progress view of how applications are going ([31aa55b](https://github.com/wera-jobs/Wera-Frontend/commit/31aa55bed81239e6a623b18feb35fd62db2216e3)), closes [#182](https://github.com/wera-jobs/Wera-Frontend/issues/182)
+
 ## [0.27.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.26.0...wera-frontend-v0.27.0) (2026-11-19)
 
 
