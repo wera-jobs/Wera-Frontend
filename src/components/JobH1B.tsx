@@ -15,7 +15,7 @@ export function JobH1B({ jobId, company, seniority }: { jobId: number; company: 
       {!x.matched ? (
         <p className="text-xs text-muted">
           No H-1B applications found under {company}'s name. It may file under another legal name:{' '}
-          <Link to="/sponsorship" className="text-accent hover:underline">look it up</Link>.
+          <Link to="/sponsorship" className="text-accent underline decoration-current/40 underline-offset-2 hover:decoration-current">look it up</Link>.
         </p>
       ) : (
         <div className="space-y-3 text-xs">

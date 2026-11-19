@@ -49,8 +49,8 @@ export function RoleFamilyPicker({
             >
               {f.label}
               {picked > 0 && (
-                <span className="rounded-full bg-accent/20 px-1.5 text-[10px] text-accent" aria-label={`${picked} picked`}>
-                  {picked}
+                <span className="rounded-full bg-accent/20 px-1.5 text-[10px] text-accent">
+                  {picked}<span className="sr-only"> picked</span>
                 </span>
               )}
             </button>

@@ -68,7 +68,7 @@ export function VerifyEmailPage() {
       ) : (
         <>
           <Notice tone="bad">{state.text}</Notice>
-          <p className="text-xs text-muted">Signed in? Send a new link from <Link to="/settings" className="text-accent hover:underline">Settings</Link>.</p>
+          <p className="text-xs text-muted">Signed in? Send a new link from <Link to="/settings" className="text-accent underline decoration-current/40 underline-offset-2 hover:decoration-current">Settings</Link>.</p>
         </>
       )}
     </Card>

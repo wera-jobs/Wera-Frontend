@@ -281,7 +281,7 @@ export function JobDrawer({
             ) : job ? (
               <p className="text-sm text-muted">
                 This board didn't include a description. Read it on the{' '}
-                <a href={job.url} data-wera-job={job.id} target="_blank" rel="noreferrer" className="text-accent-2 hover:underline">
+                <a href={job.url} data-wera-job={job.id} target="_blank" rel="noreferrer" className="text-accent-2 underline decoration-current/40 underline-offset-2 hover:decoration-current">
                   original posting
                 </a>
                 .

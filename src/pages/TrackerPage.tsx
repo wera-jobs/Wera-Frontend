@@ -102,6 +102,9 @@ function DraggableCard(props: Parameters<typeof KanbanCard>[0]) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      // A group, not the library's button: the card holds its own controls (status menu, open), and a button can't hold buttons.
+      role="group"
+      aria-label={`${props.job.title} at ${props.job.company}`}
       aria-roledescription="draggable job"
       // No text selection or callout on a long press, which would cancel a touch drag.
       className={clsx(
