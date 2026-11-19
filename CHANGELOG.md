@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.30.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.29.0...wera-frontend-v0.30.0) (2026-11-19)
+
+
+### Features
+
+* **companies:** a page for every company, linked from every company name ([2557d77](https://github.com/wera-jobs/Wera-Frontend/commit/2557d77f20e4644ceddc90134519242aa5502b20)), closes [#184](https://github.com/wera-jobs/Wera-Frontend/issues/184)
+
+
+### Bug Fixes
+
+* **tracker:** keep the board card's company name as text ([61675a7](https://github.com/wera-jobs/Wera-Frontend/commit/61675a7b8bf1d6dfcdbf3af37ce6d9e670c44c65)), closes [#184](https://github.com/wera-jobs/Wera-Frontend/issues/184)
+
 ## [0.29.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.28.0...wera-frontend-v0.29.0) (2026-11-19)
 
 
