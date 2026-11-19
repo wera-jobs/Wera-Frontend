@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.23.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.22.0...wera-frontend-v0.23.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** show how a fit score breaks down, and a word for it on cards ([330e982](https://github.com/wera-jobs/Wera-Frontend/commit/330e982fca8ffecaade269399e784658b4d97195)), closes [#178](https://github.com/wera-jobs/Wera-Frontend/issues/178)
+* **jobs:** show the pay a posting states, and filter by it ([7e11c56](https://github.com/wera-jobs/Wera-Frontend/commit/7e11c56c8afec0c9a5a4624e2ae9edc9faf837a3)), closes [#173](https://github.com/wera-jobs/Wera-Frontend/issues/173)
+* **today:** offer the Chrome extension, and say when it will fill the form ([9324660](https://github.com/wera-jobs/Wera-Frontend/commit/93246601e7cef5ab5ca7b3cf1da82452d7750d08)), closes [#176](https://github.com/wera-jobs/Wera-Frontend/issues/176)
+* **tracker:** stages as tabs on phones, and search on every screen ([b51476d](https://github.com/wera-jobs/Wera-Frontend/commit/b51476dc33f2bbc51b8fb86f6420b565e48272b2)), closes [#177](https://github.com/wera-jobs/Wera-Frontend/issues/177)
+
+
+### Bug Fixes
+
+* **a11y:** pass axe on every page, and check it and phone overflow in e2e ([a74467b](https://github.com/wera-jobs/Wera-Frontend/commit/a74467bf3c91ed9397168991ba649ce4aa637f0f)), closes [#175](https://github.com/wera-jobs/Wera-Frontend/issues/175)
+* **resume:** keep the newer-upload banner readable on phones ([f1b2c5e](https://github.com/wera-jobs/Wera-Frontend/commit/f1b2c5e58443d2a3f83d020e6236974b35ff933f)), closes [#171](https://github.com/wera-jobs/Wera-Frontend/issues/171)
+* **today:** say why the top pick passes over an older, higher score ([f41f93f](https://github.com/wera-jobs/Wera-Frontend/commit/f41f93f22a66115051c529640532ff55592a9472)), closes [#172](https://github.com/wera-jobs/Wera-Frontend/issues/172)
+
 ## [0.22.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.21.0...wera-frontend-v0.22.0) (2026-11-19)
 
 
