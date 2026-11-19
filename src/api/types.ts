@@ -9,6 +9,16 @@ export type AppStatus =
   | 'rejected'
   | 'not_interested';
 
+/** A scored job's parts of fit, each 0-10, and whether something rules it out. */
+export interface FitParts {
+  role: number;
+  seniority: number;
+  skills: number;
+  domain: number;
+  location: number;
+  blocker: boolean;
+}
+
 export interface Job {
   id: number;
   company_id: number;
@@ -56,6 +66,8 @@ export interface Job {
   pay_max?: number | null;
   pay_currency?: string | null;
   pay_period?: 'hour' | 'year' | null;
+  /** The ratings (0-10) the fit score was computed from; null for older scores. */
+  fit_parts?: FitParts | null;
 }
 
 export interface DeepGap {
