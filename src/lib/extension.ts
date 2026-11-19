@@ -42,3 +42,23 @@ export function handOffJob(jobId: number, url: string) {
 export function announceChange(what = '') {
   post({ type: 'changed', what });
 }
+
+/**
+ * Hands the extension a key for this account (the connect page), and
+ * resolves true once it says it's connected; false if it doesn't answer.
+ */
+export function connectExtension(token: string, timeoutMs = 5000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const done = (ok: boolean) => {
+      window.removeEventListener('message', onMessage);
+      window.clearTimeout(timer);
+      resolve(ok);
+    };
+    const onMessage = (e: MessageEvent<{ source?: string; type?: string }>) => {
+      if (e.source === window && e.origin === location.origin && e.data?.source === FROM_EXTENSION && e.data.type === 'connected') done(true);
+    };
+    const timer = window.setTimeout(() => done(false), timeoutMs);
+    window.addEventListener('message', onMessage);
+    post({ type: 'connect', token, server: location.origin });
+  });
+}
