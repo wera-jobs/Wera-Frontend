@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.29.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.28.0...wera-frontend-v0.29.0) (2026-11-19)
+
+
+### Features
+
+* **tracker:** show and set the resume and letter sent with each application ([ab0c222](https://github.com/wera-jobs/Wera-Frontend/commit/ab0c2223fe9da32551c0af55bdceeb78a8606c9c))
+
+## [0.28.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.27.0...wera-frontend-v0.28.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** select several jobs and act on them together ([e896771](https://github.com/wera-jobs/Wera-Frontend/commit/e896771fab39a09b7b513c13aae472ca54ebbcc3)), closes [#188](https://github.com/wera-jobs/Wera-Frontend/issues/188)
+* **tracker:** a Progress view of how applications are going ([31aa55b](https://github.com/wera-jobs/Wera-Frontend/commit/31aa55bed81239e6a623b18feb35fd62db2216e3)), closes [#182](https://github.com/wera-jobs/Wera-Frontend/issues/182)
+
+## [0.27.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.26.0...wera-frontend-v0.27.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** save the current filters as a named search ([b203608](https://github.com/wera-jobs/Wera-Frontend/commit/b2036087c4b82221af1cd0b38d7dc2aeef49712a)), closes [#187](https://github.com/wera-jobs/Wera-Frontend/issues/187)
+
+## [0.26.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.25.0...wera-frontend-v0.26.0) (2026-11-19)
+
+
+### Features
+
+* **shell:** a notifications bell for strong matches, closed postings and reminders ([5159c2a](https://github.com/wera-jobs/Wera-Frontend/commit/5159c2a14484c97857584f11d5ee3cc868220a06)), closes [#186](https://github.com/wera-jobs/Wera-Frontend/issues/186)
+
 ## [0.25.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.24.0...wera-frontend-v0.25.0) (2026-11-19)
 
 
