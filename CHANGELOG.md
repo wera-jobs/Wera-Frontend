@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.24.0...wera-frontend-v0.25.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** company logos on cards, the job view, the Jobs table and the tracker ([9f23642](https://github.com/wera-jobs/Wera-Frontend/commit/9f23642d7df41eabccd5beed4c4b546870a0495a)), closes [#174](https://github.com/wera-jobs/Wera-Frontend/issues/174)
+
 ## [0.24.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.23.0...wera-frontend-v0.24.0) (2026-11-19)
 
 
