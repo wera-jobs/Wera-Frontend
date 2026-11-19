@@ -71,6 +71,8 @@ export interface AppAnalytics {
   reached: { applied: number; interviewing: number; offer: number };
   weeks: { week: string; applied: number; responded: number; interview: number }[];
   sources: { source: string; applied: number; responded: number; interview: number }[];
+  /** The same by resume sent: tailored, base, upload or unknown (older APIs leave it out). */
+  resumes?: { source: string; applied: number; responded: number; interview: number }[];
   days_to_interview: number | null;
   days_to_offer: number | null;
 }
@@ -112,6 +114,8 @@ export interface Job {
   contact?: Contact | null;
   /** Set when the application is archived: off the board, history kept. */
   archived_at?: string | null;
+  /** The resume (and letter) that went with the application: the user's word, else what the extension attached. */
+  resume_used?: { kind: '' | 'tailored' | 'base' | 'upload'; name: string; letter: boolean; by: 'you' | 'extension' } | null;
   /**
    * Shown until the full AI score arrives: the AI's quick grade when
    * estimate_ai, else a local relevance estimate (35..85).

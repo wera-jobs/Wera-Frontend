@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Archive, ArchiveRestore, CalendarPlus, X } from 'lucide-react';
 import { useAddEvent, useDeleteEvent, useJobEvents, usePatchApplication } from '../api/hooks';
 import type { Contact, EventKind, JobDetail } from '../api/types';
-import { EVENT_KINDS, eventKindLabel, whenText } from '../lib/events';
+import { EVENT_KINDS, RESUME_KINDS, eventKindLabel, whenText } from '../lib/events';
 import { toast } from '../lib/toast';
 
 // A date input's value (the user's own day) and back. A day-only step is due at 9:00 that morning.
@@ -71,6 +71,38 @@ export function ApplicationDetails({ job }: { job: JobDetail }) {
           <input aria-label="Contact email or link" placeholder="Email or LinkedIn" maxLength={200} value={contact.link} onChange={(e) => setContact({ ...contact, link: e.target.value })} onBlur={saveContact} className={`${INPUT} col-span-2`} />
         </div>
       </fieldset>
+
+      <div>
+        <span className={LABEL} id={`resume-${job.id}`}>
+          Sent with it
+          {job.resume_used?.by === 'extension' && <span className="text-faint"> · as the extension attached it</span>}
+        </span>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            aria-labelledby={`resume-${job.id}`}
+            value={job.resume_used?.kind ?? ''}
+            onChange={(e) => patch.mutate({ id: job.id, resume_kind: e.target.value as '' | 'tailored' | 'base' | 'upload' })}
+            className={`w-52 ${FIELD}`}
+          >
+            <option value="">Resume not recorded</option>
+            {RESUME_KINDS.map(([k, label]) => (
+              <option key={k} value={k}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <label className="inline-flex items-center gap-1.5 text-xs text-muted">
+            <input
+              type="checkbox"
+              checked={!!job.resume_used?.letter}
+              onChange={(e) => patch.mutate({ id: job.id, letter_sent: e.target.checked })}
+              className="size-3.5 accent-accent"
+            />
+            Cover letter
+          </label>
+          {job.resume_used?.name && <span className="min-w-0 truncate text-[11px] text-faint">{job.resume_used.name}</span>}
+        </div>
+      </div>
 
       <Events jobId={job.id} />
 

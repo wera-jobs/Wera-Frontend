@@ -5,7 +5,7 @@ import { CalendarClock } from 'lucide-react';
 import clsx from 'clsx';
 import { useJobs, useUpcomingEvents } from '../api/hooks';
 import type { AppStatus, Job } from '../api/types';
-import { eventKindLabel, whenText } from '../lib/events';
+import { eventKindLabel, resumeText, whenText } from '../lib/events';
 import { relTime } from '../lib/format';
 import { StatusSelect } from './StatusSelect';
 import { CompanyLogo } from './CompanyLogo';
@@ -124,6 +124,7 @@ function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; o
                   </span>
                 </button>
                 <NextStep job={job} className="md:hidden" />
+                {resumeText(job.resume_used) && <span className="block truncate text-[11px] text-faint">{resumeText(job.resume_used)}</span>}
               </td>
               <td className="hidden px-3 py-2 sm:table-cell">
                 <StatusSelect value={job.application_status} onChange={(s) => onStatus(job.id, s)} label={`Status for ${job.title}`} />
