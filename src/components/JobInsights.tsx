@@ -11,6 +11,7 @@ import { ApplicationDetails } from './ApplicationDetails';
 import { Badge } from './Badge';
 import { AddedBadge, AutofilledBadge, CategoryChips, SponsorshipBadge, WorkModeBadge } from './JobBadges';
 import { JobH1B } from './JobH1B';
+import { Referrals } from './Referrals';
 import { ScoreRing } from './ScoreRing';
 import { StatusSelect } from './StatusSelect';
 
@@ -213,6 +214,10 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
       </Section>
 
       <JobH1B jobId={job.id} company={job.company} seniority={job.seniority} />
+
+      <Section title="Find someone to refer you">
+        <Referrals jobId={job.id} company={job.company} title={job.title} />
+      </Section>
 
       {matched.length + missing.length > 0 && (
         <Section title="Skills">

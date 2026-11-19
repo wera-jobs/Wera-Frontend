@@ -1,3 +1,4 @@
+import { ImportApplications } from '../components/ImportApplications';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { Link } from 'react-router-dom';
@@ -386,6 +387,9 @@ export default function SettingsPage() {
           <button onClick={() => void exportApplications()} className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs font-medium text-text hover:border-accent/40">
             <Download className="size-3.5" /> Download CSV
           </button>
+        </Row>
+        <Row label="Import applications" hint="Jobs you track in a spreadsheet or another tracker, from a CSV: company, title, link and status at least.">
+          <ImportApplications />
         </Row>
       </Section>
 
