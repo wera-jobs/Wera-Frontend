@@ -4,6 +4,7 @@ import { Ban, Bookmark, BookmarkCheck, ExternalLink, LoaderCircle, Sun, X } from
 import { useLatestRun, useStats, useStatusWithUndo, useToday } from '../api/hooks';
 import { useProfile } from '../api/profile';
 import type { AppStatus, Job } from '../api/types';
+import { ExtensionPromo } from '../components/ExtensionPromo';
 import { CHIP_BUTTON, JobCard } from '../components/JobCard';
 import { JobDrawer } from '../components/JobDrawer';
 import { ScoreRing } from '../components/ScoreRing';
@@ -234,6 +235,7 @@ export default function TodayPage() {
         <EmptyState icon={<Sun className="size-5 text-faint" />} title={FILTERS[filter].empty} />
       ) : (
         <>
+          <ExtensionPromo />
           {top && <TopPick job={top} passedOver={passedOver} onOpen={open} onStatus={setStatus} />}
           {visible.length > 0 && (
             <div className="grid gap-3 xl:grid-cols-2">
