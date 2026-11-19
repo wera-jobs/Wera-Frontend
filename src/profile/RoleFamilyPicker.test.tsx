@@ -22,7 +22,7 @@ describe('RoleFamilyPicker', () => {
     render(<Harness start={['sre']} />);
     expect(screen.getByRole('tab', { name: /Technology & data/ })).toHaveAttribute('aria-selected', 'true');
     expect(chips()).toEqual(['Data science', 'Platform engineering', 'Site reliability']);
-    expect(screen.getByLabelText('1 picked')).toBeInTheDocument();
+    expect(screen.getByText((_, el) => el?.tagName === 'SPAN' && el.textContent === '1 picked')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('tab', { name: /Healthcare/ }));
     expect(chips()).toEqual(['Registered nursing (RN)']);
