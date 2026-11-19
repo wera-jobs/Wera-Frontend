@@ -55,7 +55,7 @@ function CreateResume({ replace = false, onDone }: { replace?: boolean; onDone?:
             className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs font-medium hover:border-accent/40 disabled:opacity-50">
             {imp.isPending && imp.variables?.source === 'profile' && <LoaderCircle className="size-3.5 animate-spin" />} Convert my resume
           </button>
-          {!hasUpload && <p className="mt-2 text-[11px] text-faint">Upload one on the <Link to="/profile" className="text-accent hover:underline">Profile</Link> page first.</p>}
+          {!hasUpload && <p className="mt-2 text-[11px] text-faint">Upload one on the <Link to="/profile" className="text-accent underline decoration-current/40 underline-offset-2 hover:decoration-current">Profile</Link> page first.</p>}
         </section>
         <section className="rounded-card border border-border bg-surface p-5">
           <div className="flex items-center gap-2"><FileText className="size-4 text-accent" /><h2 className="text-sm font-semibold">Start from the template</h2></div>
@@ -114,17 +114,20 @@ function NewerUpload({ filename, onDismiss }: { filename: string; onDismiss: () 
     onError: (e) => toast.error(`Could not read ${filename}: ${errorMessage(e, 'Something went wrong')}`),
   });
   return (
-    <div role="status" className="flex flex-wrap items-center gap-3 rounded-card border border-accent/30 bg-accent/5 px-4 py-3">
-      <Upload className="size-4 shrink-0 text-accent" />
-      <p className="min-w-0 flex-1 text-sm">
-        You uploaded <span className="font-semibold">{filename}</span> after this resume was last changed.
-        <span className="block text-xs text-muted">Rebuilding replaces this resume with it. Tailored copies stay as they are.</span>
-      </p>
-      <div className="flex items-center gap-2">
+    <div role="status" className="flex flex-col gap-3 rounded-card border border-accent/30 bg-accent/5 px-4 py-3 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <Upload className="mt-0.5 size-4 shrink-0 text-accent" />
+        <p className="min-w-0 text-sm [overflow-wrap:anywhere]">
+          You uploaded <span className="font-semibold">{filename}</span> after this resume was last changed.
+          <span className="mt-0.5 block text-xs text-muted">Rebuilding replaces this resume with it. Tailored copies stay as they are.</span>
+        </p>
+      </div>
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
         <button onClick={onDismiss} disabled={imp.isPending} className="rounded-lg px-2 py-1.5 text-xs text-muted hover:text-text">Keep this one</button>
-        <button onClick={rebuild} disabled={imp.isPending}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-60">
-          {imp.isPending && <LoaderCircle className="size-3.5 animate-spin" />} Rebuild from {filename}
+        <button onClick={rebuild} disabled={imp.isPending} title={`Rebuild from ${filename}`}
+          className="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-60 sm:max-w-64">
+          {imp.isPending && <LoaderCircle className="size-3.5 shrink-0 animate-spin" />}
+          <span className="truncate">Rebuild from {filename}</span>
         </button>
       </div>
     </div>
