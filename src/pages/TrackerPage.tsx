@@ -7,6 +7,7 @@ import { useJobs, useUpdateApplication } from '../api/hooks';
 import type { AppStatus, Job } from '../api/types';
 import { AutofilledBadge, ClosedBadge } from '../components/JobBadges';
 import { JobDrawer } from '../components/JobDrawer';
+import { CompanyLogo } from '../components/CompanyLogo';
 import { StatusSelect } from '../components/StatusSelect';
 import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
 import { Skeleton } from '../components/States';
@@ -61,7 +62,10 @@ function KanbanCard({
             {job.fit_score ?? '—'}
           </span>
         </div>
-        <div className="mt-1 truncate text-[11px] text-muted">{job.company}</div>
+        <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted">
+          <CompanyLogo name={job.company} url={job.logo_url} />
+          <span className="truncate">{job.company}</span>
+        </div>
         <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
           <span>
             {job.application_status === 'applied'
