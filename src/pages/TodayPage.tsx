@@ -4,6 +4,7 @@ import { Ban, Bookmark, BookmarkCheck, ExternalLink, LoaderCircle, Sun, X } from
 import { useLatestRun, useStats, useStatusWithUndo, useToday } from '../api/hooks';
 import { useProfile } from '../api/profile';
 import type { AppStatus, Job } from '../api/types';
+import { ExtensionPromo } from '../components/ExtensionPromo';
 import { CHIP_BUTTON, JobCard } from '../components/JobCard';
 import { JobDrawer } from '../components/JobDrawer';
 import { ScoreRing } from '../components/ScoreRing';
@@ -30,7 +31,7 @@ const FILTERS: Record<TodayFilter, { test: (j: Job, now: number) => boolean; emp
 };
 
 /** Today's best job, presented large above the list. */
-function TopPick({ job, onOpen, onStatus }: { job: Job; onOpen: (id: number) => void; onStatus: (job: Job, status: AppStatus) => void }) {
+function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: number; onOpen: (id: number) => void; onStatus: (job: Job, status: AppStatus) => void }) {
   const meta = jobMeta(job);
   const saved = job.application_status === 'saved';
   return (
@@ -61,6 +62,11 @@ function TopPick({ job, onOpen, onStatus }: { job: Job; onOpen: (id: number) => 
             </button>
           </h2>
           <div className="mt-0.5 truncate text-sm text-muted">{job.company}</div>
+          {passedOver > 0 && (
+            <p className="mt-1 text-[11px] text-faint">
+              Best fit among postings from the last {OLD_POSTING_DAYS} days: {passedOver === 1 ? 'a higher score below is' : `${passedOver} higher scores below are`} on older postings, which are often filled.
+            </p>
+          )}
           {job.reason && <p className="mt-2 line-clamp-3 max-w-2xl text-xs leading-relaxed text-muted">{toYou(job.reason)}</p>}
           <div className="mt-2.5 text-[11px] text-faint">
             {meta || '—'} · <PostedAge job={job} />
@@ -150,6 +156,9 @@ export default function TodayPage() {
   // list is just the list.
   const top = filter ? null : (jobs.find((j) => daysUp(j) <= OLD_POSTING_DAYS) ?? jobs[0] ?? null);
   const rest = jobs.filter((j) => j !== top);
+  // Older postings that score higher than the top pick: said on the card, so the order explains itself.
+  const topScore = top ? (top.fit_score ?? top.estimated_score ?? 0) : 0;
+  const passedOver = top ? rest.filter((j) => daysUp(j) > OLD_POSTING_DAYS && (j.fit_score ?? j.estimated_score ?? 0) > topScore).length : 0;
   const visible = rest.slice(0, shown);
 
   return (
@@ -226,7 +235,8 @@ export default function TodayPage() {
         <EmptyState icon={<Sun className="size-5 text-faint" />} title={FILTERS[filter].empty} />
       ) : (
         <>
-          {top && <TopPick job={top} onOpen={open} onStatus={setStatus} />}
+          <ExtensionPromo />
+          {top && <TopPick job={top} passedOver={passedOver} onOpen={open} onStatus={setStatus} />}
           {visible.length > 0 && (
             <div className="grid gap-3 xl:grid-cols-2">
               {visible.map((job, i) => (

@@ -9,7 +9,7 @@ import { AutofilledBadge, ClosedBadge } from '../components/JobBadges';
 import { JobDrawer } from '../components/JobDrawer';
 import { StatusSelect } from '../components/StatusSelect';
 import { Skeleton } from '../components/States';
-import { relTime, verdictColor, verdictOf } from '../lib/format';
+import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
 import { ExternalLink, EyeOff, KanbanSquare, Search } from 'lucide-react';
@@ -68,6 +68,7 @@ function KanbanCard({
               : ''}
             {relTime(job.first_seen_at)}
           </span>
+          {payText(job, true) && <span className="font-medium text-muted">{payText(job, true)}</span>}
           <AutofilledBadge at={job.autofilled_at} />
           <ClosedBadge at={job.closed_at} />
         </div>
@@ -102,6 +103,9 @@ function DraggableCard(props: Parameters<typeof KanbanCard>[0]) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      // A group, not the library's button: the card holds its own controls (status menu, open), and a button can't hold buttons.
+      role="group"
+      aria-label={`${props.job.title} at ${props.job.company}`}
       aria-roledescription="draggable job"
       // No text selection or callout on a long press, which would cancel a touch drag.
       className={clsx(
@@ -253,24 +257,56 @@ function TrackerEmpty() {
   );
 }
 
+/** Whether a job matches the tracker's search: its title or company. */
+const matches = (job: Job, query: string) => {
+  const q = query.trim().toLowerCase();
+  return !q || `${job.title} ${job.company}`.toLowerCase().includes(q);
+};
+
+/** One stage's tab on a phone, with how many applications it holds (the column's own query, shared from the cache). */
+function StageTab({ status, query, selected, onSelect }: { status: AppStatus; query: string; selected: boolean; onSelect: () => void }) {
+  const { data } = useJobs({ status, limit: 100, sort: 'newest' });
+  const n = (data?.jobs ?? []).filter((j) => matches(j, query)).length;
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={selected}
+      onClick={onSelect}
+      className={clsx(
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
+        selected ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text',
+      )}
+    >
+      {COLUMN_LABEL[status]} <span className="font-mono text-[11px] opacity-80">{data ? n : '·'}</span>
+    </button>
+  );
+}
+
 function Column({
   status,
+  query,
+  shownOnPhone,
   onOpen,
   onStatus,
 }: {
   status: AppStatus;
+  query: string;
+  /** On a phone one stage shows at a time; wider screens show the whole board. */
+  shownOnPhone: boolean;
   onOpen: (id: number) => void;
   onStatus: (id: number, status: AppStatus) => void;
 }) {
   const { data, isLoading } = useJobs({ status, limit: 100, sort: 'newest' });
   const { setNodeRef, isOver } = useDroppable({ id: status });
-  const jobs = data?.jobs ?? [];
+  const jobs = (data?.jobs ?? []).filter((j) => matches(j, query));
   return (
     <section
       ref={setNodeRef}
       aria-label={COLUMN_LABEL[status]}
       className={clsx(
-        'flex min-w-0 flex-col rounded-card border p-2.5 transition-colors duration-150 xl:min-h-0',
+        'min-w-0 flex-col rounded-card border p-2.5 transition-colors duration-150 sm:flex xl:min-h-0',
+        shownOnPhone ? 'flex' : 'hidden',
         isOver ? 'border-accent/60 bg-accent/5' : 'border-border bg-surface/60',
       )}
     >
@@ -278,15 +314,15 @@ function Column({
         <h3 className="text-xs font-semibold text-text">{COLUMN_LABEL[status]}</h3>
         <span className="font-mono text-xs text-faint">{jobs.length}</span>
       </header>
-      {/* The column scrolls on its own, so a long list does not make the page long. */}
-      <div className="-mx-1 flex max-h-[60svh] flex-col gap-2 overflow-y-auto overscroll-contain px-1 pb-1 xl:max-h-none xl:min-h-0 xl:flex-1">
+      {/* On a board each column scrolls on its own, so a long list does not make the page long; a phone's one stage runs down the page. */}
+      <div className="-mx-1 flex flex-col gap-2 px-1 pb-1 sm:max-h-[60svh] sm:overflow-y-auto sm:overscroll-contain xl:max-h-none xl:min-h-0 xl:flex-1">
         {isLoading ? (
           <>
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
           </>
         ) : jobs.length === 0 ? (
-          <p className="px-1 py-4 text-center text-[11px] text-faint">Nothing here yet</p>
+          <p className="px-1 py-4 text-center text-[11px] text-faint">{query.trim() ? 'No match for your search' : 'Nothing here yet'}</p>
         ) : (
           jobs.map((job, i) => (
             <DraggableCard key={job.id} job={job} index={i} onOpen={onOpen} onStatus={onStatus} />
@@ -301,6 +337,8 @@ export default function TrackerPage() {
   useDocumentTitle('Tracker');
   const update = useUpdateApplication();
   const [showNI, setShowNI] = useState(false);
+  const [query, setQuery] = useState('');
+  const [stage, setStage] = useState<AppStatus>('saved');
   const [drawerId, setDrawerId] = useState<number | null>(null);
   const [dragging, setDragging] = useState<Job | null>(null);
   // A small move or a short press before a drag, so clicks, the status menu and scrolling keep working.
@@ -315,6 +353,8 @@ export default function TrackerPage() {
 
   const columns = showNI ? [...COLUMNS, 'not_interested' as AppStatus] : COLUMNS;
   const empty = useNothingTracked();
+  // A stage that was hidden (not interested, unticked) gives way to Saved.
+  const shownStage = columns.includes(stage) ? stage : 'saved';
 
   const onDragStart = (e: DragStartEvent) => setDragging((e.active.data.current?.job as Job | undefined) ?? null);
   const onDragEnd = (e: DragEndEvent) => {
@@ -334,7 +374,19 @@ export default function TrackerPage() {
             Drag a card to another column to move it along, or use the status menu on the card.
           </p>
         </div>
-        <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted select-none">
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <label className="relative w-full sm:w-56">
+            <span className="sr-only">Search the tracker</span>
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-faint" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search title or company"
+              className="w-full rounded-lg border border-border bg-surface py-1.5 pr-2.5 pl-8 text-xs text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
+            />
+          </label>
+          <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted select-none">
           <input
             type="checkbox"
             checked={showNI}
@@ -343,10 +395,18 @@ export default function TrackerPage() {
           />
           <EyeOff className="size-3.5" />
           Show not interested
-        </label>
+          </label>
+        </div>
       </header>
 
       {empty && <TrackerEmpty />}
+      {!empty && (
+        <div role="tablist" aria-label="Stages" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:hidden">
+          {columns.map((st) => (
+            <StageTab key={st} status={st} query={query} selected={st === shownStage} onSelect={() => setStage(st)} />
+          ))}
+        </div>
+      )}
       <DndContext
         sensors={sensors}
         collisionDetection={collision}
@@ -363,7 +423,14 @@ export default function TrackerPage() {
           )}
         >
           {columns.map((status) => (
-            <Column key={status} status={status} onOpen={(id) => setDrawerId(id)} onStatus={onStatus} />
+            <Column
+              key={status}
+              status={status}
+              query={query}
+              shownOnPhone={status === shownStage}
+              onOpen={(id) => setDrawerId(id)}
+              onStatus={onStatus}
+            />
           ))}
         </div>
         {dragging && <DropBar columns={columns} current={dragging.application_status} />}

@@ -25,7 +25,7 @@ import { ClosedBadge, IndustryBadge, OldPostingBadge, StatusPill } from './JobBa
 import { Skeleton } from './States';
 import { Insights } from './JobInsights';
 import { absTime, relTime } from '../lib/format';
-import { handOffJob } from '../lib/extension';
+import { handOffJob, useExtension } from '../lib/extension';
 import { AutofillHistory } from './AutofillHistory';
 import { useScrollLock } from '../lib/useScrollLock';
 
@@ -158,6 +158,7 @@ export function JobDrawer({
 
   const setStatus = (status: AppStatus) =>
     job && update.mutate({ id: job.id, status, notes: job.application_notes ?? '' });
+  const extension = useExtension();
   const [tab, setTab] = useState<'posting' | 'letter' | 'resume'>('posting');
   const [tabJob, setTabJob] = useState(jobId);
   if (tabJob !== jobId) {
@@ -281,7 +282,7 @@ export function JobDrawer({
             ) : job ? (
               <p className="text-sm text-muted">
                 This board didn't include a description. Read it on the{' '}
-                <a href={job.url} data-wera-job={job.id} target="_blank" rel="noreferrer" className="text-accent-2 hover:underline">
+                <a href={job.url} data-wera-job={job.id} target="_blank" rel="noreferrer" className="text-accent-2 underline decoration-current/40 underline-offset-2 hover:decoration-current">
                   original posting
                 </a>
                 .
@@ -316,6 +317,7 @@ export function JobDrawer({
               className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-xs font-semibold text-bg transition-colors duration-150 hover:bg-accent/85"
             >
               <ExternalLink className="size-3.5" /> {job.closed_at ? `See it on ${job.company}'s site` : `Apply on ${job.company}'s site`}
+              {!job.closed_at && extension && <span className="font-normal opacity-80">· Wera fills it</span>}
             </a>
             <button
               onClick={() => setStatus('saved')}

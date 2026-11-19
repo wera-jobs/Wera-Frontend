@@ -25,6 +25,8 @@ export interface JobsParams {
   industry?: string;
   category?: string;
   min_score?: number;
+  /** A year's pay; an hourly rate counts 2,080 hours. Jobs stating no pay are left out. */
+  min_pay?: number;
   sponsorship?: string;
   work_mode?: string;
   status?: string;

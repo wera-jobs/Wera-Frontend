@@ -10,6 +10,7 @@ export interface FilterValues {
   industry: string;
   category: string;
   min_score: number;
+  min_pay: number;
   sponsorship: string;
   work_mode: string;
   status: string;
@@ -22,6 +23,7 @@ export const DEFAULT_FILTERS: FilterValues = {
   industry: '',
   category: '',
   min_score: 0,
+  min_pay: 0,
   sponsorship: '',
   work_mode: '',
   status: '',
@@ -99,7 +101,7 @@ export function FilterBar({
     .map((value) => ({ value, label: familyLabel(value) }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  const active = [values.industry, values.category, values.min_score, values.sponsorship, values.work_mode, values.status, values.posted_within, values.sort !== 'score']
+  const active = [values.industry, values.category, values.min_score, values.min_pay, values.sponsorship, values.work_mode, values.status, values.posted_within, values.sort !== 'score']
     .filter(Boolean).length;
   const isDefault = values.q === '' && active === 0;
 
@@ -173,6 +175,19 @@ export function FilterBar({
           options={[
             { value: '', label: 'Any status' },
             ...APP_STATUSES.map((s) => ({ value: s.value, label: s.label })),
+          ]}
+        />
+        <Select
+          label="Pay"
+          value={String(values.min_pay)}
+          onChange={(v) => onChange({ min_pay: Number(v) })}
+          options={[
+            { value: '0', label: 'Any' },
+            { value: '50000', label: '$50K+ a year' },
+            { value: '80000', label: '$80K+ a year' },
+            { value: '100000', label: '$100K+ a year' },
+            { value: '150000', label: '$150K+ a year' },
+            { value: '200000', label: '$200K+ a year' },
           ]}
         />
         <Select

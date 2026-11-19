@@ -107,7 +107,7 @@ function FromResume({ jobs, schools }: { jobs: ResumeJob[]; schools: ResumeSchoo
   if (!jobs.length && !schools.length) {
     return (
       <p className="rounded-lg border border-border bg-surface-2/40 p-3 text-xs text-muted">
-        No jobs or schools yet. <Link to="/profile/resume" className="text-accent hover:underline">Create your resume</Link> and Wera fills forms' work experience and education from it.
+        No jobs or schools yet. <Link to="/profile/resume" className="text-accent underline decoration-current/40 underline-offset-2 hover:decoration-current">Create your resume</Link> and Wera fills forms' work experience and education from it.
       </p>
     );
   }

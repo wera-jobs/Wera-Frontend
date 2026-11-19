@@ -2,7 +2,7 @@ import { Ban, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
 import { ScoreRing } from './ScoreRing';
 import { Badge } from './Badge';
 import { AutofilledBadge, CategoryChips, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
-import { jobMeta, toYou } from '../lib/format';
+import { jobMeta, toYou, verdictLabel, verdictOf } from '../lib/format';
 import type { AppStatus, Job } from '../api/types';
 
 /** The small bordered buttons on cards. */
@@ -39,7 +39,10 @@ export function JobCard({
       style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
     >
       <div className="flex items-start gap-4">
-        <ScoreRing score={job.fit_score} estimate={job.estimated_score} ai={job.estimate_ai} />
+        <div className="flex shrink-0 flex-col items-center gap-1">
+          <ScoreRing score={job.fit_score} estimate={job.estimated_score} ai={job.estimate_ai} />
+          {job.fit_score != null && <span className="text-[10px] font-medium text-faint">{verdictLabel[verdictOf(job.fit_score)].replace(' fit', '')}</span>}
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">

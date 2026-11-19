@@ -20,6 +20,7 @@ function valuesFromParams(sp: URLSearchParams, defaultSort: string): FilterValue
     industry: sp.get('industry') ?? '',
     category: sp.get('category') ?? '',
     min_score: Number(sp.get('min_score') ?? 0) || 0,
+    min_pay: Number(sp.get('min_pay') ?? 0) || 0,
     sponsorship: sp.get('sponsorship') ?? '',
     work_mode: sp.get('work_mode') ?? '',
     status: sp.get('status') ?? '',
@@ -208,6 +209,7 @@ export default function JobsPage() {
                   <th className="px-3 py-2.5">Company</th>
                   <th className="hidden px-3 py-2.5 2xl:table-cell">Industry</th>
                   <th className="px-3 py-2.5">Location</th>
+                  <th className="hidden px-3 py-2.5 xl:table-cell">Pay</th>
                   <th className="hidden px-3 py-2.5 2xl:table-cell">Mode</th>
                   <th className="px-3 py-2.5">Sponsorship</th>
                   <th className="hidden px-3 py-2.5 2xl:table-cell">Posted</th>

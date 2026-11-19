@@ -65,6 +65,7 @@ function HealthDot({ pulse = false }: { pulse?: boolean }) {
               ? 'API unreachable'
               : 'checking…'
       }
+      role="img"
       aria-label={health.data ? 'API healthy' : 'API unreachable'}
     />
   );

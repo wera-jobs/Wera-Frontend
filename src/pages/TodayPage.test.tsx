@@ -38,6 +38,22 @@ describe('Today', () => {
     expect(screen.getByRole('button', { name: `${top.title} at ${top.company}` })).toBeInTheDocument();
   });
 
+  it('says why when the top pick scores lower than an older posting below it', async () => {
+    const ago = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
+    const old = { ...top, fit_score: 90, posted_at: ago(100) };
+    const fresh = { ...jobs[1], fit_score: 62, posted_at: ago(3) };
+    stubApi({ 'GET /api/today': () => ({ ...fixtures.today, jobs: [old, fresh] }) });
+    renderApp(<TodayPage />);
+    expect(await screen.findByText(/Best fit among postings from the last 60 days: a higher score below is on older postings/)).toBeInTheDocument();
+  });
+
+  it('says nothing extra when the top pick is also the best score', async () => {
+    stubApi(freshToday);
+    renderApp(<TodayPage />);
+    await screen.findByRole('button', { name: `Top pick: ${top.title} at ${top.company}` });
+    expect(screen.queryByText(/Best fit among postings/)).toBeNull();
+  });
+
   it('filters to strong fits from their tile, and back', async () => {
     stubApi(freshToday);
     renderApp(<TodayPage />);

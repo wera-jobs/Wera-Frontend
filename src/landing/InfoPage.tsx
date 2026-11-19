@@ -54,7 +54,7 @@ export default function InfoPage({ page }: { page: keyof typeof INFO_PAGES }) {
             <p className="mt-4 text-lg text-pretty text-muted">{blurb}</p>
             {effective && <p className="mt-4 text-sm text-faint">Effective {effective}</p>}
             <div className="mt-10 border-t border-border pt-10">
-              {text.isPending && <div className="h-64 animate-pulse rounded-lg bg-surface-2/60" aria-label="Loading" />}
+              {text.isPending && <div className="h-64 animate-pulse rounded-lg bg-surface-2/60" role="status" aria-label="Loading" />}
               {text.isError && (
                 <p role="alert" className="text-muted">
                   Couldn't load this page. Check your connection, then{' '}

@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { shortLocation, verdictColor, verdictOf } from '../lib/format';
+import { payText, shortLocation, verdictColor, verdictOf } from '../lib/format';
 import { IndustryBadge, SponsorshipBadge, StatusPill, WorkModeBadge, AddedBadge, AutofilledBadge, OldPostingBadge, PostedAge } from './JobBadges';
 import type { Job } from '../api/types';
 
@@ -57,6 +57,7 @@ export function JobRow({
         <IndustryBadge value={job.industry} />
       </td>
       <td className="max-w-40 truncate px-3 py-2.5 text-xs text-muted">{shortLocation(job)}</td>
+      <td className="hidden px-3 py-2.5 text-xs whitespace-nowrap text-muted xl:table-cell">{payText(job, true) || <span className="text-faint">—</span>}</td>
       <td className="hidden px-3 py-2.5 2xl:table-cell">
         <WorkModeBadge value={job.work_mode} />
       </td>
