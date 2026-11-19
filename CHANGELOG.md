@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.30.0...wera-frontend-v0.31.0) (2026-11-19)
+
+
+### Features
+
+* **tracker:** draft follow-ups, thank-yous, referral requests and offer replies ([c70a7b9](https://github.com/wera-jobs/Wera-Frontend/commit/c70a7b991de682dc0ec3a0bc3310d82a4adda606)), closes [#185](https://github.com/wera-jobs/Wera-Frontend/issues/185)
+
 ## [0.30.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.29.0...wera-frontend-v0.30.0) (2026-11-19)
 
 
