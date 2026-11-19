@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.33.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.32.0...wera-frontend-v0.33.0) (2026-11-19)
+
+
+### Features
+
+* **extension:** connect Wera for Chrome from the dashboard, no password ([a432ced](https://github.com/wera-jobs/Wera-Frontend/commit/a432ced0d07a36d4e23d3b62cff576f0ee44f17c))
+* **jobs:** show how the posted pay compares with H-1B wages ([70c424f](https://github.com/wera-jobs/Wera-Frontend/commit/70c424ff60446c22977bf0ea9bfdb5700913e5f7)), closes [#194](https://github.com/wera-jobs/Wera-Frontend/issues/194)
+
+## [0.32.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.31.0...wera-frontend-v0.32.0) (2026-11-19)
+
+
+### Features
+
+* **jobs:** find someone to refer you, from the job view ([f021906](https://github.com/wera-jobs/Wera-Frontend/commit/f0219062162c9fb525f390286799a9c0525bc25d)), closes [#183](https://github.com/wera-jobs/Wera-Frontend/issues/183)
+* **settings:** import tracked jobs from a CSV ([1758ce5](https://github.com/wera-jobs/Wera-Frontend/commit/1758ce521eba081397884a8c4d0db12e40059d9d)), closes [#181](https://github.com/wera-jobs/Wera-Frontend/issues/181)
+
 ## [0.31.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.30.0...wera-frontend-v0.31.0) (2026-11-19)
 
 
