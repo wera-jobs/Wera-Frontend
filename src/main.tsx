@@ -7,7 +7,7 @@ import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react
 import { AppShell } from './layout/AppShell';
 import {
   CommunityPage, IndustriesPage, IndustryPage, InterviewPage, NewPostPage, PostPage, ProfilePage,
-  SettingsPage, SponsorshipPage, TrackerPage, WelcomePage,
+  CompanyPage, SettingsPage, SponsorshipPage, TrackerPage, WelcomePage,
 } from './pages/lazy';
 import { RequireAuth } from './auth/RequireAuth';
 import { RequireProfile } from './auth/RequireProfile';
@@ -72,6 +72,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="tracker" element={<TrackerPage />} />
                     <Route path="resume/:id?" element={<ResumeRedirect />} />
                     <Route path="sponsorship" element={<SponsorshipPage />} />
+                    <Route path="companies/:id" element={<CompanyPage />} />
                     <Route path="interview" element={<InterviewPage />} />
                     <Route path="community" element={<CommunityPage />} />
                     <Route path="community/new" element={<NewPostPage />} />

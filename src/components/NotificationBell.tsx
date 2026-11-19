@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, CalendarClock, Sparkles, XCircle } from 'lucide-react';
+import { Bell, Building2, CalendarClock, Sparkles, XCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { useNotifications, useReadNotifications } from '../api/hooks';
 import type { AppNotification } from '../api/types';
 import { whenText } from '../lib/events';
 import { relTime } from '../lib/format';
 
-const ICON = { strong_matches: Sparkles, posting_closed: XCircle, reminder: CalendarClock };
+const ICON = { strong_matches: Sparkles, posting_closed: XCircle, reminder: CalendarClock, followed_company: Building2 };
 
 /** The top bar's bell: new strong matches, closed postings and reminders. */
 export function NotificationBell() {

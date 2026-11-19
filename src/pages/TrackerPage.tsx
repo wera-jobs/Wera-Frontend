@@ -65,6 +65,7 @@ function KanbanCard({
         </div>
         <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted">
           <CompanyLogo name={job.company} url={job.logo_url} />
+          {/* Text, not a link: the whole card is one button (a link inside it would nest controls); the job view links the company. */}
           <span className="truncate">{job.company}</span>
         </div>
         <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
