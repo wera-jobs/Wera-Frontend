@@ -183,8 +183,8 @@ function Connections() {
       )}
       <p className="mt-2 text-xs text-faint">
         Changing your password disconnects every browser. What it fills comes from your{' '}
-        <Link to="/profile#application" className="text-accent-2 hover:underline">application details</Link> and{' '}
-        <Link to="/profile#answers" className="text-accent-2 hover:underline">saved answers</Link>.
+        <Link to="/profile#application" className="text-accent-2 underline decoration-current/40 underline-offset-2 hover:decoration-current">application details</Link> and{' '}
+        <Link to="/profile#answers" className="text-accent-2 underline decoration-current/40 underline-offset-2 hover:decoration-current">saved answers</Link>.
       </p>
     </div>
   );

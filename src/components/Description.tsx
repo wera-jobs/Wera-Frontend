@@ -65,7 +65,7 @@ function Linkify({ text }: { text: string }) {
             href={p}
             target="_blank"
             rel="noreferrer"
-            className="break-all text-accent-2 underline-offset-2 hover:underline"
+            className="break-all text-accent-2 underline decoration-current/40 underline-offset-2 hover:decoration-current"
           >
             {p.replace(/^https?:\/\/(www\.)?/, '')}
           </a>

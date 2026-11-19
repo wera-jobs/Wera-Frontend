@@ -23,7 +23,7 @@ const SIGNAL: Record<SponsorSignal, { label: string; cls: string }> = {
 function Bar({ s }: { s: SponsorshipStat }) {
   const total = s.yes + s.no + s.unknown || 1;
   return (
-    <div className="flex h-1.5 w-20 overflow-hidden rounded-full bg-surface-2" aria-label={`${s.yes} yes, ${s.no} no, ${s.unknown} not stated`}>
+    <div className="flex h-1.5 w-20 overflow-hidden rounded-full bg-surface-2" role="img" aria-label={`${s.yes} yes, ${s.no} no, ${s.unknown} not stated`}>
       <div className="bg-good" style={{ width: `${(s.yes / total) * 100}%` }} />
       <div className="bg-bad" style={{ width: `${(s.no / total) * 100}%` }} />
     </div>

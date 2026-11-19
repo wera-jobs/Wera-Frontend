@@ -118,14 +118,14 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           {mode === 'login' ? (
             <>
               New here?{' '}
-              <Link to="/signup" className="font-medium text-accent hover:underline">
+              <Link to="/signup" className="font-medium text-accent underline decoration-current/40 underline-offset-2 hover:decoration-current">
                 Create an account
               </Link>
             </>
           ) : (
             <>
               Already have an account?{' '}
-              <Link to="/login" className="font-medium text-accent hover:underline">
+              <Link to="/login" className="font-medium text-accent underline decoration-current/40 underline-offset-2 hover:decoration-current">
                 Log in
               </Link>
             </>
