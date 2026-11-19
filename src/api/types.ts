@@ -47,7 +47,7 @@ export interface AppEvent {
 /** An in-app notice. */
 export interface AppNotification {
   id: number;
-  kind: 'strong_matches' | 'posting_closed' | 'reminder';
+  kind: 'strong_matches' | 'posting_closed' | 'reminder' | 'followed_company';
   job_id: number | null;
   title: string;
   body: string;
@@ -75,6 +75,24 @@ export interface AppAnalytics {
   resumes?: { source: string; applied: number; responded: number; interview: number }[];
   days_to_interview: number | null;
   days_to_offer: number | null;
+}
+
+/** A company's page (GET /api/companies/{id}); h1b is H1BDetail or null. */
+export interface CompanyPageData {
+  id: number;
+  name: string;
+  industry: string;
+  ats: string;
+  logo_url?: string;
+  hidden: boolean;
+  followed: boolean;
+  open_jobs: number;
+  /** How many open matches the user has there; matches lists the best of them. */
+  match_count?: number;
+  matches: Job[];
+  roles: { id: number; title: string; location: string; url: string; posted_at: string | null; first_seen_at: string; match: boolean }[];
+  sponsorship: Record<string, number>;
+  h1b: unknown;
 }
 
 export interface Job {

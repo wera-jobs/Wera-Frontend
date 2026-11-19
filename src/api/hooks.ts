@@ -8,6 +8,7 @@ import { api, ApiError, errorMessage, retryWhileDown } from './client';
 import { toast } from '../lib/toast';
 import type {
   AppAnalytics,
+  CompanyPageData,
   SavedSearch,
   AppEvent,
   AppNotification,
@@ -530,5 +531,33 @@ export function useAppAnalytics(enabled = true) {
     queryKey: ['analytics', 'applications'],
     queryFn: () => api<AppAnalytics>('/api/analytics/applications'),
     enabled,
+  });
+}
+
+/** A company's page: its matches, open roles, sponsorship and H-1B history. */
+export function useCompanyPage(id: number) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: ['company', id],
+    queryFn: async () => {
+      const page = await api<CompanyPageData>(`/api/companies/${id}`);
+      // The H-1B panel reads its own query: seed it from the page, so it needs no second request.
+      if (page.h1b) qc.setQueryData(['h1b', `/api/sponsorship/${id}/h1b`], page.h1b);
+      return page;
+    },
+  });
+}
+
+/** Follows or unfollows a company. */
+export function useFollowCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id: number; follow: boolean }) => api<void>(`/api/companies/${v.id}/follow`, { method: v.follow ? 'PUT' : 'DELETE' }),
+    onMutate: (v) => {
+      const cur = qc.getQueryData<CompanyPageData>(['company', v.id]);
+      if (cur) qc.setQueryData(['company', v.id], { ...cur, followed: v.follow });
+    },
+    onError: (err) => toast.error(`Couldn't save: ${errorMessage(err, 'network error')}`),
+    onSettled: (_d, _e, v) => qc.invalidateQueries({ queryKey: ['company', v.id] }),
   });
 }

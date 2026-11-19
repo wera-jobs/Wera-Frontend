@@ -65,7 +65,9 @@ function KanbanCard({
         </div>
         <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-muted">
           <CompanyLogo name={job.company} url={job.logo_url} />
-          <span className="truncate">{job.company}</span>
+          <Link to={`/companies/${job.company_id}`} onClick={(e) => e.stopPropagation()} className="truncate hover:text-accent hover:underline">
+            {job.company}
+          </Link>
         </div>
         <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
           <span>

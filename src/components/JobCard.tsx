@@ -1,5 +1,6 @@
 import { Ban, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
 import { ScoreRing } from './ScoreRing';
+import { Link } from 'react-router-dom';
 import { CompanyLogo } from './CompanyLogo';
 import { Badge } from './Badge';
 import { AutofilledBadge, CategoryChips, EarlyBadge, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
@@ -73,7 +74,12 @@ export function JobCard({
               </h3>
               <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
                 <CompanyLogo name={job.company} url={job.logo_url} />
-                <span className="truncate">{job.company}</span>
+                <Link
+                  to={`/companies/${job.company_id}`}
+                  className="relative z-10 truncate hover:text-accent hover:underline"
+                >
+                  {job.company}
+                </Link>
               </div>
             </div>
             <span className="flex shrink-0 flex-col items-end gap-1">
