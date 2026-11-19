@@ -7,7 +7,7 @@ import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react
 import { AppShell } from './layout/AppShell';
 import {
   CommunityPage, IndustriesPage, IndustryPage, InterviewPage, NewPostPage, PostPage, ProfilePage,
-  CompanyPage, SettingsPage, SponsorshipPage, TrackerPage, WelcomePage,
+  CompanyPage, ConnectExtensionPage, SettingsPage, SponsorshipPage, TrackerPage, WelcomePage,
 } from './pages/lazy';
 import { RequireAuth } from './auth/RequireAuth';
 import { RequireProfile } from './auth/RequireProfile';
@@ -62,6 +62,7 @@ createRoot(document.getElementById('root')!).render(
               {Object.keys(INFO_PAGES).map((p) => <Route key={p} path={p} element={<InfoPage page={p} />} />)}
               <Route element={<RequireAuth />}>
                 <Route path="welcome" element={<WelcomePage />} />
+                <Route path="connect-extension" element={<ConnectExtensionPage />} />
                 <Route element={<RequireProfile />}>
                   <Route element={<AppShell />}>
                     <Route index element={<TodayPage />} />

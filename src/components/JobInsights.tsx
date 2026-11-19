@@ -11,6 +11,7 @@ import { ApplicationDetails } from './ApplicationDetails';
 import { Badge } from './Badge';
 import { AddedBadge, AutofilledBadge, CategoryChips, SponsorshipBadge, WorkModeBadge } from './JobBadges';
 import { JobH1B } from './JobH1B';
+import { PayInsight } from './PayInsight';
 import { Referrals } from './Referrals';
 import { ScoreRing } from './ScoreRing';
 import { StatusSelect } from './StatusSelect';
@@ -212,6 +213,12 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
         </div>
         {job.matched_categories.length > 0 && <CategoryChips cats={job.matched_categories} className="mt-3" />}
       </Section>
+
+      {job.pay_min != null && (
+        <Section title="Pay against H-1B wages">
+          <PayInsight jobId={job.id} company={job.company} />
+        </Section>
+      )}
 
       <JobH1B jobId={job.id} company={job.company} seniority={job.seniority} />
 
