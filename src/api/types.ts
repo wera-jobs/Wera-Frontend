@@ -395,3 +395,33 @@ export interface CoverLetter {
   created_at: string;
   updated_at: string;
 }
+
+/** One likely interview question, with the user's own talking points or what to prepare. */
+export interface PrepQuestion {
+  question: string;
+  kind: 'role' | 'behavioral' | 'motivation' | 'company';
+  why: string;
+  points: string[];
+  prepare: string;
+}
+
+/** Interview prep for one job (GET/POST /api/jobs/{id}/interview-prep). */
+export interface InterviewPrep {
+  prep: {
+    role: string;
+    they_value: string[];
+    intro: string;
+    questions: PrepQuestion[];
+    ask: string[];
+  };
+  model: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Feedback on a practice answer (POST /api/jobs/{id}/interview-prep/practice). */
+export interface PracticeFeedback {
+  strengths: string[];
+  improve: string[];
+  outline: string[];
+}
