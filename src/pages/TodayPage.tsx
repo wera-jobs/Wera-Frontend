@@ -179,13 +179,18 @@ export default function TodayPage() {
 
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="text-[28px] leading-tight font-semibold">Today</h1>
-        <p className="mt-1 text-xs text-muted">
-          {all.length >= TODAY_CAP ? `${TODAY_CAP}+` : all.length} {all.length === 1 ? 'match' : 'matches'} to review
-          {estimatedCount > 0 && <> ({estimatedCount} estimated)</>}
-          {lastRun && <> · last checked for new jobs {relTime(lastRun.started_at)}</>}
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h1 className="text-[28px] leading-tight font-semibold">Today</h1>
+          <p className="mt-1 text-xs text-muted">
+            {all.length >= TODAY_CAP ? `${TODAY_CAP}+` : all.length} {all.length === 1 ? 'match' : 'matches'} to review
+            {estimatedCount > 0 && <> ({estimatedCount} estimated)</>}
+            {lastRun && <> · last checked for new jobs {relTime(lastRun.started_at)}</>}
+          </p>
+        </div>
+        <Link to="/review" className="text-xs font-medium text-accent hover:underline">
+          Your week in review
+        </Link>
       </header>
 
       {ungraded > 0 && (

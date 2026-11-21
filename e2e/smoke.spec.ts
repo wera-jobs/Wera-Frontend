@@ -13,6 +13,7 @@ const PAGES = [
   ['/profile', 'Erin Example'],
   ['/profile/resume', 'Erin Example'],
   ['/settings', 'Settings'],
+  ['/review', 'Your week'],
 ] as const;
 
 // Every page loads without errors, fits the screen and passes axe (WCAG 2 A and AA),
