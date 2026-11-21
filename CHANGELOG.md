@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.33.0...wera-frontend-v0.33.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **profile:** open the roles step on the field the resume pre-fill picked ([#246](https://github.com/wera-jobs/Wera-Frontend/issues/246)) ([bd0cc91](https://github.com/wera-jobs/Wera-Frontend/commit/bd0cc9172762e6a389feac7278ab2ec8f2c1dd71))
+
 ## [0.33.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.32.0...wera-frontend-v0.33.0) (2026-11-19)
 
 
