@@ -97,6 +97,7 @@ export function stubApi(overrides: Record<string, Handler> = {}) {
     'GET /api/events': () => ({ events: [] }),
     'GET /api/notifications': () => ({ notifications: [], unread: 0 }),
     'GET /api/searches': () => ({ searches: [] }),
+    'GET /api/review/weekly': () => ({ week: '2026-11-16T00:00:00Z', applied: [], applied_prev: 0, replies: [], strong_new: 0, strong_acted: 0, strong_best: null, waiting: 0, old_applied: 0, gaps: [], gaps_of: 0, suggestions: [] }),
     'GET /api/analytics/applications': () => ({
       now: {}, reached: { applied: 0, interviewing: 0, offer: 0 }, weeks: [], sources: [], days_to_interview: null, days_to_offer: null,
     }),
