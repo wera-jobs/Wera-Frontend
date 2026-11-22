@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.34.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.33.0...wera-frontend-v0.34.0) (2026-11-22)
+
+
+### Features
+
+* **prep:** interview prep for the job you're interviewing for ([f28fc3e](https://github.com/wera-jobs/Wera-Frontend/commit/f28fc3e08e8d31226edd3fd4fdc9899659b144da))
+* **prep:** interview prep for the job you're interviewing for ([e3ce579](https://github.com/wera-jobs/Wera-Frontend/commit/e3ce5799cb09cb0dc6a66ce9b1a9e73362dc68b0))
+* **review:** a weekly review of your search ([7e2dd76](https://github.com/wera-jobs/Wera-Frontend/commit/7e2dd76b58019990a73fb495f6bb0819afb0df92))
+* **review:** a weekly review of your search ([a60e5fb](https://github.com/wera-jobs/Wera-Frontend/commit/a60e5fbf3eeef433e3e505b6478b6ed5863e27a8))
+
+
+### Bug Fixes
+
+* **auth:** give the login and signup pages an h1 and a main landmark ([58b40ea](https://github.com/wera-jobs/Wera-Frontend/commit/58b40ea5d84497071c58f9b840e61c679198a8ea))
+* **auth:** give the login and signup pages an h1 and a main landmark ([41cf4ec](https://github.com/wera-jobs/Wera-Frontend/commit/41cf4ecce88b10af5b14bcc22cf05f7f9bb1df56)), closes [#251](https://github.com/wera-jobs/Wera-Frontend/issues/251)
+* **deps:** bump lucide-react from 1.70.0 to 1.73.0 in the production group ([75d8d35](https://github.com/wera-jobs/Wera-Frontend/commit/75d8d35318bf5d20aba19ce07e36ebb9f266bd72))
+* **format:** say remote once in a job's meta line ([0590b8f](https://github.com/wera-jobs/Wera-Frontend/commit/0590b8f3c322891a00ff22bcac8ea9209e9e2825))
+* job card titles, empty H-1B pay section, auth page h1 ([c4020d8](https://github.com/wera-jobs/Wera-Frontend/commit/c4020d8cc4276be108c191fad300bc87514fc601))
+* **job-card:** wrap long titles instead of cutting them mid-letter ([5ec2d5b](https://github.com/wera-jobs/Wera-Frontend/commit/5ec2d5b01a8e434d1f32dec196a9b9dfd4d85a39))
+* **job-card:** wrap long titles instead of cutting them mid-letter ([63f2243](https://github.com/wera-jobs/Wera-Frontend/commit/63f22439a79e0eeaf4623aabe75083125dda3895)), closes [#249](https://github.com/wera-jobs/Wera-Frontend/issues/249)
+* **job-view:** hide the H-1B pay section when there is no comparison ([b01d9aa](https://github.com/wera-jobs/Wera-Frontend/commit/b01d9aa4d85f748bb32e9c0945515964e3778a30))
+* **job-view:** hide the H-1B pay section when there is no comparison ([d53296e](https://github.com/wera-jobs/Wera-Frontend/commit/d53296ee637deafe0ba5f0cc10b7be2da687a73a)), closes [#250](https://github.com/wera-jobs/Wera-Frontend/issues/250)
+* **profile:** open the roles step on the field the resume pre-fill picked ([#246](https://github.com/wera-jobs/Wera-Frontend/issues/246)) ([bd0cc91](https://github.com/wera-jobs/Wera-Frontend/commit/bd0cc9172762e6a389feac7278ab2ec8f2c1dd71))
+
+
+### Documentation
+
+* **readme:** make README more concise and scannable ([d6f3465](https://github.com/wera-jobs/Wera-Frontend/commit/d6f3465aeeb9004c6e491280a95f641aafa71779))
+
 ## [0.33.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.32.0...wera-frontend-v0.33.0) (2026-11-19)
 
 
