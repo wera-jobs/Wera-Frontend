@@ -188,9 +188,12 @@ export function jobMeta(
     Partial<Pick<Job, 'pay_min' | 'pay_max' | 'pay_currency' | 'pay_period'>>,
 ): string {
   const known = (v: string | null | undefined) => (v && v !== 'unknown' ? capitalize(v) : null);
+  const where = shortLocation(job);
+  const mode = known(job.work_mode);
   return [
-    shortLocation(job),
-    known(job.work_mode),
+    where,
+    // "Remote · Remote" when the location already says it.
+    mode && mode.toLowerCase() !== where?.toLowerCase() ? mode : null,
     known(job.seniority),
     job.years_required != null ? `${job.years_required}+ yrs` : null,
     payText(job, true) || null,

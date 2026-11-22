@@ -62,14 +62,18 @@ export function JobCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="truncate text-sm font-semibold text-text">
+              {/* Long titles wrap to two lines, then end in an ellipsis. The
+                  clamp sits on a span inside the button: a button is always
+                  inline-block, so a clamp or truncate outside it cut the
+                  title off mid-letter. */}
+              <h3 className="text-sm font-semibold text-text">
                 <button
                   type="button"
                   onClick={() => onOpen(job.id)}
                   aria-label={`${job.title} at ${job.company}`}
-                  className="stretched text-left outline-none"
+                  className="stretched block w-full text-left outline-none"
                 >
-                  {job.title}
+                  <span className="line-clamp-2 break-words">{job.title}</span>
                 </button>
               </h3>
               <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
@@ -88,9 +92,12 @@ export function JobCard({
             </span>
           </div>
           <div className="mt-2 flex min-w-0 items-center gap-2 text-[11px] text-faint">
-            <span className="min-w-0 truncate">{meta || '—'}</span>
-            <span className="shrink-0">
-              · <PostedAge job={job} />
+            {/* The age keeps the same " · " spacing as the rest of the line. */}
+            <span className="flex min-w-0 items-center gap-1">
+              <span className="min-w-0 truncate">{meta || '—'}</span>
+              <span className="shrink-0">
+                · <PostedAge job={job} />
+              </span>
             </span>
             <EarlyBadge job={job} />
             <OldPostingBadge job={job} />
