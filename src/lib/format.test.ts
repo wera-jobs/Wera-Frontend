@@ -97,6 +97,13 @@ describe('jobMeta', () => {
     expect(jobMeta({ location_summary: 'San Francisco, CA', location_raw: null, work_mode: 'unknown', seniority: 'entry', years_required: 1 }))
       .toBe('San Francisco, CA · Entry · 1+ yrs');
   });
+
+  it('says remote once when the location already does', () => {
+    expect(jobMeta({ location_summary: 'Remote (US)', location_raw: null, work_mode: 'remote', seniority: 'mid', years_required: null }))
+      .toBe('Remote · Mid');
+    expect(jobMeta({ location_summary: 'Austin, TX', location_raw: null, work_mode: 'remote', seniority: null, years_required: null }))
+      .toBe('Austin, TX · Remote');
+  });
 });
 
 describe('pay', () => {
