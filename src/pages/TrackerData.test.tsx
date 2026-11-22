@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { fixtures, stubApi } from '../test/fixtures';
 import { jsonBody, renderApp } from '../test/render';
+import { Toasts } from '../lib/toast';
 import TrackerPage from './TrackerPage';
 
 const base = fixtures.jobs.jobs[0];
@@ -97,5 +98,35 @@ describe('tracker data', () => {
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Archive' }));
     await waitFor(() => expect(patched).toContainEqual({ archived: true }));
+  });
+
+  it('offers interview prep in one click when a job moves to Interviewing', async () => {
+    const job = { ...base, id: 802, title: 'Prep Role', company: 'Globex', application_status: 'applied' as const };
+    let status: string = 'applied';
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        const jobs = url.searchParams.get('status') === status ? [{ ...job, application_status: status }] : [];
+        return { ...fixtures.jobs, total: jobs.length, jobs };
+      },
+      [`GET /api/jobs/${job.id}`]: () => ({ ...fixtures.job, ...job, application_status: status, description: 'About the role', deep: null }),
+      [`GET /api/jobs/${job.id}/cover-letter`]: () => new Response('{"error":"none"}', { status: 404 }),
+      [`GET /api/jobs/${job.id}/interview-prep`]: () => new Response('{"error":"none"}', { status: 404 }),
+      [`GET /api/jobs/${job.id}/events`]: () => ({ events: [] }),
+      [`PUT /api/jobs/${job.id}/application`]: (init) => {
+        status = jsonBody<{ status: string }>(init).status;
+        return { ...fixtures.job, ...job, application_status: status, description: 'About the role', deep: null };
+      },
+    });
+    renderApp(
+      <>
+        <TrackerPage />
+        <Toasts />
+      </>,
+    );
+    await userEvent.selectOptions(await screen.findByLabelText('Status for Prep Role'), 'interviewing');
+    await userEvent.click(await screen.findByRole('button', { name: 'Prepare for it' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByRole('tab', { name: 'Interview prep' })).toHaveAttribute('aria-selected', 'true');
+    expect(await within(dialog).findByRole('button', { name: /Prepare for this interview/ })).toBeInTheDocument();
   });
 });

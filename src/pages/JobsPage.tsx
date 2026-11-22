@@ -56,6 +56,7 @@ export default function JobsPage() {
   const query = (() => {
     const sp = new URLSearchParams(searchParams);
     sp.delete('job');
+    sp.delete('tab');
     return sp.toString();
   })();
   const [selQuery, setSelQuery] = useState(query);
@@ -90,6 +91,7 @@ export default function JobsPage() {
         (sp) => {
           const next = new URLSearchParams(sp);
           next.set('job', String(id));
+          next.delete('tab'); // another job opens on its posting
           return next;
         },
         { replace: true },
@@ -106,6 +108,7 @@ export default function JobsPage() {
         (sp) => {
           const next = new URLSearchParams(sp);
           next.delete('job');
+          next.delete('tab');
           return next;
         },
         { replace: true },
@@ -312,6 +315,7 @@ export default function JobsPage() {
         <JobDrawer
           jobId={drawerId}
           onClose={closeDrawer}
+          initialTab={searchParams.get('tab') === 'prep' ? 'prep' : 'posting'}
           onNavigate={(dir) => {
             const next = stepId(jobs.map((j) => j.id), drawerId, dir);
             if (next != null) {

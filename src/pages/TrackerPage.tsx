@@ -6,13 +6,14 @@ import {
 import { useJobs, useUpdateApplication } from '../api/hooks';
 import type { AppStatus, Job } from '../api/types';
 import { AutofilledBadge, ClosedBadge } from '../components/JobBadges';
-import { JobDrawer } from '../components/JobDrawer';
+import { JobDrawer, type DrawerTab } from '../components/JobDrawer';
 import { CompanyLogo } from '../components/CompanyLogo';
 import { StatusSelect } from '../components/StatusSelect';
 import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
 import { Progress } from '../components/Progress';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
+import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
 import { Archive, ExternalLink, EyeOff, KanbanSquare, List, Search, TrendingUp } from 'lucide-react';
@@ -348,6 +349,11 @@ export default function TrackerPage() {
   const [query, setQuery] = useState('');
   const [stage, setStage] = useState<AppStatus>('saved');
   const [drawerId, setDrawerId] = useState<number | null>(null);
+  const [drawerTab, setDrawerTab] = useState<DrawerTab>('posting');
+  const openJob = (id: number, tab: DrawerTab = 'posting') => {
+    setDrawerTab(tab);
+    setDrawerId(id);
+  };
   const [dragging, setDragging] = useState<Job | null>(null);
   const [view, setView] = useState<'board' | 'list' | 'archived' | 'progress'>('board');
   // A small move or a short press before a drag, so clicks, the status menu and scrolling keep working.
@@ -357,8 +363,16 @@ export default function TrackerPage() {
     useSensor(KeyboardSensor),
   );
 
+  // Moving a job to Interviewing offers its interview prep in one click.
   const onStatus = (id: number, status: AppStatus) =>
-    update.mutate({ id, status });
+    update.mutate(
+      { id, status },
+      {
+        onSuccess: () => {
+          if (status === 'interviewing') toast.success('Moved to Interviewing.', { label: 'Prepare for it', run: () => openJob(id, 'prep') });
+        },
+      },
+    );
 
   const columns = showNI ? [...COLUMNS, 'not_interested' as AppStatus] : COLUMNS;
   const empty = useNothingTracked();
@@ -433,10 +447,10 @@ export default function TrackerPage() {
       </header>
 
       {empty && (view === 'board' || view === 'list') && <TrackerEmpty />}
-      {!empty && <Upcoming onOpen={setDrawerId} />}
-      {view === 'list' && !empty && <TrackerList statuses={columns} matches={(j) => matches(j, query)} onOpen={setDrawerId} onStatus={onStatus} />}
+      {!empty && <Upcoming onOpen={openJob} />}
+      {view === 'list' && !empty && <TrackerList statuses={columns} matches={(j) => matches(j, query)} onOpen={openJob} onStatus={onStatus} />}
       {view === 'progress' && <Progress />}
-      {view === 'archived' && <ArchivedList matches={(j) => matches(j, query)} onOpen={setDrawerId} onStatus={onStatus} />}
+      {view === 'archived' && <ArchivedList matches={(j) => matches(j, query)} onOpen={openJob} onStatus={onStatus} />}
       {view === 'board' && !empty && (
         <div role="tablist" aria-label="Stages" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:hidden">
           {columns.map((st) => (
@@ -465,7 +479,7 @@ export default function TrackerPage() {
               status={status}
               query={query}
               shownOnPhone={status === shownStage}
-              onOpen={(id) => setDrawerId(id)}
+              onOpen={(id) => openJob(id)}
               onStatus={onStatus}
             />
           ))}
@@ -480,7 +494,7 @@ export default function TrackerPage() {
         </DragOverlay>
       </DndContext>
 
-      {drawerId != null && <JobDrawer jobId={drawerId} onClose={() => setDrawerId(null)} />}
+      {drawerId != null && <JobDrawer jobId={drawerId} initialTab={drawerTab} onClose={() => setDrawerId(null)} />}
     </div>
   );
 }
