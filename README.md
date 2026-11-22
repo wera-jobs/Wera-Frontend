@@ -8,11 +8,9 @@
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-fe5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org)
 [![License](https://img.shields.io/github/license/wera-jobs/Wera-Frontend)](LICENSE)
 
-The site and dashboard for [Wera](https://www.wera-jobs.com), a job search service that collects jobs from public job boards, ranks them for you, and scores the best against your resume with an AI model. The backend is in [wera-jobs/Wera](https://github.com/wera-jobs/Wera).
+The public site and user dashboard for [Wera](https://www.wera-jobs.com). Pairs with the Go backend in [wera-jobs/Wera](https://github.com/wera-jobs/Wera).
 
 https://github.com/user-attachments/assets/525e661c-765b-4137-98b7-168d57af9690
-
-Each user signs up, uploads a resume, and answers a few questions; the AI drafts a profile they review, and from then on new postings are ranked for them and the best are scored against it. Wera never applies on your behalf. Every posting opens at its source.
 
 ## Architecture
 
@@ -21,137 +19,89 @@ Each user signs up, uploads a resume, and answers a few questions; the AI drafts
   <img alt="Frontend architecture: in the browser, the router leads to lazy-loaded pages and Tailwind components; pages read through TanStack Query and the API client, which calls /api on nginx, which proxies to the Go API; a 401 sends the user back to sign-in; CI checks gate the Vite build that ships as an nginx image" src="docs/architecture.svg">
 </picture>
 
-A React single-page app. It calls only its own origin (`/api`), so it behaves the same behind the Vite dev proxy, nginx, or Vercel rewrites, and the session cookie never crosses sites. Server state lives in TanStack Query; route guards send signed-out users to login and users without a profile to setup.
+A React single-page app calling its own origin (`/api`), so session cookies stay first-party behind Vite, nginx, or Vercel rewrites. Server state lives in TanStack Query; route guards handle auth and onboarding.
 
-The app is built to outlast the server. If the API stops answering, everything already on screen stays there and a banner says what is wrong, telling a server that is down from a device that is offline. The app checks every 10 seconds, and when Wera answers again it refreshes whatever failed, so a tab left open carries on by itself. Resume edits keep trying to save until they land, and leaving with unsaved edits asks first. Visitors still see the landing page.
-
-It opens fast on a slow phone: the logo paints with the first response and the landing page does not wait for the server, because only a browser that was signed in here needs the session check first. Touch screens get 16px fields so iPhones do not zoom in on a tap, pages size to the visible screen between a phone's browser bars, and Wera can be added to the home screen.
+- **Resilient to outages:** If the API drops, the current screen stays visible with a status banner and automatically recovers when the server returns. Unsaved resume edits retry and warn before leaving.
+- **Fast on mobile:** The public landing page renders without waiting on an auth check, inputs use 16px on touch devices, and layouts fit mobile viewports.
 
 ## Features
 
-- **Landing page:** the hero's words are drawn on one small canvas, only under the pointer, so it stays smooth The features section shows the real product (see [Landing screenshots](#landing-screenshots))
-- **Instant start:** right after setup, Today lists your best matches using local estimates (a dashed ring marked "est.") and swaps in AI scores as they arrive; opening a job scores it on the spot
-- **Today:** your review queue ranked by fit, with sponsorship and work-mode badges
-- **Jobs:** filterable, searchable table with keyboard navigation (`j`/`k` to move, `Enter` to open, `o` to open the posting); on phones the filters wait behind a button so the jobs come first
-- **Job view:** the posting beside the fit score, reasoning, and skills you have and lack; your status and notes; a **cover letter** tab that writes, edits, copies and prints a letter for that role; a **resume** tab showing which of the posting's keywords your resume covers, with a one-click tailored, one-page copy; hide a company in one click
-- **Profile, Resume tab:** your resume as an editable document, built on first open from the resume you uploaded, beside a live preview:
-  - four templates shown with your own content: Ivy (the classic LaTeX resume), Parse (ATS-maxxing), Signal (modern, with an accent color) and Ledger (refined serif); US Letter or A4
-  - drag to reorder sections, entries and bullets, hide anything, undo and redo, autosave, **bold** with double asterisks
-  - AI suggestions for any bullet (three stronger versions, with [placeholders] where a real number belongs)
-  - a review with a score: missing contact details, weak openers, first person, long bullets, few metrics, mixed date formats and more, each jumping to its bullet
-  - a LaTeX tab to edit the resume as LaTeX (the preview follows), then download the `.tex` or open it in Overleaf
-  - fit to one page in a click; download PDF, LaTeX or plain text
-- **Tracker:** kanban board from saved to applied, interviewing, offer, or rejected. An application stays on the board after its posting comes down, marked "Posting closed"
-- **Industries:** your matches in each industry, and every company Wera watches there
-- **Sponsorship:** each company's certified H-1B applications (new hires, median offered wage, and by job title, place and wage level) beside what its postings say about sponsorship; look up any employer, even ones Wera does not watch
-- **Interview prep:** quick A to D quizzes by topic and difficulty, with explanations
-- **Community:** a Medium-style blog with tags, reactions and comments; posts are reviewed by an AI moderator before they go live
-- **Profile:** photo, uploaded resume (view, download, see the extracted text), preferences and profile text
-- **Settings:** theme (light, dark, system), default sort, notification preferences, hidden companies, connected browsers (the [Chrome extension](https://github.com/wera-jobs/wera-extension)), password, CSV export of every job you track, account deletion
-- **Application details:** what job applications ask beyond your profile (contact, links, work authorization, education, voluntary self-identification), filled into forms by the extension; can be pre-filled from your resume
-- **Admins** use the separate [wera-admin](https://github.com/wera-jobs/wera-admin) console: this dashboard has no admin pages
-- **Polish:** light by default, with dark and system in Settings; a sun and moon toggle with a circular reveal between themes, count-up stats, staggered entrances, all respecting reduced motion
+- **Today & Jobs:** Daily review queue ranked by fit score (or instant local estimates), searchable/filterable jobs table with keyboard shortcuts (`j`/`k`, `Enter`, `o`), saved searches, and bulk actions.
+- **Job view:** Posting text beside the fit breakdown, matched/missing skills, H-1B wage comparison, referral links, cover letter tab, tailored resume tab, and interview prep for tracked roles.
+- **Resume editor:** Structured editor with live preview across four templates (Ivy, Parse, Signal, Ledger), drag-to-reorder, undo/redo, deterministic review score, AI bullet rewrites, one-click one-page fit, and PDF/LaTeX export.
+- **Tracker:** Kanban board, list view, archive, progress analytics, and CSV import/export. Closed postings stay visible on your board.
+- **Sponsorship & Companies:** Certified H-1B LCA filings (counts, new hires, offered wages by title and level) alongside posting sponsorship signals, plus company pages and follows.
+- **Interview prep:** Role-based multiple-choice quizzes, email work simulations, and job-specific prep.
+- **Community:** Posts, reactions, and comments screened by AI moderation.
+- **Profile & Settings:** Resume upload, matching preferences, application details and saved answers for [Wera for Chrome](https://github.com/wera-jobs/wera-extension), theme (light/dark/system), hidden companies, connected browsers, and account deletion.
+
+*(Admin tools live in the separate [wera-admin](https://github.com/wera-jobs/wera-admin) console.)*
 
 ## Stack
 
-Vite 8, React 19, TypeScript 6 (strict), Tailwind CSS 4, React Router 7, TanStack Query, Lucide icons, Geist fonts (self-hosted). Tests: Vitest, Testing Library, Playwright.
-
-## Setup
-
-Clone this repo next to the backend:
-
-```
-projects/
-├── wera/            backend
-└── wera-frontend/   this repo
-```
+Vite 8, React 19, TypeScript 6 (strict), Tailwind CSS 4, React Router 7, TanStack Query, Lucide icons, Geist fonts (self-hosted), Vitest, Testing Library, Playwright.
 
 ## Develop
 
+Clone beside the backend (`../wera`):
+
 ```sh
-# in wera/
-go run ./cmd/wera serve      # API on :8080
+# in ../wera
+go run ./cmd/wera serve             # API on :8080
 
 # in wera-frontend/
 npm install
-npm run dev                  # http://localhost:5173, /api proxied to :8080
-WERA_API=http://127.0.0.1:8090 npm run dev   # proxy to another API instead
+npm run dev                         # http://localhost:5173 (/api -> :8080)
+WERA_API=http://127.0.0.1:8090 npm run dev
 ```
 
-Use port 5173: the API refuses state-changing requests from origins it doesn't know, and the Vite dev server is the one it allows by default.
+Use port `5173` (allowed by default in the API's origin check).
 
 ## Quality checks
 
 ```sh
-npm run lint        # ESLint, no warnings allowed
-npm run typecheck   # TypeScript, including configs and e2e specs
-npm test            # Vitest unit and component tests
-npm run coverage    # with coverage (text summary and lcov)
+npm run lint        # ESLint (zero warnings)
+npm run typecheck   # TypeScript (app, configs, e2e)
+npm test            # Vitest unit & component tests
+npm run coverage    # Coverage report
 npm run e2e         # Playwright against a running API (see e2e/README.md)
-```
-
-Unit and component tests render pages with the real API responses saved in `src/api/__fixtures__` and a stubbed `fetch`. The end-to-end tests drive the real app and API through a full journey (sign up, set up, find and track a job, settings, interview practice, log out and in, delete the account) on desktop and phone viewports. CI runs all of them, plus `npm audit`, on every pull request.
-
-## Build
-
-```sh
-npm run build                # type-check and build to dist/
-npx vite preview --port 3000 # preview the production bundle locally
+npm run build       # Production bundle in dist/
 ```
 
 ## Landing screenshots
 
-The screens in the landing page's features section are `public/landing/*.webp`, in light and dark, wide and phone. To retake them after a design change, run Vite on port 5174 against a local API (see `e2e/README.md`, and never the live one), then:
+Product screens in `public/landing/*.webp` are rendered from real components using invented data. To regenerate them against a local dev API (never production) with Vite on `:5174`:
 
 ```sh
-node scripts/landing-shots.mjs            # or one screen: node scripts/landing-shots.mjs tracker
+node scripts/landing-shots.mjs          # all screens
+node scripts/landing-shots.mjs tracker  # single screen
 ```
 
-The screens are the real components, with every person, job and company invented in that script. Only the resume preview comes from the API. It signs up a throwaway account and deletes it after.
+## Deployment
 
-## Docker
+- **Docker:** Built as `wera-web` from `../wera/docker-compose.yml` (`docker compose up -d --build wera-web`) with nginx security headers (`security-headers.conf`). Published to `ghcr.io/wera-jobs/wera-frontend`.
+- **Vercel:** Deploys `main`. `vercel.json` sets security headers and rewrites `/api/*` and `/healthz` to the public API (`api.wera-jobs.com`). Set `COOKIE_SECURE=true`, `TRUST_PROXY=true`, and `PUBLIC_ORIGINS` on the backend.
 
-The backend's `docker-compose.yml` builds this repo as the `wera-web` service. Nginx serves the app with a strict Content-Security-Policy and other security headers (see `security-headers.conf`) and proxies `/api` to the backend.
-
-```sh
-cd ../wera
-docker compose up -d --build wera-web   # http://localhost:3000
-```
-
-Released images are published to `ghcr.io/wera-jobs/wera-frontend:<version>`.
-
-## Deploy on Vercel
-
-`vercel.json` serves the built app with the same security headers and rewrites `/api/*` and `/healthz` to the backend, so the browser sees a single origin and the session cookie works without cross-site settings. Vercel deploys `main`.
-
-1. Give the backend a public HTTPS address (for example a Cloudflare Tunnel to port 8080) and put it in both `destination` URLs in `vercel.json`.
-2. Import this repo in Vercel; the framework preset is Vite.
-3. On the backend set `COOKIE_SECURE=true`, `TRUST_PROXY=true`, and `PUBLIC_ORIGINS=https://<your-app>.vercel.app`, then restart it.
-
-Wera's own site runs at `wera-jobs.com`, with `api.wera-jobs.com` as the backend's address: a Cloudflare Tunnel, which keeps that address and reconnects by itself after an outage.
-
-## Releases and versioning
-
-Commits follow [Conventional Commits](https://www.conventionalcommits.org), checked on every pull request. [release-please](https://github.com/googleapis/release-please) keeps a release PR with the next semantic version and `CHANGELOG.md`; merging it tags `wera-frontend-vX.Y.Z`, bumps `package.json` and publishes the image. The sidebar footer shows the running web and API versions.
+Commits follow [Conventional Commits](https://www.conventionalcommits.org); [release-please](https://github.com/googleapis/release-please) manages versions and changelogs.
 
 ## Project layout
 
 ```
 src/
-├── api/          API client, types, React Query hooks, saved responses (__fixtures__)
-├── auth/         Login and signup page, route guards
-├── components/   Job view, cover letter, ScoreRing, Prose, Reactions, FilterBar, charts
-├── layout/       App shell: sidebar, phone tab bar, command palette, navigation
-├── landing/      Landing page, hero canvas, features section, footer and info pages
-├── lib/          Theme, toasts, formatting, count-up
-├── pages/        Today, Jobs, Industries, Tracker, Sponsorship, Interview, Community, Profile, Settings, ...
-├── profile/      Resume upload, preference fields, location picker, profile editor
-├── resume/       Resume editor form, live preview, editing helpers
-└── test/         Test setup, render helpers, API fixtures
+├── api/          API client, types, React Query hooks, fixtures
+├── auth/         Login, signup, route guards
+├── components/   Job drawer, cover letter, ScoreRing, FilterBar, charts
+├── layout/       Sidebar, mobile tab bar, command palette
+├── landing/      Public landing page, hero canvas, footer & policy pages
+├── lib/          Theme, toasts, formatting
+├── pages/        Today, Jobs, Industries, Tracker, Sponsorship, Interview, Community, Profile, Settings
+├── profile/      Resume upload, preferences, profile editor
+├── resume/       Resume editor and live preview
+└── test/         Test helpers and fixtures
 e2e/              Playwright specs and seed data
 scripts/          Landing screenshots, commit checks, coverage badge
-public/           Landing screens, home screen icons, web app manifest
-docs/             Architecture diagram (Excalidraw source in docs/diagrams)
+public/           Landing images, icons, web manifest
+docs/             Architecture diagram (Excalidraw sources in docs/diagrams)
 ```
 
-Design tokens for both themes live in `src/index.css`.
+Theme tokens live in `src/index.css`.
