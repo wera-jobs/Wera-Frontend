@@ -214,11 +214,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
         {job.matched_categories.length > 0 && <CategoryChips cats={job.matched_categories} className="mt-3" />}
       </Section>
 
-      {job.pay_min != null && (
-        <Section title="Pay against H-1B wages">
-          <PayInsight jobId={job.id} company={job.company} />
-        </Section>
-      )}
+      {job.pay_min != null && <PayInsight jobId={job.id} company={job.company} />}
 
       <JobH1B jobId={job.id} company={job.company} seniority={job.seniority} />
 
