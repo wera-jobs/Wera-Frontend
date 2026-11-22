@@ -107,6 +107,7 @@ export function stubApi(overrides: Record<string, Handler> = {}) {
         [`GET /api/jobs/${j.id}`, () => ({ ...job, ...j, description: POSTING, deep: null })],
         [`GET /api/jobs/${j.id}/cover-letter`, () => new Response('{"error":"none"}', { status: 404 })],
         [`GET /api/jobs/${j.id}/events`, () => ({ events: [] })],
+        [`GET /api/jobs/${j.id}/interview-prep`, () => new Response('{"error":"none"}', { status: 404 })],
       ]),
     ),
     ...overrides,

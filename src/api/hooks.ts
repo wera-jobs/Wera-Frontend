@@ -4,6 +4,7 @@ import {
   useQueryClient,
   type QueryKey,
 } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { api, ApiError, errorMessage, retryWhileDown } from './client';
 import { toast } from '../lib/toast';
 import type {
@@ -26,6 +27,8 @@ import type {
   Settings,
   RunsList,
   Stats,
+  InterviewPrep,
+  PracticeFeedback,
 } from './types';
 
 export interface JobsParams {
@@ -249,6 +252,7 @@ const LEARNS: DismissReason[] = ['too_senior', 'too_junior', 'location', 'field'
  */
 export function useStatusWithUndo() {
   const update = useUpdateApplication();
+  const navigate = useNavigate();
   return (job: Pick<Job, 'id' | 'title' | 'application_status' | 'application_notes'>, status: AppStatus) => {
     const before = job.application_status ?? null;
     if (before === status) return;
@@ -272,7 +276,12 @@ export function useStatusWithUndo() {
                 ),
             })),
           }
-        : undefined;
+        : status === 'interviewing'
+          ? {
+              prompt: 'An interview coming up?',
+              options: [{ label: 'Prepare for it', run: () => void navigate(`/jobs?job=${job.id}&tab=prep`) }],
+            }
+          : undefined;
     update.mutate({ id: job.id, status }, { onSuccess: () => toast.success(`${STATUS_DONE[status]}: ${job.title}`, undo, why) });
   };
 }
@@ -357,6 +366,42 @@ export function useWriteCoverLetter(jobId: number) {
       qc.setQueryData(['cover-letter', jobId], c);
       void qc.invalidateQueries({ queryKey: ['usage', 'me'] });
     },
+  });
+}
+
+/** A job's interview prep; null when there is none yet. */
+export function useInterviewPrep(jobId: number) {
+  return useQuery({
+    queryKey: ['interview-prep', jobId],
+    queryFn: async () => {
+      try {
+        return await api<InterviewPrep>(`/api/jobs/${jobId}/interview-prep`);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) return null;
+        throw err;
+      }
+    },
+    staleTime: Infinity,
+  });
+}
+
+/** Write (or rewrite) a job's interview prep. */
+export function useWriteInterviewPrep(jobId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api<InterviewPrep>(`/api/jobs/${jobId}/interview-prep`, { method: 'POST' }),
+    onSuccess: (p) => {
+      qc.setQueryData(['interview-prep', jobId], p);
+      void qc.invalidateQueries({ queryKey: ['usage', 'me'] });
+    },
+  });
+}
+
+/** Feedback on a practice answer to one of a job's questions. */
+export function usePracticeAnswer(jobId: number) {
+  return useMutation({
+    mutationFn: (body: { question: string; answer: string }) =>
+      api<PracticeFeedback>(`/api/jobs/${jobId}/interview-prep/practice`, { method: 'POST', body: JSON.stringify(body) }),
   });
 }
 

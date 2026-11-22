@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useHideCompany, useJob, useScoreJob, useStatusWithUndo, useUpdateApplication } from '../api/hooks';
 import { CoverLetterPanel } from './CoverLetterPanel';
+import { InterviewPrepPanel } from './InterviewPrepPanel';
 import { JobResumePanel } from './JobResumePanel';
 import { toast } from '../lib/toast';
 import type { AppStatus, JobDetail } from '../api/types';
@@ -38,7 +39,9 @@ function Kbd({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Tabs({ tab, setTab }: { tab: 'posting' | 'letter' | 'resume'; setTab: (t: 'posting' | 'letter' | 'resume') => void }) {
+export type DrawerTab = 'posting' | 'letter' | 'resume' | 'prep';
+
+function Tabs({ tab, setTab }: { tab: DrawerTab; setTab: (t: DrawerTab) => void }) {
   return (
     <div role="tablist" className="mb-4 flex gap-1 border-b border-border">
       {(
@@ -46,6 +49,7 @@ function Tabs({ tab, setTab }: { tab: 'posting' | 'letter' | 'resume'; setTab: (
           ['posting', 'The posting'],
           ['letter', 'Cover letter'],
           ['resume', 'Resume'],
+          ['prep', 'Interview prep'],
         ] as const
       ).map(([key, label]) => (
         <button
@@ -114,10 +118,13 @@ export function JobDrawer({
   jobId,
   onClose,
   onNavigate,
+  initialTab = 'posting',
 }: {
   jobId: number;
   onClose: () => void;
   onNavigate?: (dir: -1 | 1) => void;
+  /** The tab to open on, such as the interview prep the tracker offers. */
+  initialTab?: DrawerTab;
 }) {
   const { data: job, isLoading, error } = useJob(jobId);
   const update = useUpdateApplication();
@@ -164,12 +171,18 @@ export function JobDrawer({
     job && update.mutate({ id: job.id, status, notes: job.application_notes ?? '' });
   const setWithUndo = useStatusWithUndo();
   const extension = useExtension();
-  const [tab, setTab] = useState<'posting' | 'letter' | 'resume'>('posting');
+  const [tab, setTab] = useState<DrawerTab>(initialTab);
   const [tabJob, setTabJob] = useState(jobId);
+  const [askedTab, setAskedTab] = useState(initialTab);
   if (tabJob !== jobId) {
-    // A different job opens on its posting.
+    // A different job opens on its posting (or the tab it was opened for).
     setTabJob(jobId);
-    setTab('posting');
+    setAskedTab(initialTab);
+    setTab(initialTab);
+  } else if (askedTab !== initialTab) {
+    // Asked again for a tab while open, such as interview prep from a toast.
+    setAskedTab(initialTab);
+    setTab(initialTab);
   }
   const hide = useHideCompany();
   const hideCompany = () => {
@@ -273,6 +286,11 @@ export function JobDrawer({
               <>
                 <Tabs tab={tab} setTab={setTab} />
                 <JobResumePanel job={job} />
+              </>
+            ) : job && tab === 'prep' ? (
+              <>
+                <Tabs tab={tab} setTab={setTab} />
+                <InterviewPrepPanel job={job} />
               </>
             ) : job && tab === 'letter' ? (
               <>
