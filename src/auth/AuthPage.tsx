@@ -35,10 +35,11 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
     errorOrNull(auth.error);
 
   return (
-    <div className="relative flex min-h-svh items-center justify-center px-4 py-10">
+    <main className="relative flex min-h-svh items-center justify-center px-4 py-10">
       <ThemeToggle className="absolute top-4 right-4" />
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
+          <h1 className="sr-only">{mode === 'login' ? 'Log in to Wera' : 'Create your Wera account'}</h1>
           <Logo size="lg" />
           <p className="mt-2 text-sm text-muted">
             {mode === 'login'
@@ -132,6 +133,6 @@ export default function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           )}
         </p>
       </div>
-    </div>
+    </main>
   );
 }

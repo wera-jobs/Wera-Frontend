@@ -21,6 +21,16 @@ const summary = {
 const signedOut = () => jsonResponse(401, { error: 'not signed in' });
 
 describe('AuthPage', () => {
+  it.each([
+    ['login', 'Log in to Wera'],
+    ['signup', 'Create your Wera account'],
+  ] as const)('gives the %s page one h1', async (mode, name) => {
+    stubApi({ 'GET /api/auth/me': signedOut });
+    renderApp(<AuthPage mode={mode} />);
+    expect(await screen.findByRole('heading', { level: 1, name })).toBeInTheDocument();
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+  });
+
   it('shows the server error on a failed login', async () => {
     stubApi({
       'GET /api/auth/me': signedOut,
