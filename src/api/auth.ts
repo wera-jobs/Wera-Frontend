@@ -58,6 +58,9 @@ export function useAuthMutation(kind: 'login' | 'signup') {
       // "me" query mounted and point it at the new user.
       signOutLocally(qc);
       qc.setQueryData(['me'], user);
+      // The login answer has no avatar or confirmed-email flag: read the
+      // full user now rather than when the cache goes stale.
+      void qc.invalidateQueries({ queryKey: ['me'] });
     },
   });
 }

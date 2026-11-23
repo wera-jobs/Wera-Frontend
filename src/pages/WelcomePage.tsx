@@ -101,16 +101,16 @@ export default function WelcomePage() {
 
   if (!loaded) {
     return (
-      <div className="mx-auto max-w-3xl p-6 pt-16">
+      <main className="mx-auto max-w-3xl p-6 pt-16">
         <Skeleton className="h-96 w-full" />
-      </div>
+      </main>
     );
   }
   const problem = prefsProblem(prefs);
   const firstName = me.data?.name?.split(' ')[0];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <Logo />
@@ -250,6 +250,6 @@ export default function WelcomePage() {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
