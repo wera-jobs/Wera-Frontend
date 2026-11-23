@@ -79,11 +79,16 @@ export function useToday(profileUpdatedAt?: string) {
   });
 }
 
-export function useJobs(params: JobsParams) {
-  return useQuery({
-    queryKey: ['jobs', params],
+/** The query behind useJobs, for lists that need several at once (useQueries). */
+export function jobsQuery(params: JobsParams) {
+  return {
+    queryKey: ['jobs', params] as const,
     queryFn: () => api<JobList>(`/api/jobs${toQuery(params)}`),
-  });
+  };
+}
+
+export function useJobs(params: JobsParams) {
+  return useQuery(jobsQuery(params));
 }
 
 export function useJob(id: number | null) {

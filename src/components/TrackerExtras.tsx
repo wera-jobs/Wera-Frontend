@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { CalendarClock } from 'lucide-react';
 import clsx from 'clsx';
-import { useJobs, useUpcomingEvents } from '../api/hooks';
+import { useQueries } from '@tanstack/react-query';
+import { jobsQuery, useJobs, useUpcomingEvents } from '../api/hooks';
 import type { AppStatus, Job } from '../api/types';
 import { eventKindLabel, resumeText, whenText } from '../lib/events';
 import { relTime } from '../lib/format';
@@ -69,7 +70,9 @@ export function TrackerList({
   onOpen: (id: number) => void;
   onStatus: (id: number, status: AppStatus) => void;
 }) {
-  const results = statuses.map((status) => useJobs({ status, limit: 100, sort: 'newest' })); // eslint-disable-line react-hooks/rules-of-hooks -- fixed list
+  // The column list changes length ("Show not interested"), so one
+  // useQueries call, never a hook per status.
+  const results = useQueries({ queries: statuses.map((status) => jobsQuery({ status, limit: 100, sort: 'newest' })) });
   if (results.some((r) => r.isLoading)) return <Skeleton className="h-40 w-full" />;
   const due = (j: Job) => (j.next_step_at ? new Date(j.next_step_at).getTime() : Infinity);
   const jobs = results
