@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 import { stubApi } from '../test/fixtures';
+import { useExtension } from '../lib/extension';
 import { renderApp } from '../test/render';
 import ConnectExtensionPage from './ConnectExtensionPage';
 
@@ -33,5 +34,40 @@ describe('connecting the extension from the dashboard', () => {
     expect(await screen.findByRole('heading', { name: 'Wera for Chrome is connected' })).toBeInTheDocument();
     await waitFor(() => expect(posted[0]).toMatchObject({ type: 'connect', token: 'wera_ext_abc', server: location.origin }));
     window.removeEventListener('message', bridge);
+  });
+
+  it('revokes the key when the extension never takes it', async () => {
+    document.documentElement.dataset.weraExtension = '0.19.0';
+    const deleted: string[] = [];
+    stubApi({
+      'POST /api/ext/tokens/session': () => ({ token: 'wera_ext_unused', user: {}, connection: { id: 41 } }),
+      'DELETE /api/ext/tokens/41': () => (deleted.push('41'), undefined),
+    });
+    // No bridge answers: the handshake times out.
+    renderApp(<ConnectExtensionPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Connect this browser' }));
+    expect(await screen.findByText(/didn't answer/, {}, { timeout: 8000 })).toBeInTheDocument();
+    expect(deleted).toEqual(['41']);
+  }, 12000);
+});
+
+describe('useExtension', () => {
+  it('sees an extension that marked the page after the first render', () => {
+    function Version() {
+      return <p>version {useExtension() ?? 'none'}</p>;
+    }
+    // Renders after Version and marks the page before effects run, as the
+    // extension's content script can, with its ready event already sent.
+    function LateBridge() {
+      document.documentElement.dataset.weraExtension = '0.20.0';
+      return null;
+    }
+    renderApp(
+      <>
+        <Version />
+        <LateBridge />
+      </>,
+    );
+    expect(screen.getByText('version 0.20.0')).toBeInTheDocument();
   });
 });
