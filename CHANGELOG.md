@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.2](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.1...wera-frontend-v0.34.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **a11y:** name the search button and tracker cards by their visible text ([8c7698d](https://github.com/wera-jobs/Wera-Frontend/commit/8c7698d354b5824a3db3825a00ec64ab4d86ff76))
+
 ## [0.34.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.0...wera-frontend-v0.34.1) (2026-11-23)
 
 
