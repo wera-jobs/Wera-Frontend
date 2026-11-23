@@ -42,7 +42,7 @@ describe('importing applications', () => {
     // Done: nothing left to import twice, and the same file can be picked again.
     expect(screen.queryByRole('button', { name: /^Import/ })).toBeNull();
     expect(screen.queryByText(/rows in tracker.csv/)).toBeNull();
-    const input = screen.getByLabelText(/Choose a CSV/) as HTMLInputElement;
+    const input = screen.getByLabelText<HTMLInputElement>(/Choose a CSV/);
     fireEvent.change(input, { target: { files: [file] } });
     expect(await screen.findByText(/2 rows in tracker.csv/)).toBeInTheDocument();
     expect(input.value).toBe('');
