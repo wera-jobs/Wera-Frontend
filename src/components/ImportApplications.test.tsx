@@ -39,5 +39,12 @@ describe('importing applications', () => {
     await waitFor(() => expect(calls).toHaveLength(2));
     expect(calls[1].dry_run).toBe(false);
     expect(await screen.findByText('Imported 1 job into your tracker.')).toBeInTheDocument();
+    // Done: nothing left to import twice, and the same file can be picked again.
+    expect(screen.queryByRole('button', { name: /^Import/ })).toBeNull();
+    expect(screen.queryByText(/rows in tracker.csv/)).toBeNull();
+    const input = screen.getByLabelText(/Choose a CSV/) as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(await screen.findByText(/2 rows in tracker.csv/)).toBeInTheDocument();
+    expect(input.value).toBe('');
   });
 });

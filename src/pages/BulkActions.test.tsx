@@ -83,3 +83,17 @@ describe('bulk actions on Jobs', () => {
     expect(screen.queryByRole('toolbar', { name: 'Selected jobs' })).toBeNull();
   });
 });
+
+describe('a bulk change with nothing to change', () => {
+  it('says the jobs are already saved instead of "Saved 0 jobs"', async () => {
+    const calls = stub();
+    const table = await screen.findByRole('table');
+    await userEvent.click(within(table).getByLabelText('Select Role Two at Acme')); // already saved
+    const bar = screen.getByRole('toolbar', { name: 'Selected jobs' });
+    await userEvent.click(within(bar).getByRole('button', { name: /Save/ }));
+    expect(await screen.findByText('That job is already saved.')).toBeInTheDocument();
+    expect(screen.queryByText(/Saved 0 jobs/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Undo' })).toBeNull();
+    expect(calls).toEqual([]);
+  });
+});

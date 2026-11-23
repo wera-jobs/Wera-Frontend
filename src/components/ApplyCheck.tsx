@@ -45,10 +45,24 @@ export function ApplyCheck() {
 }
 
 function Ask({ jobId, onDone }: { jobId: number; onDone: () => void }) {
-  // Fresh from the server: the extension may have marked it applied meanwhile.
-  const { data: job, isFetching } = useJob(jobId);
+  // Fresh from the server: the extension may have marked it applied
+  // meanwhile, and a cached copy (up to a minute old) wouldn't know.
+  const { data: job, refetch } = useJob(jobId);
+  const [fresh, setFresh] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void refetch().finally(() => live && setFresh(true));
+    return () => {
+      live = false;
+    };
+  }, [refetch]);
+  const ask = fresh && !!job && inReview(job.application_status);
+  // Nothing to ask (already applied, or gone): let the next posting ask.
+  useEffect(() => {
+    if (fresh && !ask) onDone();
+  }, [fresh, ask, onDone]);
   const setStatus = useStatusWithUndo();
-  if (!job || isFetching || !inReview(job.application_status)) return null;
+  if (!ask) return null;
   const answer = (applied: boolean) => {
     if (applied) setStatus(job, 'applied');
     onDone();
