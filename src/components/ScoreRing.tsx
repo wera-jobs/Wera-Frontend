@@ -32,6 +32,7 @@ export function ScoreRing({
       <div
         className="relative shrink-0"
         style={{ width: box, height: box }}
+        role="img"
         aria-label={`Estimated fit ${estimate}, full AI score pending`}
         title={
           ai
@@ -64,11 +65,10 @@ export function ScoreRing({
     <div
       className="relative shrink-0"
       style={{ width: box, height: box }}
-      role={score == null ? undefined : 'meter'}
-      aria-valuenow={score ?? undefined}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-label="Fit score"
+      // A meter only with a value; without one it is a labelled image.
+      {...(score == null
+        ? { role: 'img', 'aria-label': 'Not scored yet' }
+        : { role: 'meter', 'aria-valuenow': score, 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-label': 'Fit score' })}
     >
       <svg width={box} height={box} className="-rotate-90">
         <circle

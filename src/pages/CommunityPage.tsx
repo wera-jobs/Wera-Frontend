@@ -1,3 +1,4 @@
+import { STAGGER_MAX_MS } from '../lib/styles';
 import { Link, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
 import { MessageCircle, PenSquare, Users } from 'lucide-react';
@@ -63,7 +64,7 @@ export default function CommunityPage() {
       ) : (
         <ul className="space-y-3">
           {feed.data.posts.map((p, i) => (
-            <li key={p.id} className="anim-rise" style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}>
+            <li key={p.id} className="anim-rise" style={{ animationDelay: `${Math.min(i * 40, STAGGER_MAX_MS)}ms` }}>
               <Link
                 to={`/community/${p.id}`}
                 className="group block rounded-card border border-border bg-surface p-5 transition-all duration-200 hover:-translate-y-px hover:border-accent/30 hover:shadow-[var(--shadow-card-hover)]"
