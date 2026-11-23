@@ -59,11 +59,15 @@ export default function JobsPage() {
     sp.delete('tab');
     return sp.toString();
   })();
+  // The row a shift-click range starts from (see toggle below).
+  const [anchor, setAnchor] = useState<number | null>(null);
   const [selQuery, setSelQuery] = useState(query);
   if (selQuery !== query) {
-    // New filters or page: the selection starts at the top.
+    // New filters or page: the selection starts at the top, and a range
+    // can't start from a row of the old list.
     setSelQuery(query);
     setSel(0);
+    setAnchor(null);
   }
 
   const patchParams = useCallback(
@@ -120,14 +124,14 @@ export default function JobsPage() {
 
   // Jobs picked for a bulk action (ids, so a refetch keeps them); shift-click picks a range.
   const [checked, setChecked] = useState<Set<number>>(() => new Set());
-  const [anchor, setAnchor] = useState<number | null>(null);
   const picked = jobs.filter((j) => checked.has(j.id));
   const toggle = useCallback(
     (i: number, range = false) => {
       const next = new Set(checked);
       const on = !checked.has(jobs[i].id);
       const [from, to] = range && anchor != null ? [Math.min(anchor, i), Math.max(anchor, i)] : [i, i];
-      for (let k = from; k <= to; k++) {
+      // A refetch can shorten the list under an old anchor: stay inside it.
+      for (let k = from; k <= Math.min(to, jobs.length - 1); k++) {
         if (on) next.add(jobs[k].id);
         else next.delete(jobs[k].id);
       }

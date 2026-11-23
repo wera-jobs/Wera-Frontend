@@ -22,12 +22,15 @@ export default function ConnectExtensionPage() {
     setProblem('');
     try {
       const browser = /Edg\//.test(navigator.userAgent) ? 'Edge' : 'Chrome';
-      const { token } = await api<{ token: string }>('/api/ext/tokens/session', {
+      const { token, connection } = await api<{ token: string; connection: { id: number } }>('/api/ext/tokens/session', {
         method: 'POST',
         body: JSON.stringify({ name: `${browser} extension` }),
       });
       if (await connectExtension(token)) setState('done');
       else {
+        // The extension never took the key: revoke it, so each retry
+        // doesn't leave another live, unused connection behind.
+        await api<void>(`/api/ext/tokens/${connection.id}`, { method: 'DELETE' }).catch(() => {});
         setState('failed');
         setProblem("The extension didn't answer. Reload this page and try again, or update the extension.");
       }

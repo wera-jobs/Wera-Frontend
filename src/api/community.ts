@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from './client';
+import { api, errorMessage } from './client';
+import { toast } from '../lib/toast';
 
 export type ReactionKind = 'like' | 'insightful' | 'celebrate';
 
@@ -92,11 +93,15 @@ export function useDeleteComment(postId: number) {
 /** Toggles a reaction optimistically on the post and in the feed. */
 export function useReact(postId: number) {
   const qc = useQueryClient();
-  const apply = <T extends PostSummary>(p: T, kind: ReactionKind, on: boolean): T => ({
-    ...p,
-    reactions: { ...p.reactions, [kind]: Math.max(0, (p.reactions[kind] ?? 0) + (on ? 1 : -1)) },
-    my_reactions: on ? [...p.my_reactions, kind] : p.my_reactions.filter((k) => k !== kind),
-  });
+  const apply = <T extends PostSummary>(p: T, kind: ReactionKind, on: boolean): T => {
+    // Already in that state (a double click): change nothing, count nothing twice.
+    if (p.my_reactions.includes(kind) === on) return p;
+    return {
+      ...p,
+      reactions: { ...p.reactions, [kind]: Math.max(0, (p.reactions[kind] ?? 0) + (on ? 1 : -1)) },
+      my_reactions: on ? [...p.my_reactions, kind] : p.my_reactions.filter((k) => k !== kind),
+    };
+  };
   return useMutation({
     mutationFn: (v: { kind: ReactionKind; on: boolean }) =>
       api<void>(`/api/posts/${postId}/reactions/${v.kind}`, { method: v.on ? 'PUT' : 'DELETE' }),
@@ -106,6 +111,11 @@ export function useReact(postId: number) {
         f && { ...f, posts: f.posts.map((p) => (p.id === postId ? apply(p, kind, on) : p)) },
       );
     },
-    onError: () => void qc.invalidateQueries({ queryKey: ['post', postId] }),
+    onError: (e) => {
+      // Undo the optimistic change everywhere it was made.
+      void qc.invalidateQueries({ queryKey: ['post', postId] });
+      void qc.invalidateQueries({ queryKey: ['posts'] });
+      toast.error(errorMessage(e, 'Could not save your reaction'));
+    },
   });
 }
