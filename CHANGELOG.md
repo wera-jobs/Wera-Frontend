@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.34.2](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.1...wera-frontend-v0.34.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **a11y:** name the search button and tracker cards by their visible text ([8c7698d](https://github.com/wera-jobs/Wera-Frontend/commit/8c7698d354b5824a3db3825a00ec64ab4d86ff76))
+
+## [0.34.1](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.0...wera-frontend-v0.34.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **a11y:** clear the axe failures on Today, Tracker and the welcome page ([a450733](https://github.com/wera-jobs/Wera-Frontend/commit/a450733653baed77edcabdecb5d127f4ba24babc)), closes [#265](https://github.com/wera-jobs/Wera-Frontend/issues/265)
+* **a11y:** open sponsorship rows and tracker cards from the keyboard ([dba3709](https://github.com/wera-jobs/Wera-Frontend/commit/dba3709bf71d4a78894b2eeeebe784316e7ceec8)), closes [#272](https://github.com/wera-jobs/Wera-Frontend/issues/272)
+* **auth:** keep the cached user current after login, confirmation and reset ([cff4a65](https://github.com/wera-jobs/Wera-Frontend/commit/cff4a65c48cfcf8668cd54f35b0bd9825dbbebc8)), closes [#264](https://github.com/wera-jobs/Wera-Frontend/issues/264) [#266](https://github.com/wera-jobs/Wera-Frontend/issues/266)
+* **extension:** revoke an unused key and never miss a ready extension ([e27e921](https://github.com/wera-jobs/Wera-Frontend/commit/e27e9218c5859d49a08b89c055debec1e6e8ec93)), closes [#269](https://github.com/wera-jobs/Wera-Frontend/issues/269)
+* five small state bugs (apply check, bulk bar, import, print, resume link) ([155b535](https://github.com/wera-jobs/Wera-Frontend/commit/155b535dcc503ca20ade93a5414ee265a2c6e8dd)), closes [#274](https://github.com/wera-jobs/Wera-Frontend/issues/274)
+* **job-view:** show every tab without a description, and reset panels per job ([006b895](https://github.com/wera-jobs/Wera-Frontend/commit/006b895b80751d9e47e64b3ceb5293e8ad2a6ee7)), closes [#263](https://github.com/wera-jobs/Wera-Frontend/issues/263) [#267](https://github.com/wera-jobs/Wera-Frontend/issues/267)
+* **jobs:** keep shift-click ranges inside the current list ([235f138](https://github.com/wera-jobs/Wera-Frontend/commit/235f138c7541ee5eece7ad2037f3d9efadc92ad1)), closes [#262](https://github.com/wera-jobs/Wera-Frontend/issues/262)
+* **resume:** keep unsaved LaTeX edits when the look changes ([bfbdd0a](https://github.com/wera-jobs/Wera-Frontend/commit/bfbdd0a7bd847a9d6702fc01bd9f9b31c02a1bce)), closes [#270](https://github.com/wera-jobs/Wera-Frontend/issues/270)
+* show an error with Retry when a panel or page fails to load ([782025e](https://github.com/wera-jobs/Wera-Frontend/commit/782025e3c0b94a085eb4198c1a51a8e292590c1f)), closes [#268](https://github.com/wera-jobs/Wera-Frontend/issues/268)
+* show the comment delete button on touch screens and report failed actions ([ff4d527](https://github.com/wera-jobs/Wera-Frontend/commit/ff4d52743c421f53616f8531bfbd345ff184a1a4)), closes [#273](https://github.com/wera-jobs/Wera-Frontend/issues/273)
+* **tracker:** stop the list view crashing when not-interested jobs are shown ([57015cc](https://github.com/wera-jobs/Wera-Frontend/commit/57015cca223b3bafa57e4ab73173663c0bf28268)), closes [#261](https://github.com/wera-jobs/Wera-Frontend/issues/261)
+* undo optimistic settings and reactions when saving fails ([27a332a](https://github.com/wera-jobs/Wera-Frontend/commit/27a332afa03b0d0a586f72d2b4b013ab5d7b6c43)), closes [#271](https://github.com/wera-jobs/Wera-Frontend/issues/271)
+
+## [0.34.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.33.0...wera-frontend-v0.34.0) (2026-11-22)
+
+
+### Features
+
+* **prep:** interview prep for the job you're interviewing for ([f28fc3e](https://github.com/wera-jobs/Wera-Frontend/commit/f28fc3e08e8d31226edd3fd4fdc9899659b144da))
+* **review:** a weekly review of your search ([7e2dd76](https://github.com/wera-jobs/Wera-Frontend/commit/7e2dd76b58019990a73fb495f6bb0819afb0df92))
+
+
+### Bug Fixes
+
+* **auth:** give the login and signup pages an h1 and a main landmark ([41cf4ec](https://github.com/wera-jobs/Wera-Frontend/commit/41cf4ecce88b10af5b14bcc22cf05f7f9bb1df56)), closes [#251](https://github.com/wera-jobs/Wera-Frontend/issues/251)
+* **deps:** bump lucide-react from 1.70.0 to 1.73.0 in the production group ([75d8d35](https://github.com/wera-jobs/Wera-Frontend/commit/75d8d35318bf5d20aba19ce07e36ebb9f266bd72))
+* **format:** say remote once in a job's meta line ([0590b8f](https://github.com/wera-jobs/Wera-Frontend/commit/0590b8f3c322891a00ff22bcac8ea9209e9e2825))
+* **job-card:** wrap long titles instead of cutting them mid-letter ([63f2243](https://github.com/wera-jobs/Wera-Frontend/commit/63f22439a79e0eeaf4623aabe75083125dda3895)), closes [#249](https://github.com/wera-jobs/Wera-Frontend/issues/249)
+* **job-view:** hide the H-1B pay section when there is no comparison ([d53296e](https://github.com/wera-jobs/Wera-Frontend/commit/d53296ee637deafe0ba5f0cc10b7be2da687a73a)), closes [#250](https://github.com/wera-jobs/Wera-Frontend/issues/250)
+* **profile:** open the roles step on the field the resume pre-fill picked ([#246](https://github.com/wera-jobs/Wera-Frontend/issues/246)) ([bd0cc91](https://github.com/wera-jobs/Wera-Frontend/commit/bd0cc9172762e6a389feac7278ab2ec8f2c1dd71))
+
+
+### Documentation
+
+* **readme:** make README more concise and scannable ([d6f3465](https://github.com/wera-jobs/Wera-Frontend/commit/d6f3465aeeb9004c6e491280a95f641aafa71779))
+
 ## [0.33.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.32.0...wera-frontend-v0.33.0) (2026-11-19)
 
 
