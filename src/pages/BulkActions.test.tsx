@@ -83,3 +83,40 @@ describe('bulk actions on Jobs', () => {
     expect(screen.queryByRole('toolbar', { name: 'Selected jobs' })).toBeNull();
   });
 });
+
+describe('shift-click on a shorter list', () => {
+  it('stays inside the list after a refetch shortens it', async () => {
+    let jobs = rows;
+    stubApi({ 'GET /api/jobs': () => ({ ...fixtures.jobs, total: jobs.length, jobs }) });
+    const { client } = renderApp(<JobsPage />, { path: '/jobs' });
+    const table = await screen.findByRole('table');
+    await userEvent.click(within(table).getByLabelText('Select Role Three at Globex')); // the anchor: row 3
+    await userEvent.click(within(table).getByLabelText('Select Role Three at Globex')); // and off again
+    jobs = rows.slice(0, 1);
+    await client.invalidateQueries({ queryKey: ['jobs'] });
+    await waitFor(() => expect(within(screen.getByRole('table')).queryByText('Role Three')).toBeNull());
+    fireEvent.click(within(screen.getByRole('table')).getByLabelText('Select Role One at Acme'), { shiftKey: true });
+    expect(within(screen.getByRole('toolbar', { name: 'Selected jobs' })).getByText('1 selected')).toBeInTheDocument();
+    expect(screen.queryByText('Something went wrong')).toBeNull();
+  });
+
+  it('starts a new range after the filters change', async () => {
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        const q = url.searchParams.get('q');
+        const jobs = q ? rows.filter((j) => j.company === 'Globex') : rows;
+        return { ...fixtures.jobs, total: jobs.length, jobs };
+      },
+    });
+    renderApp(<JobsPage />, { path: '/jobs' });
+    const table = await screen.findByRole('table');
+    await userEvent.click(within(table).getByLabelText('Select Role One at Acme')); // the anchor: row 1
+    await userEvent.click(within(table).getByLabelText('Select Role One at Acme'));
+    await userEvent.type(screen.getByPlaceholderText(/Title or company/), 'Globex');
+    // The results replace the table.
+    await waitFor(() => expect(within(screen.getByRole('table')).queryByText('Role One')).toBeNull(), { timeout: 3000 });
+    // Shift-click with no anchor from this list picks just the row.
+    fireEvent.click(within(screen.getByRole('table')).getByLabelText('Select Role Three at Globex'), { shiftKey: true });
+    expect(within(screen.getByRole('toolbar', { name: 'Selected jobs' })).getByText('1 selected')).toBeInTheDocument();
+  });
+});
