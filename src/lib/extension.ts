@@ -23,6 +23,9 @@ export function useExtension(): string | null {
   useEffect(() => {
     const onReady = () => setVersion(extensionVersion());
     window.addEventListener(READY, onReady);
+    // The extension may have marked the page between the first render and
+    // this effect, and its ready event is then already gone: read it now.
+    onReady();
     return () => window.removeEventListener(READY, onReady);
   }, []);
   return version;
