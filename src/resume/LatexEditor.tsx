@@ -5,6 +5,7 @@ import { errorMessage } from '../api/client';
 import { parseResumeTeX, resumeTeX, type Layout, type ResumeData } from '../api/resumes';
 import { copyText } from '../lib/clipboard';
 import { toast } from '../lib/toast';
+import { ErrorState } from '../components/States';
 
 /** Colors LaTeX: commands, braces, comments and escapes. */
 function highlight(src: string): ReactNode[] {
@@ -82,13 +83,25 @@ export function LatexEditor({ data, layout, filename, onApply, onPreview }: {
 
   // Generate the LaTeX for the resume as it is (again when the template changes).
   const look = `${layout.template}|${layout.accent}|${layout.paper}|${layout.font_size}|${layout.spacing}|${layout.margin}`;
+  const [genError, setGenError] = useState('');
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let live = true;
     resumeTeX(data, layout)
-      .then((r) => { if (live) { setSource(r); setBody(r.body); } })
-      .catch((e) => live && toast.error(errorMessage(e, 'Could not make the LaTeX')));
+      .then((r) => {
+        if (!live) return;
+        setGenError('');
+        setSource(r);
+        setBody(r.body);
+      })
+      .catch((e) => {
+        if (!live) return;
+        const msg = errorMessage(e, 'Could not make the LaTeX');
+        setGenError(msg);
+        toast.error(msg);
+      });
     return () => { live = false; };
-  }, [look]); // eslint-disable-line react-hooks/exhaustive-deps -- regenerate on a new look, not on every edit
+  }, [look, attempt]); // eslint-disable-line react-hooks/exhaustive-deps -- regenerate on a new look, not on every edit
 
   // Read edits back shortly after typing stops.
   useEffect(() => {
@@ -107,6 +120,7 @@ export function LatexEditor({ data, layout, filename, onApply, onPreview }: {
   }, [body, dirty]); // eslint-disable-line react-hooks/exhaustive-deps -- onPreview is a setter
   useEffect(() => () => onPreview(null), []); // eslint-disable-line react-hooks/exhaustive-deps -- leaving the tab restores the preview
 
+  if (!source && genError) return <ErrorState message={genError} onRetry={() => setAttempt((n) => n + 1)} />;
   if (!source) return <div className="skeleton h-96 w-full" />;
   const full = source.preamble + '\\begin{document}\n\n' + body + '\n\\end{document}\n';
   const download = () => {

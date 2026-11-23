@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { Link } from 'react-router-dom';
 import { Download, ExternalLink, FileText, LoaderCircle, RefreshCw, Wand2 } from 'lucide-react';
 import { errorMessage } from '../api/client';
+import { ErrorState } from './States';
 import { useJobKeywords, useJobResume, useTailorResume, type Coverage } from '../api/resumes';
 import type { JobDetail } from '../api/types';
 import { ResumePreview } from '../resume/ResumePreview';
@@ -43,6 +44,19 @@ export function JobResumePanel({ job }: { job: JobDetail }) {
   });
 
   if (kw.isLoading || tailored.isLoading) return <div className="skeleton h-72 w-full" />;
+  // A failed read is not "no tailored copy": tailoring again would replace it.
+  const failed = (kw.isError && !kw.data) || (tailored.isError && tailored.data === undefined);
+  if (failed) {
+    return (
+      <ErrorState
+        message={errorMessage(kw.error ?? tailored.error)}
+        onRetry={() => {
+          void kw.refetch();
+          void tailored.refetch();
+        }}
+      />
+    );
+  }
   if (noBase) {
     return (
       <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-border px-6 py-12 text-center">
