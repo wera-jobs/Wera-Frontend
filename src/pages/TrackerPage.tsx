@@ -61,8 +61,9 @@ function KanbanCard({
             onOpen(job.id);
           }
         }}
+        // Named by its text: an aria-label would hide what sighted voice
+        // users read off the card (WCAG 2.5.3).
         className="cursor-pointer"
-        aria-label={`${job.title} at ${job.company}`}
       >
         <div className="flex items-start justify-between gap-2">
           <h4 className="line-clamp-2 min-w-0 text-xs font-semibold text-text">{job.title}</h4>

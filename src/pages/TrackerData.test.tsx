@@ -74,7 +74,7 @@ describe('tracker data', () => {
       },
     });
     renderApp(<TrackerPage />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Tracked Role at Acme' }));
+    await userEvent.click(await screen.findByRole('button', { name: /^Tracked Role/ }));
     const dialog = await screen.findByRole('dialog');
 
     await userEvent.type(within(dialog).getByLabelText('Next step'), 'Email the recruiter{Enter}');
