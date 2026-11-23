@@ -284,34 +284,30 @@ export function JobDrawer({
               <p className="text-xs text-bad">
                 Couldn't load this job: {error instanceof Error ? error.message : 'network error'}
               </p>
-            ) : job && tab === 'resume' ? (
-              <>
-                <Tabs tab={tab} setTab={setTab} />
-                <JobResumePanel job={job} />
-              </>
-            ) : job && tab === 'prep' ? (
-              <>
-                <Tabs tab={tab} setTab={setTab} />
-                <InterviewPrepPanel job={job} />
-              </>
-            ) : job && tab === 'letter' ? (
-              <>
-                <Tabs tab={tab} setTab={setTab} />
-                <CoverLetterPanel job={job} />
-              </>
-            ) : job?.description ? (
-              <>
-                <Tabs tab={tab} setTab={setTab} />
-                <Description text={job.description} />
-              </>
             ) : job ? (
-              <p className="text-sm text-muted">
-                This board didn't include a description. Read it on the{' '}
-                <a href={job.url} data-wera-job={job.id} target="_blank" rel="noreferrer" className="text-accent-2 underline decoration-current/40 underline-offset-2 hover:decoration-current">
-                  original posting
-                </a>
-                .
-              </p>
+              <>
+                {/* Every tab, even for a posting without a description. */}
+                <Tabs tab={tab} setTab={setTab} />
+                {/* Keyed by job: stepping to the next job starts each panel
+                    fresh, so an open editor can't save into the wrong job. */}
+                {tab === 'resume' ? (
+                  <JobResumePanel key={job.id} job={job} />
+                ) : tab === 'prep' ? (
+                  <InterviewPrepPanel key={job.id} job={job} />
+                ) : tab === 'letter' ? (
+                  <CoverLetterPanel key={job.id} job={job} />
+                ) : job.description ? (
+                  <Description text={job.description} />
+                ) : (
+                  <p className="text-sm text-muted">
+                    This board didn't include a description. Read it on the{' '}
+                    <a href={job.url} data-wera-job={job.id} target="_blank" rel="noreferrer" className="text-accent-2 underline decoration-current/40 underline-offset-2 hover:decoration-current">
+                      original posting
+                    </a>
+                    .
+                  </p>
+                )}
+              </>
             ) : null}
           </div>
           <aside

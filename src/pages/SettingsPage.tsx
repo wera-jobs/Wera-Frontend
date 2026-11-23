@@ -301,8 +301,15 @@ export default function SettingsPage() {
   if (!draft) return <ErrorState message={errorMessage(settings.error)} onRetry={() => void settings.refetch()} />;
 
   const update = (next: Settings) => {
+    const prev = draft;
     setDraft(next);
-    save.mutate(next, { onError: (e) => toast.error(`Couldn't save: ${errorOrNull(e)}`) });
+    save.mutate(next, {
+      onError: (e) => {
+        // Put the switch back, unless the user has changed something since.
+        setDraft((cur) => (cur === next ? prev : cur));
+        toast.error(`Couldn't save: ${errorOrNull(e)}`);
+      },
+    });
   };
   const n = draft.notifications;
   const setN = (patch: Partial<Settings['notifications']>) => update({ ...draft, notifications: { ...n, ...patch } });

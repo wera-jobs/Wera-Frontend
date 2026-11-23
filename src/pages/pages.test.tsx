@@ -258,3 +258,30 @@ describe('Tracker cards', () => {
     }
   });
 });
+
+describe('Tracker list view', () => {
+  it('shows and hides not-interested jobs without crashing', async () => {
+    const saved = { ...fixtures.jobs.jobs[0], application_status: 'saved' as const };
+    const passed = { ...fixtures.jobs.jobs[1], application_status: 'not_interested' as const };
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        const status = url.searchParams.get('status');
+        const jobs = status === 'saved' ? [saved] : status === 'not_interested' ? [passed] : [];
+        return { ...fixtures.jobs, total: jobs.length, jobs };
+      },
+    });
+    renderApp(<TrackerPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'List' }));
+    const table = await screen.findByRole('table');
+    expect(within(table).getByText(saved.title)).toBeInTheDocument();
+    expect(within(table).queryByText(passed.title)).not.toBeInTheDocument();
+
+    const toggle = screen.getByRole('checkbox', { name: /Show not interested/ });
+    await userEvent.click(toggle);
+    expect(await within(await screen.findByRole('table')).findByText(passed.title)).toBeInTheDocument();
+    await userEvent.click(toggle);
+    await waitFor(() => expect(within(screen.getByRole('table')).queryByText(passed.title)).not.toBeInTheDocument());
+    expect(within(screen.getByRole('table')).getByText(saved.title)).toBeInTheDocument();
+    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
+  });
+});

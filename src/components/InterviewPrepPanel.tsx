@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Copy, GraduationCap, LoaderCircle, MessageSquareText, RefreshCw, Sparkles } from 'lucide-react';
 import { errorMessage } from '../api/client';
+import { ErrorState } from './States';
 import { useInterviewPrep, usePracticeAnswer, useWriteInterviewPrep } from '../api/hooks';
 import type { JobDetail, PracticeFeedback, PrepQuestion } from '../api/types';
 import { copyText } from '../lib/clipboard';
@@ -135,6 +136,8 @@ export function InterviewPrepPanel({ job }: { job: JobDetail }) {
   const generate = () => write.mutate(undefined, { onError: (e) => toast.error(errorMessage(e)) });
 
   if (prep.isLoading) return <div className="skeleton h-96 w-full" />;
+  // A failed read is not "no prep": preparing again would replace it and spend AI.
+  if (prep.isError && !prep.data) return <ErrorState message={errorMessage(prep.error)} onRetry={() => void prep.refetch()} />;
   if (!prep.data) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-card border border-dashed border-border px-6 py-16 text-center">

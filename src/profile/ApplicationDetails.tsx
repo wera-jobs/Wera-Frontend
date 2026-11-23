@@ -4,7 +4,7 @@ import { errorMessage } from '../api/client';
 import { Link } from 'react-router-dom';
 import { useApplicant, useDetailsConflicts, useResolveConflict, useSaveApplicant, useSuggestApplicant, type Applicant, type ResumeJob, type ResumeSchool } from '../api/extension';
 import { INPUT_CLS } from '../lib/styles';
-import { Skeleton } from '../components/States';
+import { ErrorState, Skeleton } from '../components/States';
 import { toast } from '../lib/toast';
 import { useUnsavedGuard } from '../lib/useUnsavedGuard';
 
@@ -211,6 +211,7 @@ export function ApplicationDetails() {
     // The section's own wrapper keeps clear of the page header (scroll-mt): scroll to it, not to this form.
     if (ready && window.location.hash === '#application') (document.getElementById('application') ?? top.current)?.scrollIntoView({ block: 'start' });
   }, [ready]);
+  if (!draft && q.isError) return <ErrorState message={errorMessage(q.error)} onRetry={() => void q.refetch()} />;
   if (!draft) return <Skeleton className="h-64 w-full" />;
 
   const set = (k: Key, v: string) => setDraft({ ...draft, [k]: v });

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Copy, Download, LoaderCircle, PenLine, RefreshCw, Sparkles } from 'lucide-react';
 import { useMe } from '../api/auth';
 import { errorMessage } from '../api/client';
+import { ErrorState } from './States';
 import { useCoverLetter, useWriteCoverLetter } from '../api/hooks';
 import type { JobDetail } from '../api/types';
 import { copyText } from '../lib/clipboard';
@@ -43,6 +44,8 @@ export function CoverLetterPanel({ job }: { job: JobDetail }) {
   const writing = write.isPending && write.variables === undefined;
 
   if (letter.isLoading) return <div className="skeleton h-96 w-full" />;
+  // A failed read is not "no letter": offering to write one would replace it.
+  if (letter.isError && !letter.data) return <ErrorState message={errorMessage(letter.error)} onRetry={() => void letter.refetch()} />;
   if (!letter.data && !writing) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-card border border-dashed border-border px-6 py-16 text-center">
@@ -77,9 +80,10 @@ export function CoverLetterPanel({ job }: { job: JobDetail }) {
                   onError: (e) => toast.error(errorMessage(e)),
                 })
               }
-              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85"
+              disabled={write.isPending}
+              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-60"
             >
-              Save
+              {write.isPending ? 'Saving…' : 'Save'}
             </button>
             <button onClick={() => setEditing(false)} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-text">
               Cancel

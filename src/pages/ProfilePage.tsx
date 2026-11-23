@@ -36,7 +36,9 @@ function UsageCard() {
   const pct = u && u.monthly_budget_usd > 0 ? Math.min(100, (u.month_spend_usd / u.monthly_budget_usd) * 100) : 0;
   return (
     <Card title="AI usage this month" hint="Scoring and profile drafts run on a shared AI budget.">
-      {!u ? (
+      {!u && usage.isError ? (
+        <ErrorState message={errorMessage(usage.error)} onRetry={() => void usage.refetch()} />
+      ) : !u ? (
         <Skeleton className="h-10 w-full" />
       ) : (
         <div className="space-y-2">
