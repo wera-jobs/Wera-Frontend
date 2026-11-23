@@ -176,14 +176,13 @@ export function AppShell() {
             </span>
             <button
               onClick={() => setPaletteOpen(true)}
-              aria-label="Search jobs, companies and pages"
               aria-keyshortcuts="Meta+K Control+K"
               className="group flex h-9 min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-border bg-surface px-3 text-sm text-faint shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-[border-color,box-shadow,color] duration-150 hover:border-accent/40 hover:text-muted hover:shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-accent)_12%,transparent)] sm:max-w-72 lg:max-w-[26rem]"
             >
               <Search className="size-4 shrink-0 text-muted transition-colors group-hover:text-accent" />
               <span className="truncate sm:hidden">Search</span>
               <span className="hidden truncate sm:inline">Search jobs, companies, pages…</span>
-              <kbd className="ml-auto hidden items-center gap-0.5 rounded-md border border-border bg-surface-2 px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted sm:inline-flex">
+              <kbd aria-hidden="true" className="ml-auto hidden items-center gap-0.5 rounded-md border border-border bg-surface-2 px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted sm:inline-flex">
                 {isMac ? '⌘' : 'Ctrl'}<span className="text-faint">K</span>
               </kbd>
             </button>

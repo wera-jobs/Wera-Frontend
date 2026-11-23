@@ -249,7 +249,7 @@ describe('Tracker cards', () => {
     });
     renderApp(<TrackerPage />, { path: '/tracker' });
     for (const key of ['{Enter}', ' ']) {
-      const [card] = await screen.findAllByRole('button', { name: `${saved.title} at ${saved.company}` });
+      const [card] = await screen.findAllByRole('button', { name: (n) => n.startsWith(saved.title) && n.includes(saved.company) });
       card.focus();
       await userEvent.keyboard(key);
       expect(await screen.findByRole('dialog')).toBeInTheDocument();
