@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { ArrowLeft, ArrowRight, Check, LoaderCircle, Sparkles } from 'lucide-react';
 import { useMe } from '../api/auth';
-import { errorOrNull } from '../api/client';
+import { errorMessage, errorOrNull } from '../api/client';
 import { useDraftProfile, useProfile, useSaveProfile, useSetupPreferences, useSuggestPreferences } from '../api/profile';
 import type { Answers, Preferences, Suggestions } from '../api/types';
 import { LOCATION_SEPARATOR, toPlace } from '../profile/places';
 import { ProfileEditor } from '../profile/ProfileEditor';
 import { DEFAULT_PREFS, PreferencesFields, prefsProblem } from '../profile/PreferencesFields';
 import { ResumeUpload } from '../profile/ResumeUpload';
-import { Skeleton } from '../components/States';
+import { ErrorState, Skeleton } from '../components/States';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { ThemeToggle } from '../lib/theme';
@@ -99,6 +99,9 @@ export default function WelcomePage() {
       },
     );
 
+  if (!loaded && profile.isError) {
+    return <ErrorState message={errorMessage(profile.error)} onRetry={() => void profile.refetch()} />;
+  }
   if (!loaded) {
     return (
       <main className="mx-auto max-w-3xl p-6 pt-16">
