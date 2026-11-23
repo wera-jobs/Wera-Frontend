@@ -49,10 +49,15 @@ export function ImportApplications() {
         method: 'POST',
         body: JSON.stringify({ rows: payload(), dry_run: dryRun }),
       });
-      setChecked(out.results);
-      if (!dryRun) {
+      if (dryRun) setChecked(out.results);
+      else {
         toast.success(`Imported ${out.imported} job${out.imported === 1 ? '' : 's'} into your tracker.`);
         void qc.invalidateQueries();
+        // Done: clear the form, so a second click can't import the rows again.
+        setRows([]);
+        setChecked(null);
+        setCols(null);
+        setFileName('');
       }
     } catch (e) {
       toast.error(`Couldn't import: ${errorMessage(e)}`);
@@ -72,7 +77,17 @@ export function ImportApplications() {
     <div className="space-y-3">
       <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-1.5 text-xs font-medium text-text hover:border-accent/40">
         <Upload className="size-3.5" /> {fileName ? 'Choose another CSV' : 'Choose a CSV'}
-        <input type="file" accept=".csv,text/csv" className="sr-only" onChange={(e) => e.target.files?.[0] && void load(e.target.files[0])} />
+        <input
+          type="file"
+          accept=".csv,text/csv"
+          className="sr-only"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            // Cleared, so picking the same (edited) file again still loads it.
+            e.target.value = '';
+            if (file) void load(file);
+          }}
+        />
       </label>
       {cols && rows.length > 0 && (
         <div className="space-y-3 rounded-card border border-border p-3">

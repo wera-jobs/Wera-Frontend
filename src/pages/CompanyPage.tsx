@@ -11,6 +11,7 @@ import { StatTile } from '../components/StatTile';
 import { EmptyState, ErrorState, SkeletonRows } from '../components/States';
 import { relTime } from '../lib/format';
 import { toast } from '../lib/toast';
+import { errorMessage } from '../api/client';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
 const BTN =
@@ -70,7 +71,8 @@ export default function CompanyPage() {
                   { id: c.id, hidden: true },
                   {
                     onSuccess: () =>
-                      toast.success(`${c.name} hidden from your matches.`, { label: 'Undo', run: () => hide.mutate({ id: c.id, hidden: false }) }),
+                      toast.success(`${c.name} hidden from your matches.`, { label: 'Undo', run: () => hide.mutate({ id: c.id, hidden: false }, { onError: (e: unknown) => toast.error(errorMessage(e)) }) }),
+                    onError: (e: unknown) => toast.error(errorMessage(e)),
                   },
                 )
               }
@@ -85,7 +87,7 @@ export default function CompanyPage() {
       {c.hidden && (
         <p className="rounded-card border border-border bg-surface px-4 py-3 text-xs text-muted">
           You hid {c.name}, so its jobs stay out of your matches.{' '}
-          <button type="button" onClick={() => hide.mutate({ id: c.id, hidden: false })} className="font-medium text-accent hover:underline">
+          <button type="button" onClick={() => hide.mutate({ id: c.id, hidden: false }, { onError: (e: unknown) => toast.error(errorMessage(e)) })} className="font-medium text-accent hover:underline">
             Unhide
           </button>
         </p>

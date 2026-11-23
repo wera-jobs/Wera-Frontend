@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { ArrowRight, Camera, Download, FileText, LoaderCircle, Save, UserRound } from 'lucide-react';
 import { useAvatar, useMe } from '../api/auth';
-import { errorOrNull } from '../api/client';
+import { errorMessage, errorOrNull } from '../api/client';
 import { useDraftProfile, useMyUsage, useProfile, useSaveProfile } from '../api/profile';
 import type { Answers, Preferences } from '../api/types';
 import { Avatar } from '../components/Avatar';
@@ -36,7 +36,9 @@ function UsageCard() {
   const pct = u && u.monthly_budget_usd > 0 ? Math.min(100, (u.month_spend_usd / u.monthly_budget_usd) * 100) : 0;
   return (
     <Card title="AI usage this month" hint="Scoring and profile drafts run on a shared AI budget.">
-      {!u ? (
+      {!u && usage.isError ? (
+        <ErrorState message={errorMessage(usage.error)} onRetry={() => void usage.refetch()} />
+      ) : !u ? (
         <Skeleton className="h-10 w-full" />
       ) : (
         <div className="space-y-2">
@@ -101,7 +103,7 @@ function ProfileHeader() {
           {user.avatar_version ? 'Change photo' : 'Add photo'}
         </button>
         {user.avatar_version && (
-          <button onClick={() => avatar.mutate(null)} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-bad">
+          <button onClick={() => avatar.mutate(null, { onError: (e: unknown) => toast.error(errorMessage(e)) })} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-bad">
             Remove
           </button>
         )}

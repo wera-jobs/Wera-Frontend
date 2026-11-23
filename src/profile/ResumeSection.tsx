@@ -148,7 +148,10 @@ export function ResumeSection() {
   const [kept, setKept] = useState<string | null>(null);
   const fallback = useCallback(() => setManual(true), []);
   const base = list.data?.resumes.find((r) => r.job_id == null);
-  const id = params.id ? Number(params.id) : (base?.id ?? null);
+  // /profile/resume/foo is not a resume: never ask the API for /resumes/NaN.
+  const linked = params.id != null && /^[1-9]\d*$/.test(params.id) ? Number(params.id) : null;
+  const badLink = params.id != null && linked == null;
+  const id = params.id != null ? linked : (base?.id ?? null);
   const doc = useResume(id);
 
   if (list.isLoading || profile.isLoading) return <Skeleton className="h-96 w-full" />;
@@ -195,8 +198,10 @@ export function ResumeSection() {
           )}
           <CreateResume replace={reimport} onDone={reimport ? (d) => { setReimport(false); void navigate(`/profile/resume/${d.id}`); } : undefined} />
         </>
+      ) : badLink ? (
+        <ErrorState message="That resume link isn't right. Pick a resume from the list." />
       ) : doc.isLoading || !doc.data ? (
-        doc.error ? <ErrorState message={errorMessage(doc.error, 'Something went wrong')} /> : <Skeleton className="h-96 w-full" />
+        doc.error ? <ErrorState message={errorMessage(doc.error, 'Something went wrong')} onRetry={() => void doc.refetch()} /> : <Skeleton className="h-96 w-full" />
       ) : (
         <Workspace key={doc.data.id} doc={doc.data} />
       )}

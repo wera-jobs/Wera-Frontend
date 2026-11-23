@@ -1,7 +1,7 @@
 import { Fragment, useDeferredValue, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { api, errorMessage } from '../api/client';
 import clsx from 'clsx';
 import { Building2, ChevronDown, Info, Search } from 'lucide-react';
 import { useIndustryLabel } from '../api/hooks';
@@ -51,7 +51,9 @@ function EmployerLookup() {
       </label>
       {query.length >= 2 && (
         <div className="mt-2 divide-y divide-border">
-          {found.isLoading ? <SkeletonRows rows={3} /> : !list.length ? <p className="py-3 text-xs text-muted">No employer by that name filed in this period.</p> : list.map((e) => (
+          {found.isLoading ? <SkeletonRows rows={3} /> : found.isError ? (
+            <p role="alert" className="py-3 text-xs text-bad">Couldn't search the filings: {errorMessage(found.error)}</p>
+          ) : !list.length ? <p className="py-3 text-xs text-muted">No employer by that name filed in this period.</p> : list.map((e) => (
             <div key={e.key}>
               <button onClick={() => setOpen(open === e.key ? null : e.key)} aria-expanded={open === e.key}
                 className="flex w-full items-center gap-3 py-2.5 text-left text-sm hover:text-accent">
@@ -207,7 +209,22 @@ export default function SponsorshipPage() {
                         {s.latest_quote ? <span className="line-clamp-2 text-xs text-muted italic">“{s.latest_quote}”</span> : <span className="text-xs text-faint">—</span>}
                       </td>
                       <td className="pr-3">
-                        {files && <ChevronDown className={clsx('size-4 text-faint transition-transform', isOpen && 'rotate-180')} aria-label={isOpen ? 'Hide filings' : 'Show filings'} />}
+                        {/* The row also opens on click; this button is the keyboard and screen-reader way in. */}
+                        {files && (
+                          <button
+                            type="button"
+                            aria-expanded={isOpen}
+                            aria-label={`${isOpen ? 'Hide' : 'Show'} H-1B filings for ${s.company}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpen(isOpen ? null : s.company_id);
+                            }}
+                            onFocus={() => prefetch(s.company_id)}
+                            className="rounded-md p-1 text-faint hover:bg-surface-2 hover:text-text"
+                          >
+                            <ChevronDown className={clsx('size-4 transition-transform', isOpen && 'rotate-180')} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                     {isOpen && (

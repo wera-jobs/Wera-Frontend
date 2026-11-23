@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, CircleAlert, LoaderCircle, MailCheck } from 'lucide-react';
-import { forgotPassword, resetPassword, verifyEmail } from '../api/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { forgotPassword, rememberSession, resetPassword, signOutLocally, verifyEmail } from '../api/auth';
 import { errorMessage } from '../api/client';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../lib/theme';
@@ -12,7 +13,7 @@ import { INPUT_CLS } from '../lib/styles';
 
 function Card({ title, lead, children }: { title: string; lead?: string; children: ReactNode }) {
   return (
-    <div className="relative flex min-h-svh items-center justify-center px-4 py-10">
+    <main className="relative flex min-h-svh items-center justify-center px-4 py-10">
       <ThemeToggle className="absolute top-4 right-4" />
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
@@ -26,7 +27,7 @@ function Card({ title, lead, children }: { title: string; lead?: string; childre
           {children}
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -48,14 +49,19 @@ export function VerifyEmailPage() {
   const token = useSearchParams()[0].get('token') ?? '';
   const [state, setState] = useState<{ status: 'working' | 'done' | 'failed'; text: string }>(() =>
     token ? { status: 'working', text: '' } : { status: 'failed', text: 'This link is incomplete. Open it from the email again.' });
+  const qc = useQueryClient();
   const sent = useRef(false);
   useEffect(() => {
     if (sent.current || !token) return; // a link works once: never post it twice
     sent.current = true;
     verifyEmail(token)
-      .then((r) => setState({ status: 'done', text: r.email }))
+      .then((r) => {
+        setState({ status: 'done', text: r.email });
+        // Settings and the banner read "confirmed" from the cached user.
+        void qc.invalidateQueries({ queryKey: ['me'] });
+      })
       .catch((e) => setState({ status: 'failed', text: errorMessage(e) }));
-  }, [token]);
+  }, [token, qc]);
   return (
     <Card title="Confirm your email">
       {state.status === 'working' ? (
@@ -117,6 +123,7 @@ export function ResetPasswordPage() {
   const [pw, setPw] = useState('');
   const [again, setAgain] = useState('');
   const [state, setState] = useState<{ busy: boolean; done: boolean; error: string }>({ busy: false, done: false, error: '' });
+  const qc = useQueryClient();
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (pw !== again) {
@@ -125,7 +132,13 @@ export function ResetPasswordPage() {
     }
     setState({ busy: true, done: false, error: '' });
     resetPassword(token, pw)
-      .then(() => setState({ busy: false, done: true, error: '' }))
+      .then(() => {
+        // The reset signed out every session, this browser's too: forget
+        // the cached user so "Log in" shows the form instead of bouncing home.
+        signOutLocally(qc);
+        rememberSession(false);
+        setState({ busy: false, done: true, error: '' });
+      })
       .catch((err) => setState({ busy: false, done: false, error: errorMessage(err) }));
   };
   if (!token) {

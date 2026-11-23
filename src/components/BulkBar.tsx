@@ -5,6 +5,7 @@ import { Ban, Bookmark, EyeOff, X } from 'lucide-react';
 import { useState } from 'react';
 import { api, errorMessage } from '../api/client';
 import type { AppStatus, Job } from '../api/types';
+import { announceChange } from '../lib/extension';
 import { toast } from '../lib/toast';
 
 const BTN =
@@ -28,11 +29,14 @@ export function BulkBar({ jobs, onDone }: { jobs: Job[]; onDone: () => void }) {
     setBusy(true);
     try {
       await work();
+      // The extension shows statuses and hidden companies too.
+      announceChange('application');
       onDone();
       toast.success(done, {
         label: 'Undo',
         run: () => {
           void undo()
+            .then(() => announceChange('application'))
             .catch((err: unknown) => toast.error(`Couldn't undo: ${errorMessage(err, 'network error')}`))
             .finally(() => void qc.invalidateQueries());
         },
@@ -47,6 +51,12 @@ export function BulkBar({ jobs, onDone }: { jobs: Job[]; onDone: () => void }) {
 
   const mark = (status: AppStatus, word: string) => {
     const before = jobs.map((j) => [j.id, j.application_status ?? null] as const).filter(([, s]) => s !== status);
+    if (before.length === 0) {
+      // Nothing to change (and nothing to undo): say so instead of "Saved 0 jobs".
+      onDone();
+      toast.success(`${jobs.length === 1 ? 'That job is' : 'Those jobs are'} already ${word === 'Saved' ? 'saved' : 'marked not interested'}.`);
+      return;
+    }
     void run(
       () => Promise.all(before.map(([id]) => setStatus(id, status))),
       `${word} ${before.length} ${before.length === 1 ? 'job' : 'jobs'}`,

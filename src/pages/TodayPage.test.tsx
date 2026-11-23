@@ -274,3 +274,35 @@ describe('Did you apply?', () => {
     expect(screen.queryByRole('dialog', { name: 'Did you apply?' })).toBeNull();
   });
 });
+
+describe('ApplyCheck with a cached job', () => {
+  it('asks the server, not the cache, before asking "Did you apply?"', async () => {
+    // The extension marked it applied a moment ago; the cached copy (kept
+    // for a minute, as the app does) still says saved.
+    let gets = 0;
+    stubApi({ [`GET /api/jobs/${top.id}`]: () => (gets++, { ...fixtures.job, ...top, application_status: 'applied', deep: null }) });
+    const { client } = renderApp(
+      <>
+        <a href="https://example.com/job" data-wera-job={top.id} target="_blank" rel="noreferrer">Open posting</a>
+        <ApplyCheck />
+      </>,
+    );
+    client.setQueryDefaults(['job'], { staleTime: 60_000 });
+    client.setQueryData(['job', top.id], { ...fixtures.job, ...top, application_status: 'saved', deep: null });
+    fireEvent.click(screen.getByRole('link', { name: 'Open posting' }));
+    const real = Date.now;
+    const start = real();
+    // Away long enough to be asked (over 20s) while the cached copy is still fresh (under 60s).
+    Date.now = () => start + 25_000;
+    try {
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+    } finally {
+      Date.now = real;
+    }
+    await waitFor(() => expect(gets).toBeGreaterThan(0));
+    await act(async () => new Promise((done) => setTimeout(done, 50)));
+    expect(screen.queryByRole('dialog', { name: 'Did you apply?' })).toBeNull();
+  });
+});

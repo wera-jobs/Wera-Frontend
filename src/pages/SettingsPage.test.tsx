@@ -54,6 +54,20 @@ describe('SettingsPage: when things fail', () => {
     renderApp(<SettingsPage />);
     expect(await screen.findByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
+
+  it('puts a switch back when saving it fails', async () => {
+    mockApi({
+      'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'A', is_admin: false, created_at: '' }, avatar_version: null }),
+      'GET /api/settings': () => settings,
+      'GET /api/industries': () => ({ industries: [] }),
+      'PUT /api/settings': () => jsonResponse(500, { error: 'could not save' }),
+    });
+    renderApp(<SettingsPage />);
+    const sw = await screen.findByRole('switch', { name: 'Product updates' });
+    expect(sw).toHaveAttribute('aria-checked', 'false');
+    await userEvent.click(sw);
+    await waitFor(() => expect(screen.getByRole('switch', { name: 'Product updates' })).toHaveAttribute('aria-checked', 'false'));
+  });
 });
 
 describe('SettingsPage: export', () => {
