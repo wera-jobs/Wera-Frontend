@@ -80,6 +80,11 @@ export function LatexEditor({ data, layout, filename, onApply, onPreview }: {
   const [parsed, setParsed] = useState<{ data: ResumeData | null; warnings: string[]; error: string; checking: boolean }>({ data: null, warnings: [], error: '', checking: false });
   const [showPreamble, setShowPreamble] = useState(false);
   const dirty = source != null && body !== source.body;
+  // Read by the look effect below without re-running it on every keystroke.
+  const dirtyRef = useRef(dirty);
+  useEffect(() => {
+    dirtyRef.current = dirty;
+  }, [dirty]);
 
   // Generate the LaTeX for the resume as it is (again when the template changes).
   const look = `${layout.template}|${layout.accent}|${layout.paper}|${layout.font_size}|${layout.spacing}|${layout.margin}`;
@@ -92,7 +97,11 @@ export function LatexEditor({ data, layout, filename, onApply, onPreview }: {
         if (!live) return;
         setGenError('');
         setSource(r);
-        setBody(r.body);
+        // Unsaved edits stay: the new look only changes the preamble, and
+        // every template defines the same commands, so the edited body
+        // renders in it. Only an unedited body follows the new look.
+        if (dirtyRef.current) toast.success('New look applied. Your LaTeX edits are kept.');
+        else setBody(r.body);
       })
       .catch((e) => {
         if (!live) return;
