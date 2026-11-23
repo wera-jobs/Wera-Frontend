@@ -26,9 +26,16 @@ function printLetter(name: string, email: string, company: string, title: string
   doc.open();
   doc.write(html);
   doc.close();
-  frame.contentWindow!.focus();
-  frame.contentWindow!.print();
-  window.setTimeout(() => frame.remove(), 1000);
+  const win = frame.contentWindow!;
+  // Removed once printing is over: a fixed delay could pull the page out
+  // from under a print preview that was slow to open.
+  const fallback = window.setTimeout(() => frame.remove(), 60_000);
+  win.addEventListener('afterprint', () => {
+    window.clearTimeout(fallback);
+    frame.remove();
+  });
+  win.focus();
+  win.print();
 }
 
 /** The cover letter for a job: generate, read on a page, edit, copy, print. */

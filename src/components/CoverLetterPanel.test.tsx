@@ -33,4 +33,22 @@ describe('CoverLetterPanel', () => {
     expect(await screen.findByText('Dear team, hello.')).toBeInTheDocument();
     expect(screen.getByText('Edited by you')).toBeInTheDocument();
   });
+
+  it('keeps the print page until printing is over', async () => {
+    mockApi({
+      'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'Ada', is_admin: false, created_at: '' }, avatar_version: null }),
+      'GET /api/jobs/5/cover-letter': () => letter('Dear team,\n\nHello.'),
+    });
+    renderApp(<CoverLetterPanel job={job} />);
+    await screen.findByText('Hello.');
+    await userEvent.click(screen.getByRole('button', { name: /Download PDF/ }));
+    const frame = document.querySelector('iframe')!;
+    expect(frame).not.toBeNull();
+    // A slow print preview: still there well after the old one-second cutoff.
+    await new Promise((done) => setTimeout(done, 1200));
+    expect(document.body.contains(frame)).toBe(true);
+    frame.contentWindow!.dispatchEvent(new Event('afterprint'));
+    expect(document.body.contains(frame)).toBe(false);
+  });
 });
+

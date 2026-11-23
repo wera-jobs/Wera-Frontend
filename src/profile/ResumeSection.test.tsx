@@ -21,6 +21,19 @@ const doc = (over: Partial<ResumeDoc> = {}): ResumeDoc => ({
 const preview = () => ({ pages: ['<svg xmlns="http://www.w3.org/2000/svg"></svg>'], measure: { pages: 1, fill: 0.8 } });
 
 describe('ResumeSection', () => {
+  it('says a resume link is wrong instead of asking for resume NaN', async () => {
+    const asked: string[] = [];
+    stubApi({
+      'GET /api/resumes': () => ({ resumes: [{ id: 3, title: 'My resume', job_id: null }] }),
+      'GET /api/resumes/3': () => doc(),
+      'GET /api/resumes/NaN': () => (asked.push('NaN'), doc()),
+      'POST /api/resumes/preview': preview,
+    });
+    renderApp(<ResumeSection />, { path: '/profile/resume/foo', route: '/profile/resume/:id?' });
+    expect(await screen.findByText(/That resume link isn't right/)).toBeInTheDocument();
+    expect(asked).toEqual([]);
+  });
+
   it('imports a LaTeX resume on first visit', async () => {
     let imported: Record<string, unknown> = {};
     let resumes: unknown[] = [];
