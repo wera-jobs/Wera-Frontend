@@ -54,7 +54,12 @@ function KanbanCard({
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') onOpen(job.id);
+          // Enter and Space, as a button does.
+          if (e.target !== e.currentTarget) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpen(job.id);
+          }
         }}
         className="cursor-pointer"
         aria-label={`${job.title} at ${job.company}`}

@@ -212,6 +212,25 @@ describe('SponsorshipPage', () => {
     await waitFor(() => expect(screen.queryByText('Acme')).toBeNull());
   });
 
+  it('opens an employer\'s filings from the keyboard', async () => {
+    stubApi({
+      'GET /api/sponsorship': () => ({
+        companies: [row('Jump', 'sponsors', 3, 0, 82)], total: 1, offset: 0, h1b_period: detail.period,
+        summary: { companies: 1, filers: 1, sponsors: 1, mixed: 0, does_not_sponsor: 0 },
+      }),
+      'GET /api/sponsorship/4/h1b': () => detail,
+    });
+    renderApp(<SponsorshipPage />);
+    const toggle = await screen.findByRole('button', { name: 'Show H-1B filings for Jump' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    toggle.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(await screen.findByText('Software Engineer')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hide H-1B filings for Jump' })).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.keyboard(' ');
+    await waitFor(() => expect(screen.queryByText('Software Engineer')).toBeNull());
+  });
+
   it('looks up any employer', async () => {
     stubApi({
       'GET /api/sponsorship': () => ({

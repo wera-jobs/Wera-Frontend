@@ -207,7 +207,22 @@ export default function SponsorshipPage() {
                         {s.latest_quote ? <span className="line-clamp-2 text-xs text-muted italic">“{s.latest_quote}”</span> : <span className="text-xs text-faint">—</span>}
                       </td>
                       <td className="pr-3">
-                        {files && <ChevronDown className={clsx('size-4 text-faint transition-transform', isOpen && 'rotate-180')} aria-label={isOpen ? 'Hide filings' : 'Show filings'} />}
+                        {/* The row also opens on click; this button is the keyboard and screen-reader way in. */}
+                        {files && (
+                          <button
+                            type="button"
+                            aria-expanded={isOpen}
+                            aria-label={`${isOpen ? 'Hide' : 'Show'} H-1B filings for ${s.company}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpen(isOpen ? null : s.company_id);
+                            }}
+                            onFocus={() => prefetch(s.company_id)}
+                            className="rounded-md p-1 text-faint hover:bg-surface-2 hover:text-text"
+                          >
+                            <ChevronDown className={clsx('size-4 transition-transform', isOpen && 'rotate-180')} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                     {isOpen && (
