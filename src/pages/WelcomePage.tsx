@@ -135,7 +135,7 @@ export default function WelcomePage() {
               className={clsx(
                 'flex size-6 items-center justify-center rounded-full border font-mono',
                 i < step && 'border-good/50 bg-good/10 text-good',
-                i === step && 'border-accent bg-accent/15 text-accent',
+                i === step && 'border-accent bg-accent/10 text-accent',
                 i > step && 'border-border text-faint',
               )}
             >

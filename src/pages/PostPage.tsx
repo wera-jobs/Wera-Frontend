@@ -98,6 +98,7 @@ export default function PostPage() {
                   toast.success('Post deleted.');
                   void navigate('/community');
                 },
+                onError: (e: unknown) => toast.error(errorMessage(e)),
               });
             }}
             className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-muted hover:text-bad"
@@ -137,9 +138,9 @@ export default function PostPage() {
                   <span className="text-faint">{relTime(c.created_at)}</span>
                   {c.is_mine && (
                     <button
-                      onClick={() => delComment.mutate(c.id)}
+                      onClick={() => delComment.mutate(c.id, { onError: (e: unknown) => toast.error(errorMessage(e)) })}
                       aria-label="Delete comment"
-                      className="ml-auto text-faint opacity-0 transition-opacity group-hover:opacity-100 hover:text-bad focus-visible:opacity-100"
+                      className="ml-auto text-faint opacity-0 transition-opacity group-hover:opacity-100 hover:text-bad focus-visible:opacity-100 max-lg:opacity-100"
                     >
                       <Trash2 className="size-3.5" />
                     </button>

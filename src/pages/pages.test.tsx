@@ -238,6 +238,27 @@ describe('other pages', () => {
   });
 });
 
+describe('Tracker cards', () => {
+  it('open with Enter and with Space', async () => {
+    const saved = { ...fixtures.jobs.jobs[0], application_status: 'saved' as const };
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        const jobs = url.searchParams.get('status') === 'saved' ? [saved] : [];
+        return { ...fixtures.jobs, total: jobs.length, jobs };
+      },
+    });
+    renderApp(<TrackerPage />, { path: '/tracker' });
+    for (const key of ['{Enter}', ' ']) {
+      const [card] = await screen.findAllByRole('button', { name: `${saved.title} at ${saved.company}` });
+      card.focus();
+      await userEvent.keyboard(key);
+      expect(await screen.findByRole('dialog')).toBeInTheDocument();
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    }
+  });
+});
+
 describe('Tracker list view', () => {
   it('shows and hides not-interested jobs without crashing', async () => {
     const saved = { ...fixtures.jobs.jobs[0], application_status: 'saved' as const };

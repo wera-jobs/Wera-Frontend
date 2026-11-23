@@ -1,3 +1,4 @@
+import { STAGGER_MAX_MS } from '../lib/styles';
 import clsx from 'clsx';
 import { Link } from 'react-router-dom';
 import { payText, shortLocation, verdictColor, verdictOf } from '../lib/format';
@@ -37,7 +38,7 @@ export function JobRow({
         'anim-rise cursor-pointer border-b border-border/60 transition-colors duration-150 hover:bg-surface-2/60',
         selected && 'bg-accent/5 ring-1 ring-accent/25 ring-inset',
       )}
-      style={{ animationDelay: `${Math.min(index * 24, 360)}ms` }}
+      style={{ animationDelay: `${Math.min(index * 24, STAGGER_MAX_MS)}ms` }}
     >
       {onCheck && (
         <td className="w-8 py-2.5 pl-3" onClick={(e) => e.stopPropagation()}>

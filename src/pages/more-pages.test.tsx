@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import AuthPage from '../auth/AuthPage';
 import { AppShell } from '../layout/AppShell';
+import { Toasts } from '../lib/toast';
 import { me, stubApi } from '../test/fixtures';
 import { jsonResponse, renderApp, jsonBody } from '../test/render';
 import CommunityPage from './CommunityPage';
@@ -162,6 +163,26 @@ describe('Community', () => {
     expect(await screen.findByText('Very helpful, thanks')).toBeInTheDocument();
   });
 
+  it('shows the delete button on a phone, and says so when deleting fails', async () => {
+    const post = { ...summary, body: 'Body.', comments: [{ id: 7, body: 'My own comment', author, created_at: '2026-10-10T00:00:00Z', is_mine: true }] };
+    stubApi({
+      'GET /api/posts/11': () => post,
+      'DELETE /api/posts/11/comments/7': () => jsonResponse(500, { error: 'could not delete the comment' }),
+    });
+    renderApp(
+      <>
+        <PostPage />
+        <Toasts />
+      </>,
+      { path: '/community/11', route: '/community/:id' },
+    );
+    const del = await screen.findByRole('button', { name: 'Delete comment' });
+    // Hidden until hover on a desktop; always shown below lg, where there is no hover.
+    expect(del.className).toContain('max-lg:opacity-100');
+    await userEvent.click(del);
+    expect(await screen.findByText('could not delete the comment')).toBeInTheDocument();
+  });
+
   it('a missing post says so', async () => {
     stubApi({ 'GET /api/posts/99': () => jsonResponse(404, { error: 'post not found' }) });
     renderApp(<PostPage />, { path: '/community/99', route: '/community/:id' });
@@ -210,6 +231,39 @@ describe('SponsorshipPage', () => {
     await userEvent.click(screen.getByLabelText(/Only companies that file/));
     await userEvent.type(screen.getByLabelText('Search companies'), 'jum');
     await waitFor(() => expect(screen.queryByText('Acme')).toBeNull());
+  });
+
+  it('opens an employer\'s filings from the keyboard', async () => {
+    stubApi({
+      'GET /api/sponsorship': () => ({
+        companies: [row('Jump', 'sponsors', 3, 0, 82)], total: 1, offset: 0, h1b_period: detail.period,
+        summary: { companies: 1, filers: 1, sponsors: 1, mixed: 0, does_not_sponsor: 0 },
+      }),
+      'GET /api/sponsorship/4/h1b': () => detail,
+    });
+    renderApp(<SponsorshipPage />);
+    const toggle = await screen.findByRole('button', { name: 'Show H-1B filings for Jump' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    toggle.focus();
+    await userEvent.keyboard('{Enter}');
+    expect(await screen.findByText('Software Engineer')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hide H-1B filings for Jump' })).toHaveAttribute('aria-expanded', 'true');
+    await userEvent.keyboard(' ');
+    await waitFor(() => expect(screen.queryByText('Software Engineer')).toBeNull());
+  });
+
+  it('says when the employer search fails instead of finding nobody', async () => {
+    stubApi({
+      'GET /api/sponsorship': () => ({
+        companies: [], total: 0, offset: 0, h1b_period: detail.period,
+        summary: { companies: 0, filers: 0, sponsors: 0, mixed: 0, does_not_sponsor: 0 },
+      }),
+      'GET /api/h1b/employers': () => jsonResponse(503, { error: 'the filings are loading' }),
+    });
+    renderApp(<SponsorshipPage />);
+    await userEvent.type(await screen.findByLabelText('Employer name'), 'google');
+    expect(await screen.findByRole('alert', {}, { timeout: 5000 })).toHaveTextContent('the filings are loading');
+    expect(screen.queryByText(/No employer by that name/)).toBeNull();
   });
 
   it('looks up any employer', async () => {
