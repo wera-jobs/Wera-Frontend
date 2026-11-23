@@ -45,7 +45,11 @@ describe('JobDrawer', () => {
 
   it('keeps every tab when the posting has no description', async () => {
     const bare = { ...b, description: '' };
-    stubApi({ [`GET /api/jobs/${bare.id}`]: () => bare });
+    stubApi({
+      [`GET /api/jobs/${bare.id}`]: () => bare,
+      // No letter yet: the panel offers to write one.
+      [`GET /api/jobs/${bare.id}/cover-letter`]: () => new Response('{"error":"none"}', { status: 404 }),
+    });
     renderApp(<JobDrawer jobId={bare.id} onClose={() => {}} />);
 
     expect(await screen.findByText(/didn't include a description/)).toBeInTheDocument();

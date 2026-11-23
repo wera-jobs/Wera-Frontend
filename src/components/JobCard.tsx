@@ -1,3 +1,4 @@
+import { STAGGER_MAX_MS } from '../lib/styles';
 import { Ban, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
 import { ScoreRing } from './ScoreRing';
 import { Link } from 'react-router-dom';
@@ -43,7 +44,7 @@ export function JobCard({
   return (
     <article
       className="group anim-rise relative min-w-0 cursor-pointer rounded-card border border-border bg-surface p-4 transition-colors duration-150 hover:border-accent/40 has-[h3_button:focus-visible]:ring-2 has-[h3_button:focus-visible]:ring-accent"
-      style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+      style={{ animationDelay: `${Math.min(index * 40, STAGGER_MAX_MS)}ms` }}
     >
       <div className="flex items-start gap-4">
         <div className="flex shrink-0 flex-col items-center gap-1">

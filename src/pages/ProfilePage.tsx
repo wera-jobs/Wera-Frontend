@@ -103,7 +103,7 @@ function ProfileHeader() {
           {user.avatar_version ? 'Change photo' : 'Add photo'}
         </button>
         {user.avatar_version && (
-          <button onClick={() => avatar.mutate(null)} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-bad">
+          <button onClick={() => avatar.mutate(null, { onError: (e: unknown) => toast.error(errorMessage(e)) })} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-bad">
             Remove
           </button>
         )}

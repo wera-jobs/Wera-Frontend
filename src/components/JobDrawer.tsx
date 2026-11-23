@@ -20,6 +20,7 @@ import { CoverLetterPanel } from './CoverLetterPanel';
 import { InterviewPrepPanel } from './InterviewPrepPanel';
 import { JobResumePanel } from './JobResumePanel';
 import { toast } from '../lib/toast';
+import { errorMessage } from '../api/client';
 import type { AppStatus, JobDetail } from '../api/types';
 import { Description } from './Description';
 import { ClosedBadge, IndustryBadge, EarlyBadge, OldPostingBadge, StatusPill } from './JobBadges';
@@ -194,6 +195,7 @@ export function JobDrawer({
           toast.success(`${job.company} hidden. Unhide it in Settings.`);
           onClose();
         },
+        onError: (e: unknown) => toast.error(errorMessage(e)),
       },
     );
   };

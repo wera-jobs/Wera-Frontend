@@ -1,3 +1,4 @@
+import { STAGGER_MAX_MS } from '../lib/styles';
 import { useState } from 'react';
 import {
   DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, pointerWithin, rectIntersection, useDraggable,
@@ -46,14 +47,19 @@ function KanbanCard({
   return (
     <div
       className="group anim-rise rounded-xl border border-border bg-surface p-3 transition-colors duration-150 hover:border-accent/40"
-      style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
+      style={{ animationDelay: `${Math.min(index * 30, STAGGER_MAX_MS)}ms` }}
     >
       <div
         onClick={() => onOpen(job.id)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') onOpen(job.id);
+          // Enter and Space, as a button does.
+          if (e.target !== e.currentTarget) return;
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onOpen(job.id);
+          }
         }}
         className="cursor-pointer"
         aria-label={`${job.title} at ${job.company}`}
@@ -287,7 +293,7 @@ function StageTab({ status, query, selected, onSelect }: { status: AppStatus; qu
         selected ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text',
       )}
     >
-      {COLUMN_LABEL[status]} <span className="font-mono text-[11px] opacity-80">{data ? n : '·'}</span>
+      {COLUMN_LABEL[status]} <span className="font-mono text-[11px]">{data ? n : '·'}</span>
     </button>
   );
 }
