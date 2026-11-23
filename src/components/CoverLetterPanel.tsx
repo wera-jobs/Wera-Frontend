@@ -77,9 +77,10 @@ export function CoverLetterPanel({ job }: { job: JobDetail }) {
                   onError: (e) => toast.error(errorMessage(e)),
                 })
               }
-              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85"
+              disabled={write.isPending}
+              className="rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-60"
             >
-              Save
+              {write.isPending ? 'Saving…' : 'Save'}
             </button>
             <button onClick={() => setEditing(false)} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-text">
               Cancel
