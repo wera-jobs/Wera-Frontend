@@ -174,7 +174,7 @@ function Connections() {
                   Connected {relTime(c.created_at)} · {c.last_used_at ? `last used ${relTime(c.last_used_at)}` : 'not used yet'}
                 </div>
               </div>
-              <button onClick={() => disconnect.mutate(c.id, { onSuccess: () => toast.success(`${c.name} disconnected.`) })}
+              <button onClick={() => disconnect.mutate(c.id, { onSuccess: () => toast.success(`${c.name} disconnected.`), onError: (e: unknown) => toast.error(errorMessage(e)) })}
                 className="shrink-0 text-xs font-medium text-bad hover:underline">
                 Disconnect
               </button>
@@ -346,7 +346,7 @@ export default function SettingsPage() {
                   <span>
                     {c.name} <span className="text-xs text-faint">· {industryLabel(c.industry)}</span>
                   </span>
-                  <button onClick={() => hide.mutate({ id: c.id, hidden: false })} className="text-xs font-medium text-accent hover:underline">
+                  <button onClick={() => hide.mutate({ id: c.id, hidden: false }, { onError: (e: unknown) => toast.error(errorMessage(e)) })} className="text-xs font-medium text-accent hover:underline">
                     Unhide
                   </button>
                 </li>

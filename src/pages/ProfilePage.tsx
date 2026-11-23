@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import clsx from 'clsx';
 import { ArrowRight, Camera, Download, FileText, LoaderCircle, Save, UserRound } from 'lucide-react';
 import { useAvatar, useMe } from '../api/auth';
-import { errorOrNull } from '../api/client';
+import { errorMessage, errorOrNull } from '../api/client';
 import { useDraftProfile, useMyUsage, useProfile, useSaveProfile } from '../api/profile';
 import type { Answers, Preferences } from '../api/types';
 import { Avatar } from '../components/Avatar';
@@ -101,7 +101,7 @@ function ProfileHeader() {
           {user.avatar_version ? 'Change photo' : 'Add photo'}
         </button>
         {user.avatar_version && (
-          <button onClick={() => avatar.mutate(null)} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-bad">
+          <button onClick={() => avatar.mutate(null, { onError: (e: unknown) => toast.error(errorMessage(e)) })} className="rounded-lg px-3 py-1.5 text-xs text-muted hover:text-bad">
             Remove
           </button>
         )}
