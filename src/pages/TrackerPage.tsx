@@ -12,6 +12,7 @@ import { CompanyLogo } from '../components/CompanyLogo';
 import { StatusSelect } from '../components/StatusSelect';
 import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
 import { Progress } from '../components/Progress';
+import { errorMessage } from '../api/client';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { toast } from '../lib/toast';
@@ -313,7 +314,7 @@ function Column({
   onOpen: (id: number) => void;
   onStatus: (id: number, status: AppStatus | null) => void;
 }) {
-  const { data, isLoading } = useJobs({ status, limit: 100, sort: 'newest' });
+  const { data, isLoading, isError, error, refetch } = useJobs({ status, limit: 100, sort: 'newest' });
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const jobs = (data?.jobs ?? []).filter((j) => matches(j, query));
   return (
@@ -337,6 +338,13 @@ function Column({
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-20 w-full" />
           </>
+        ) : isError && !data ? (
+          <div className="px-1 py-4 text-center text-[11px] text-bad">
+            {errorMessage(error)}{' '}
+            <button onClick={() => void refetch()} className="font-medium text-accent-2 underline underline-offset-2">
+              Retry
+            </button>
+          </div>
         ) : jobs.length === 0 ? (
           <p className="px-1 py-4 text-center text-[11px] text-faint">{query.trim() ? 'No match for your search' : 'Nothing here yet'}</p>
         ) : (

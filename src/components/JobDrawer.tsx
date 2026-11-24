@@ -25,7 +25,7 @@ import type { AppStatus, JobDetail } from '../api/types';
 import { Description } from './Description';
 import { ClosedBadge, IndustryBadge, EarlyBadge, OldPostingBadge, StatusPill } from './JobBadges';
 import { CompanyLogo } from './CompanyLogo';
-import { Skeleton } from './States';
+import { ErrorState, Skeleton } from './States';
 import { Insights } from './JobInsights';
 import { absTime, relTime } from '../lib/format';
 import { handOffJob, useExtension } from '../lib/extension';
@@ -127,7 +127,7 @@ export function JobDrawer({
   /** The tab to open on, such as the interview prep the tracker offers. */
   initialTab?: DrawerTab;
 }) {
-  const { data: job, isLoading, error } = useJob(jobId);
+  const { data: job, isLoading, error, refetch } = useJob(jobId);
   const update = useUpdateApplication();
   const score = useScoreJob();
 
@@ -305,9 +305,7 @@ export function JobDrawer({
                 ))}
               </div>
             ) : error ? (
-              <p className="text-xs text-bad">
-                Couldn't load this job: {error instanceof Error ? error.message : 'network error'}
-              </p>
+              <ErrorState message={`Couldn't load this job: ${errorMessage(error)}`} onRetry={() => void refetch()} />
             ) : job ? (
               <>
                 {/* Every tab, even for a posting without a description. */}

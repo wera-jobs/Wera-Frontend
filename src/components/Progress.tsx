@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useAppAnalytics } from '../api/hooks';
 import type { AppAnalytics } from '../api/types';
 import { StatTile } from './StatTile';
-import { EmptyState, Skeleton } from './States';
+import { errorMessage } from '../api/client';
+import { EmptyState, ErrorState, Skeleton } from './States';
 
 const pct = (n: number, of: number) => (of ? `${Math.round((n / of) * 100)}%` : '—');
 const days = (d: number | null) => (d == null ? '—' : `${d < 10 ? d.toFixed(1) : Math.round(d)}d`);
@@ -14,8 +15,9 @@ const SOURCE: Record<string, string> = {
 };
 
 export function Progress() {
-  const { data, isLoading } = useAppAnalytics();
+  const { data, isLoading, isError, error, refetch } = useAppAnalytics();
   const [hover, setHover] = useState<number | null>(null);
+  if (isError && !data) return <ErrorState message={errorMessage(error)} onRetry={() => void refetch()} />;
   if (isLoading || !data) return <Skeleton className="h-64 w-full" />;
   const { reached, weeks, sources } = data;
   if (reached.applied === 0) {

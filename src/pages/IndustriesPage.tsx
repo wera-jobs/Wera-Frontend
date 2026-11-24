@@ -6,6 +6,7 @@ import { useProfile } from '../api/profile';
 import type { Industry } from '../api/types';
 import { IndustryIcon } from '../components/IndustryIcon';
 import { EmptyState, ErrorState, Skeleton } from '../components/States';
+import { errorMessage } from '../api/client';
 import { verdictColor, verdictOf } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
@@ -65,7 +66,7 @@ export default function IndustriesPage() {
     );
   }
   if (industries.isLoadingError) {
-    return <ErrorState message={String(industries.error)} onRetry={() => void industries.refetch()} />;
+    return <ErrorState message={errorMessage(industries.error)} onRetry={() => void industries.refetch()} />;
   }
   const all = (industries.data?.industries ?? []).filter((i) => i.companies > 0);
   if (all.length === 0) {
