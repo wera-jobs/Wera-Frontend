@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Copy, Download, LoaderCircle, PenLine, RefreshCw, Sparkles } from 'lucide-react';
 import { useMe } from '../api/auth';
-import { errorMessage } from '../api/client';
+import { downloadFile, errorMessage } from '../api/client';
 import { ErrorState } from './States';
 import { useCoverLetter, useWriteCoverLetter } from '../api/hooks';
 import type { JobDetail } from '../api/types';
@@ -10,41 +10,23 @@ import { toast } from '../lib/toast';
 
 const today = () => new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
-/** Opens a print dialog with just the letter, laid out on a page (Save as PDF). */
-function printLetter(name: string, email: string, company: string, title: string, body: string) {
-  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-  const paras = body.split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('');
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Cover letter - ${esc(company)}</title>
-<style>@page{margin:1in}body{font:11.5pt/1.55 Georgia,'Iowan Old Style',serif;color:#1d1f24;max-width:6.5in;margin:0 auto}
-.h{margin-bottom:28px}.n{font-size:15pt;font-weight:700}.m{color:#5f6470;font-size:10pt}p{margin:0 0 12px}</style></head>
-<body><div class="h"><div class="n">${esc(name)}</div><div class="m">${esc(email)}</div><div class="m" style="margin-top:14px">${esc(today())}</div>
-<div class="m" style="margin-top:14px">Hiring Team, ${esc(company)}<br>Re: ${esc(title)}</div></div>${paras}</body></html>`;
-  const frame = document.createElement('iframe');
-  Object.assign(frame.style, { position: 'fixed', right: '0', bottom: '0', width: '0', height: '0', border: '0' });
-  document.body.appendChild(frame);
-  const doc = frame.contentDocument!;
-  doc.open();
-  doc.write(html);
-  doc.close();
-  const win = frame.contentWindow!;
-  // Removed once printing is over: a fixed delay could pull the page out
-  // from under a print preview that was slow to open.
-  const fallback = window.setTimeout(() => frame.remove(), 60_000);
-  win.addEventListener('afterprint', () => {
-    window.clearTimeout(fallback);
-    frame.remove();
-  });
-  win.focus();
-  win.print();
-}
-
-/** The cover letter for a job: generate, read on a page, edit, copy, print. */
+/** The cover letter for a job: generate, read on a page, edit, copy, download as a PDF. */
 export function CoverLetterPanel({ job }: { job: JobDetail }) {
   const me = useMe();
   const letter = useCoverLetter(job.id, true);
   const write = useWriteCoverLetter(job.id);
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState('');
+  // The PDF comes from the API (the same file the extension attaches), not
+  // the browser's print dialog, which stamps the page address and title on
+  // it and names the file after the tab.
+  const [downloading, setDownloading] = useState(false);
+  const download = () => {
+    setDownloading(true);
+    downloadFile(`/api/jobs/${job.id}/cover-letter/pdf?download=1`, 'Cover_Letter.pdf')
+      .catch((e: unknown) => toast.error(errorMessage(e)))
+      .finally(() => setDownloading(false));
+  };
 
   const name = me.data?.name || me.data?.email || '';
   const generate = () => write.mutate(undefined, { onError: (e) => toast.error(errorMessage(e)) });
@@ -114,10 +96,11 @@ export function CoverLetterPanel({ job }: { job: JobDetail }) {
               disabled={writing}
             />
             <ToolButton
-              icon={Download}
+              icon={downloading ? LoaderCircle : Download}
               label="Download PDF"
-              onClick={() => printLetter(name, me.data?.email ?? '', job.company, job.title, letter.data?.body ?? '')}
-              disabled={writing}
+              onClick={download}
+              disabled={writing || downloading}
+              spin={downloading}
             />
             <ToolButton icon={writing ? LoaderCircle : RefreshCw} label={writing ? 'Writing…' : 'Rewrite'} onClick={generate} disabled={writing} spin={writing} />
           </>

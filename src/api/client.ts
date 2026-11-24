@@ -70,3 +70,24 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
+
+/**
+ * Downloads a file the API makes (a PDF, say) and saves it under the name
+ * the server gives it, or fallback. Errors come back as ApiError, like api().
+ */
+export async function downloadFile(path: string, fallback: string): Promise<void> {
+  const res = await fetch(path, { credentials: 'same-origin' });
+  if (res.status === 401) window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+  if (!res.ok) throw new ApiError(res.status, failureMessage(res, await res.text().catch(() => '')));
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const name = /filename="?([^";]+)"?/i.exec(disposition)?.[1] ?? fallback;
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // After the click has handed the file to the browser.
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
