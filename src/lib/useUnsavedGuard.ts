@@ -8,7 +8,7 @@ const QUESTION = 'You have changes that are not saved. Leave without saving them
  * app (ours). Links that open elsewhere (a new tab, a download) leave the
  * page where it is, so they pass.
  */
-export function useUnsavedGuard(dirty: boolean) {
+export function useUnsavedGuard(dirty: boolean, { unload = true }: { unload?: boolean } = {}) {
   useEffect(() => {
     if (!dirty) return;
     const onUnload = (e: BeforeUnloadEvent) => e.preventDefault();
@@ -23,12 +23,14 @@ export function useUnsavedGuard(dirty: boolean) {
         e.stopPropagation();
       }
     };
-    window.addEventListener('beforeunload', onUnload);
+    // unload: false for a page that asks on closing itself, from state that
+    // is current at that moment (this effect's copy is a render behind).
+    if (unload) window.addEventListener('beforeunload', onUnload);
     // Before the router sees the click.
     document.addEventListener('click', onClick, true);
     return () => {
       window.removeEventListener('beforeunload', onUnload);
       document.removeEventListener('click', onClick, true);
     };
-  }, [dirty]);
+  }, [dirty, unload]);
 }

@@ -30,7 +30,13 @@ export function JobRow({
     <tr
       onClick={() => onOpen(job.id)}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') onOpen(job.id);
+        // Keys from the checkbox or a link inside the row are theirs.
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          e.stopPropagation();
+          onOpen(job.id);
+        }
       }}
       tabIndex={0}
       aria-label={`${job.title} at ${job.company}`}

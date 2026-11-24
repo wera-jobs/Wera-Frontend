@@ -10,7 +10,8 @@ import { eventKindLabel, resumeText, whenText } from '../lib/events';
 import { relTime } from '../lib/format';
 import { StatusSelect } from './StatusSelect';
 import { CompanyLogo } from './CompanyLogo';
-import { EmptyState, Skeleton } from './States';
+import { errorMessage } from '../api/client';
+import { EmptyState, ErrorState, Skeleton } from './States';
 
 /** The next step on a card or row: what, and when, overdue in red. */
 export function NextStep({ job, className }: { job: Pick<Job, 'next_step' | 'next_step_at'>; className?: string }) {
@@ -68,12 +69,15 @@ export function TrackerList({
   statuses: AppStatus[];
   matches: (job: Job) => boolean;
   onOpen: (id: number) => void;
-  onStatus: (id: number, status: AppStatus) => void;
+  onStatus: (id: number, status: AppStatus | null) => void;
 }) {
   // The column list changes length ("Show not interested"), so one
   // useQueries call, never a hook per status.
   const results = useQueries({ queries: statuses.map((status) => jobsQuery({ status, limit: 100, sort: 'newest' })) });
   if (results.some((r) => r.isLoading)) return <Skeleton className="h-40 w-full" />;
+  // A stage that failed to load is not an empty stage.
+  const failed = results.filter((r) => r.isError && !r.data);
+  if (failed.length) return <ErrorState message={errorMessage(failed[0].error)} onRetry={() => failed.forEach((r) => void r.refetch())} />;
   const due = (j: Job) => (j.next_step_at ? new Date(j.next_step_at).getTime() : Infinity);
   const jobs = results
     .flatMap((r) => r.data?.jobs ?? [])
@@ -94,15 +98,16 @@ export function ArchivedList({
 }: {
   matches: (job: Job) => boolean;
   onOpen: (id: number) => void;
-  onStatus: (id: number, status: AppStatus) => void;
+  onStatus: (id: number, status: AppStatus | null) => void;
 }) {
-  const { data, isLoading } = useJobs({ archived: 1, limit: 200, sort: 'newest' });
+  const { data, isLoading, isError, error, refetch } = useJobs({ archived: 1, limit: 200, sort: 'newest' });
   if (isLoading) return <Skeleton className="h-40 w-full" />;
+  if (isError && !data) return <ErrorState message={errorMessage(error)} onRetry={() => void refetch()} />;
   const jobs = (data?.jobs ?? []).filter(matches);
   return <Rows jobs={jobs} empty="Nothing archived. Archive an application from its job view to clear it off the board." onOpen={onOpen} onStatus={onStatus} />;
 }
 
-function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; onOpen: (id: number) => void; onStatus: (id: number, status: AppStatus) => void }) {
+function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; onOpen: (id: number) => void; onStatus: (id: number, status: AppStatus | null) => void }) {
   if (jobs.length === 0) return <EmptyState title={empty} />;
   return (
     <div className="overflow-hidden rounded-card border border-border bg-surface">

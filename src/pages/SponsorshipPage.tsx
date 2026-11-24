@@ -151,7 +151,7 @@ export default function SponsorshipPage() {
       {data.isLoading ? (
         <SkeletonRows rows={6} />
       ) : data.isLoadingError ? (
-        <ErrorState message={String(data.error)} onRetry={() => void data.refetch()} />
+        <ErrorState message={errorMessage(data.error)} onRetry={() => void data.refetch()} />
       ) : !rows.length ? (
         <EmptyState title={query ? `No sponsorship data for “${query}”` : 'No sponsorship data yet'} hint="Try the employer lookup below." />
       ) : (

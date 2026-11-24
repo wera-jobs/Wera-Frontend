@@ -154,6 +154,51 @@ describe('resume workspace', () => {
   });
 });
 
+describe('LaTeX edits not applied yet', () => {
+  it('are applied, not lost, when switching tabs', async () => {
+    const { saves } = server();
+    renderApp(<Workspace doc={doc()} />);
+    await userEvent.click(await screen.findByRole('tab', { name: /LaTeX/ }));
+    fireEvent.change(await screen.findByLabelText('LaTeX'), { target: { value: '\\resumeHeader{Ada King}{}{}' } });
+    expect(await screen.findByText('LaTeX not applied')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('tab', { name: /Edit/ }));
+    expect(await screen.findByLabelText('Name')).toHaveValue('Ada King');
+    await waitFor(() => expect(saves.at(-1)?.data.name).toBe('Ada King'), { timeout: 3000 });
+  });
+
+  it('are in the download', async () => {
+    const { saves } = server();
+    renderApp(<Workspace doc={doc()} />);
+    await userEvent.click(await screen.findByRole('tab', { name: /LaTeX/ }));
+    fireEvent.change(await screen.findByLabelText('LaTeX'), { target: { value: '\\resumeHeader{Ada King}{}{}' } });
+    await userEvent.click(screen.getByRole('button', { name: /Download/ }));
+    // jsdom does not navigate; the save before it is what counts.
+    await userEvent.click(screen.getByRole('button', { name: /^PDF/ }));
+    await waitFor(() => expect(saves.at(-1)?.data.name).toBe('Ada King'));
+  });
+
+  it('that do not read are kept unless the person agrees to drop them', async () => {
+    server();
+    stubApi({
+      'GET /api/resumes/templates': () => templates,
+      'POST /api/resumes/preview': () => ({ pages: [svg], measure: { pages: 1, fill: 0.8 }, review: null }),
+      'POST /api/resumes/tex': () => ({ tex: '', preamble: '% Ivy\n', body: '\\resumeHeader{Ada Lovelace}{}{}' }),
+      'POST /api/resumes/parse-tex': () => jsonResponse(422, { error: 'unbalanced braces' }),
+    });
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderApp(<Workspace doc={doc()} />);
+    await userEvent.click(await screen.findByRole('tab', { name: /LaTeX/ }));
+    fireEvent.change(await screen.findByLabelText('LaTeX'), { target: { value: '\\resumeHeader{Ada' } });
+    await userEvent.click(screen.getByRole('tab', { name: /Review/ }));
+    await waitFor(() => expect(confirm).toHaveBeenCalled());
+    expect(screen.getByLabelText('LaTeX')).toHaveValue('\\resumeHeader{Ada');
+    confirm.mockReturnValue(true);
+    await userEvent.click(screen.getByRole('tab', { name: /Review/ }));
+    await waitFor(() => expect(screen.queryByLabelText('LaTeX')).toBeNull());
+    confirm.mockRestore();
+  });
+});
+
 describe('autosave', () => {
   it('saves edits made while an earlier save is still on its way', async () => {
     server();

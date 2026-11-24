@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fixtures, stubApi } from '../test/fixtures';
 import { jsonBody, renderApp } from '../test/render';
 import { JobDrawer, type DrawerTab } from './JobDrawer';
@@ -60,5 +60,41 @@ describe('JobDrawer', () => {
     await userEvent.click(within(tabs).getByRole('tab', { name: 'Cover letter' }));
     await waitFor(() => expect(within(tabs).getByRole('tab', { name: 'Cover letter' })).toHaveAttribute('aria-selected', 'true'));
     expect(await screen.findByRole('button', { name: /Write my letter/ })).toBeInTheDocument();
+  });
+
+  describe('on a phone', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+    const phone = () => {
+      const media = (q: string) => ({ media: q, matches: q.includes('max-width'), onchange: null,
+        addListener: vi.fn(), removeListener: vi.fn(), addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn() });
+      vi.spyOn(window, 'matchMedia').mockImplementation(media);
+    };
+
+    it('brings the tabs into view when the footer opens the cover letter', async () => {
+      phone();
+      stubApi({ [`GET /api/jobs/${a.id}`]: () => a, [`GET /api/jobs/${a.id}/cover-letter`]: () => letter('Hi.') });
+      renderApp(<JobDrawer jobId={a.id} onClose={() => {}} />);
+      await screen.findByText('About role A.');
+      const scrollIntoView = vi.fn();
+      screen.getByLabelText('The posting').scrollIntoView = scrollIntoView;
+      await userEvent.click(screen.getByRole('button', { name: /Cover letter/ }));
+      await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
+    });
+
+    it('scrolls the stacked body back to the top on the next job', async () => {
+      phone();
+      stubApi({ [`GET /api/jobs/${a.id}`]: () => a, [`GET /api/jobs/${b.id}`]: () => b });
+      renderApp(<Stepper ids={[a.id, b.id]} tab="posting" />);
+      await screen.findByText('About role A.');
+      const body = screen.getByLabelText('The posting').parentElement!;
+      // Its own mock: the prototype's is shared by every element.
+      const scrollTo = vi.fn();
+      body.scrollTo = scrollTo;
+      await userEvent.click(screen.getByRole('button', { name: 'Next job' }));
+      await screen.findByText('About role B.');
+      expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+    });
   });
 });

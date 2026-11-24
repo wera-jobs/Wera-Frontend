@@ -4,7 +4,7 @@ import { errorMessage } from '../api/client';
 import { useForgetAnswer, useSavedAnswers, useUpdateAnswer, type SavedAnswer } from '../api/extension';
 import { relTime } from '../lib/format';
 import { INPUT_CLS } from '../lib/styles';
-import { Skeleton } from '../components/States';
+import { ErrorState, Skeleton } from '../components/States';
 import { toast } from '../lib/toast';
 import { isCommon } from './answerGroups';
 
@@ -71,7 +71,7 @@ export function SavedAnswers() {
     if (ready && window.location.hash === '#answers') (document.getElementById('answers') ?? top.current)?.scrollIntoView({ block: 'start' });
   }, [ready]);
   if (q.isPending) return <Skeleton className="h-32 w-full" />;
-  if (q.isLoadingError) return <p className="text-xs text-bad">{errorMessage(q.error, 'Could not load your saved answers')}</p>;
+  if (q.isLoadingError) return <ErrorState message={errorMessage(q.error, 'Could not load your saved answers')} onRetry={() => void q.refetch()} />;
   const all = q.data.answers;
   if (!all.length) {
     return <p className="text-xs text-muted">None yet. When you fill an application with the extension, the answers you give are kept here and offered on the next form that asks.</p>;

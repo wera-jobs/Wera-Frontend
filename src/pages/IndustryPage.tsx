@@ -9,6 +9,7 @@ import { JobDrawer } from '../components/JobDrawer';
 import { JobRow } from '../components/JobRow';
 import { StatTile } from '../components/StatTile';
 import { EmptyState, ErrorState, Skeleton, SkeletonRows } from '../components/States';
+import { errorMessage } from '../api/client';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { stepId } from '../lib/format';
 import { boardURL } from '../lib/boards';
@@ -17,7 +18,7 @@ function Matches({ industry, onOpen }: { industry: string; onOpen: (id: number) 
   // Scored matches only (min_score 1), the same set the match count covers.
   const jobs = useJobs({ industry, min_score: 1, limit: 100, sort: 'score' });
   if (jobs.isLoading) return <SkeletonRows rows={5} />;
-  if (jobs.isLoadingError) return <ErrorState message={String(jobs.error)} onRetry={() => void jobs.refetch()} />;
+  if (jobs.isLoadingError) return <ErrorState message={errorMessage(jobs.error)} onRetry={() => void jobs.refetch()} />;
   const list = jobs.data?.jobs ?? [];
   if (list.length === 0) {
     return (
@@ -64,7 +65,7 @@ function Matches({ industry, onOpen }: { industry: string; onOpen: (id: number) 
 function Companies({ industry }: { industry: string }) {
   const companies = useCompanies();
   if (companies.isLoading) return <Skeleton className="h-40 w-full" />;
-  if (companies.isLoadingError) return <ErrorState message={String(companies.error)} />;
+  if (companies.isLoadingError) return <ErrorState message={errorMessage(companies.error)} onRetry={() => void companies.refetch()} />;
   const list = (companies.data?.companies ?? [])
     .filter((c) => c.industry === industry && c.enabled)
     .sort((a, b) => b.jobs_scored - a.jobs_scored || b.jobs_open - a.jobs_open);

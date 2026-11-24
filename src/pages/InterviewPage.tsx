@@ -361,7 +361,7 @@ export default function InterviewPage() {
   }
   const failed = tracks.isLoadingError ? tracks : domains.isLoadingError ? domains : null;
   if (failed) {
-    return <div className="mx-auto max-w-4xl pb-10">{header}<ErrorState message={String(failed.error)} onRetry={() => void failed.refetch()} /></div>;
+    return <div className="mx-auto max-w-4xl pb-10">{header}<ErrorState message={errorMessage(failed.error)} onRetry={() => void failed.refetch()} /></div>;
   }
   if (!track) return <div className="mx-auto max-w-4xl pb-10">{header}<EmptyState title="Practice is on its way" hint="Check back soon." /></div>;
   const d = domains.data?.domains ?? [];

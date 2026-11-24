@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState, type ReactNode, type Ref } from 'react';
 import clsx from 'clsx';
 import { Check, ChevronDown, CircleAlert, Copy, Download, ExternalLink, LoaderCircle, RotateCcw } from 'lucide-react';
 import { errorMessage } from '../api/client';
@@ -35,10 +35,11 @@ function CodeArea({ value, onChange, label }: { value: string; onChange: (v: str
     }
     if (gutter.current) gutter.current.scrollTop = e.currentTarget.scrollTop;
   };
-  const shared = 'm-0 whitespace-pre p-3 font-mono text-[12px] leading-[1.6]';
+  // code-area: on touch screens the text and the field over it grow together (index.css).
+  const shared = 'code-area m-0 whitespace-pre p-3 font-mono text-[12px] leading-[1.6]';
   return (
     <div className="flex h-[70vh] min-h-96 overflow-hidden rounded-lg border border-border bg-surface focus-within:border-accent/60">
-      <div ref={gutter} aria-hidden className="w-10 shrink-0 overflow-hidden border-r border-border bg-surface-2/50 py-3 pr-2 text-right font-mono text-[12px] leading-[1.6] text-faint select-none">
+      <div ref={gutter} aria-hidden className="code-area w-10 shrink-0 overflow-hidden border-r border-border bg-surface-2/50 py-3 pr-2 text-right font-mono text-[12px] leading-[1.6] text-faint select-none">
         {Array.from({ length: lines }, (_, i) => <div key={i}>{i + 1}</div>)}
       </div>
       <div className="relative min-w-0 flex-1">
@@ -67,13 +68,27 @@ function openInOverleaf(tex: string) {
   form.remove();
 }
 
+/** What the workspace can ask of the editor before it leaves or downloads. */
+export type LatexHandle = {
+  /**
+   * Applies edits not applied yet. Resolves to the resume with them, null
+   * when there are none, or 'unreadable' when the LaTeX does not read.
+   */
+  settle: () => Promise<ResumeData | null | 'unreadable'>;
+  /** Drops the edits, back to the resume as it is. */
+  discard: () => void;
+};
+
 /**
  * The resume as LaTeX. Edits are read back as you type (the preview
  * follows through onPreview) and applied to the resume with Apply.
  */
-export function LatexEditor({ data, layout, filename, onApply, onPreview }: {
+export function LatexEditor({ data, layout, filename, onApply, onPreview, onDirty, handle }: {
   data: ResumeData; layout: Layout; filename: string;
   onApply: (d: ResumeData) => void; onPreview: (d: ResumeData | null) => void;
+  /** Whether there are edits not applied to the resume. */
+  onDirty?: (dirty: boolean) => void;
+  handle?: Ref<LatexHandle>;
 }) {
   const [source, setSource] = useState<{ preamble: string; body: string } | null>(null);
   const [body, setBody] = useState('');
@@ -128,6 +143,24 @@ export function LatexEditor({ data, layout, filename, onApply, onPreview }: {
     return () => { live = false; window.clearTimeout(t); };
   }, [body, dirty]); // eslint-disable-line react-hooks/exhaustive-deps -- onPreview is a setter
   useEffect(() => () => onPreview(null), []); // eslint-disable-line react-hooks/exhaustive-deps -- leaving the tab restores the preview
+  useEffect(() => {
+    onDirty?.(dirty);
+  }, [dirty, onDirty]);
+  useEffect(() => () => onDirty?.(false), [onDirty]);
+
+  useImperativeHandle(handle, () => ({
+    settle: async () => {
+      if (!source || !dirty) return null;
+      const read = await parseResumeTeX(body).catch(() => null);
+      if (!read?.data) return 'unreadable';
+      onApply(read.data);
+      setSource({ ...source, body });
+      return read.data;
+    },
+    discard: () => {
+      if (source) setBody(source.body);
+    },
+  }), [source, dirty, body, onApply]);
 
   if (!source && genError) return <ErrorState message={genError} onRetry={() => setAttempt((n) => n + 1)} />;
   if (!source) return <div className="skeleton h-96 w-full" />;

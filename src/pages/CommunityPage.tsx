@@ -6,6 +6,7 @@ import { usePosts } from '../api/community';
 import { Avatar } from '../components/Avatar';
 import { Reactions } from '../components/Reactions';
 import { EmptyState, ErrorState, SkeletonRows } from '../components/States';
+import { errorMessage } from '../api/client';
 import { relTime } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
@@ -54,7 +55,7 @@ export default function CommunityPage() {
       {feed.isLoading ? (
         <SkeletonRows rows={4} />
       ) : feed.isLoadingError ? (
-        <ErrorState message={String(feed.error)} onRetry={() => void feed.refetch()} />
+        <ErrorState message={errorMessage(feed.error)} onRetry={() => void feed.refetch()} />
       ) : !feed.data?.posts.length ? (
         <EmptyState
           icon={<Users className="size-6 text-faint" />}
