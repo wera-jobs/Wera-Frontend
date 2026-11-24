@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.34.3](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.2...wera-frontend-v0.34.3) (2026-11-24)
+
+
+### Bug Fixes
+
+* apply or confirm LaTeX edits before leaving the tab, downloading or fitting, and align the LaTeX caret on touch screens ([44c2660](https://github.com/wera-jobs/Wera-Frontend/commit/44c26606ce4621da84dce4e9e693196e088ba3d5)), closes [#290](https://github.com/wera-jobs/Wera-Frontend/issues/290)
+* ask once per click when several sections are unsaved, guard the post draft, and forget the session on sign-out ([a2aa7f2](https://github.com/wera-jobs/Wera-Frontend/commit/a2aa7f22abce4cf67da44e3f9445d606b1ef953a)), closes [#297](https://github.com/wera-jobs/Wera-Frontend/issues/297)
+* close the phone row-tools menu on action, outside tap or Escape, and show each application's stage on phones ([79a78b3](https://github.com/wera-jobs/Wera-Frontend/commit/79a78b363d9d6e9068c34db6e982aef6c428b517)), closes [#298](https://github.com/wera-jobs/Wera-Frontend/issues/298)
+* close the re-import when another resume is picked ([a2d826e](https://github.com/wera-jobs/Wera-Frontend/commit/a2d826e74ff59a19fa1f233499bbecaf8360e7fa)), closes [#291](https://github.com/wera-jobs/Wera-Frontend/issues/291)
+* count only a sort other than the person's default as a filter, and drop a pending search on Clear ([14f87d3](https://github.com/wera-jobs/Wera-Frontend/commit/14f87d331a0a35a12924b5e1011a98095642810c)), closes [#295](https://github.com/wera-jobs/Wera-Frontend/issues/295)
+* date the progress weeks in UTC, and run tests west of UTC to catch day shifts ([d19859c](https://github.com/wera-jobs/Wera-Frontend/commit/d19859ca8506a51478f47911b69c0067df5b0644)), closes [#296](https://github.com/wera-jobs/Wera-Frontend/issues/296)
+* find companies and more pages in the palette, link companies to their Wera page, and fill in interview, hide and notification gaps ([29c2bc6](https://github.com/wera-jobs/Wera-Frontend/commit/29c2bc6c2170f3d05b945cea86d78973e7c84241)), closes [#299](https://github.com/wera-jobs/Wera-Frontend/issues/299)
+* keep Enter on buttons and rows from opening the cursor job, and keep filters on /jobs/:id ([588e179](https://github.com/wera-jobs/Wera-Frontend/commit/588e179c2a1383717805b6fd6293189f4eeddddc)), closes [#289](https://github.com/wera-jobs/Wera-Frontend/issues/289)
+* let saved jobs be unsaved and tracked jobs be taken off the tracker ([8a071e8](https://github.com/wera-jobs/Wera-Frontend/commit/8a071e8e18f8b899583ffba0b636dd6a2c086653)), closes [#292](https://github.com/wera-jobs/Wera-Frontend/issues/292)
+* P1 UI bugs from the Nov 23 audit ([#289](https://github.com/wera-jobs/Wera-Frontend/issues/289) to [#294](https://github.com/wera-jobs/Wera-Frontend/issues/294)) ([54ada32](https://github.com/wera-jobs/Wera-Frontend/commit/54ada32b2770e720363cbf34702c3dbb38f55331))
+* P2 UI bugs from the Nov 23 audit ([#295](https://github.com/wera-jobs/Wera-Frontend/issues/295) to [#299](https://github.com/wera-jobs/Wera-Frontend/issues/299)) ([ff5e0d5](https://github.com/wera-jobs/Wera-Frontend/commit/ff5e0d574b5acfd9e62cc3e21dfbf4a3a7123541))
+* scroll the job view to the top on phones and bring a footer-picked tab into view ([ccd1edc](https://github.com/wera-jobs/Wera-Frontend/commit/ccd1edcbf6cb7a52279822cd2a68245b6c5cab1c)), closes [#293](https://github.com/wera-jobs/Wera-Frontend/issues/293)
+* show an error with Retry when a list or chart fails to load, in plain words ([33d4ed0](https://github.com/wera-jobs/Wera-Frontend/commit/33d4ed0289a5c353cce40d4f55dd0eeafe712467)), closes [#294](https://github.com/wera-jobs/Wera-Frontend/issues/294)
+
 ## [0.34.2](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.1...wera-frontend-v0.34.2) (2026-11-23)
 
 
