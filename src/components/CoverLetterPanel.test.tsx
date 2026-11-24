@@ -1,8 +1,9 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { JobDetail } from '../api/types';
 import { jsonResponse, mockApi, renderApp, jsonBody } from '../test/render';
+import { Toasts } from '../lib/toast';
 import { CoverLetterPanel } from './CoverLetterPanel';
 
 const job = { id: 5, company: 'Acme', title: 'Site Reliability Engineer' } as JobDetail;
@@ -34,21 +35,36 @@ describe('CoverLetterPanel', () => {
     expect(screen.getByText('Edited by you')).toBeInTheDocument();
   });
 
-  it('keeps the print page until printing is over', async () => {
+  it('downloads the PDF the API makes, under its name, with no print dialog', async () => {
     mockApi({
       'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'Ada', is_admin: false, created_at: '' }, avatar_version: null }),
       'GET /api/jobs/5/cover-letter': () => letter('Dear team,\n\nHello.'),
+      'GET /api/jobs/5/cover-letter/pdf': () =>
+        new Response(new Blob(['%PDF-1.7']), { headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': 'attachment; filename="Ada_Lovelace_Cover_Letter.pdf"' } }),
+    });
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {});
+    const names: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      names.push(this.download);
     });
     renderApp(<CoverLetterPanel job={job} />);
     await screen.findByText('Hello.');
     await userEvent.click(screen.getByRole('button', { name: /Download PDF/ }));
-    const frame = document.querySelector('iframe')!;
-    expect(frame).not.toBeNull();
-    // A slow print preview: still there well after the old one-second cutoff.
-    await new Promise((done) => setTimeout(done, 1200));
-    expect(document.body.contains(frame)).toBe(true);
-    frame.contentWindow!.dispatchEvent(new Event('afterprint'));
-    expect(document.body.contains(frame)).toBe(false);
+    await waitFor(() => expect(names).toEqual(['Ada_Lovelace_Cover_Letter.pdf']));
+    expect(print).not.toHaveBeenCalled();
+    expect(document.querySelector('iframe')).toBeNull();
+    click.mockRestore();
+  });
+
+  it('says why when the PDF cannot be made', async () => {
+    mockApi({
+      'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'Ada', is_admin: false, created_at: '' }, avatar_version: null }),
+      'GET /api/jobs/5/cover-letter': () => letter('Hello.'),
+      'GET /api/jobs/5/cover-letter/pdf': () => jsonResponse(500, { error: 'could not render the letter' }),
+    });
+    renderApp(<><CoverLetterPanel job={job} /><Toasts /></>);
+    await screen.findByText('Hello.');
+    await userEvent.click(screen.getByRole('button', { name: /Download PDF/ }));
+    expect(await screen.findByText('could not render the letter')).toBeInTheDocument();
   });
 });
-
