@@ -1,6 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient } from '@tanstack/react-query';
+import { signOutLocally } from '../api/auth';
 import { useUnsavedGuard } from './useUnsavedGuard';
 
 function Page({ dirty, onNav }: { dirty: boolean; onNav: () => void }) {
@@ -54,5 +56,37 @@ describe('leaving with unsaved edits', () => {
     const dirty = new Event('beforeunload', { cancelable: true });
     window.dispatchEvent(dirty);
     expect(dirty.defaultPrevented).toBe(true);
+  });
+
+  it('asks once for two unsaved sections on the same page', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    function Section() {
+      useUnsavedGuard(true);
+      return null;
+    }
+    const onNav = vi.fn();
+    render(<><Section /><Page dirty onNav={onNav} /></>);
+    await userEvent.click(screen.getByText('Tracker'));
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(onNav).toHaveBeenCalledTimes(1);
+  });
+
+  it('can leave closing the tab to the page', () => {
+    function Own() {
+      useUnsavedGuard(true, { unload: false });
+      return null;
+    }
+    render(<Own />);
+    const ev = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(ev);
+    expect(ev.defaultPrevented).toBe(false);
+  });
+});
+
+describe('signing out', () => {
+  it('forgets that this browser had a session', () => {
+    localStorage.setItem('wera-session', '1');
+    signOutLocally(new QueryClient());
+    expect(localStorage.getItem('wera-session')).toBeNull();
   });
 });

@@ -3,6 +3,9 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { fixtures, stubApi } from '../test/fixtures';
 import { jsonResponse, renderApp, jsonBody } from '../test/render';
 import IndustriesPage from './IndustriesPage';
@@ -102,6 +105,40 @@ describe('JobsPage', () => {
   });
 });
 
+describe('taking a job off the tracker', () => {
+  it('clicking Saved in the job view unsaves the job', async () => {
+    let deleted = false;
+    stubApi({
+      [`GET /api/jobs/${fixtures.job.id}`]: () => ({ ...fixtures.job, application_status: 'saved' }),
+      [`DELETE /api/jobs/${fixtures.job.id}/application`]: () => {
+        deleted = true;
+        return { ...fixtures.job, application_status: null };
+      },
+    });
+    renderApp(<JobsPage />, { path: `/jobs?job=${fixtures.job.id}`, route: '/jobs' });
+    const dialog = await screen.findByRole('dialog');
+    const saved = await within(dialog).findByRole('button', { name: /Saved/, pressed: true });
+    await userEvent.click(saved);
+    await waitFor(() => expect(deleted).toBe(true));
+  });
+
+  it('Remove from tracker in the status menu clears the status', async () => {
+    let deleted = false;
+    stubApi({
+      [`GET /api/jobs/${fixtures.job.id}`]: () => ({ ...fixtures.job, application_status: 'applied' }),
+      [`DELETE /api/jobs/${fixtures.job.id}/application`]: () => {
+        deleted = true;
+        return { ...fixtures.job, application_status: null };
+      },
+    });
+    renderApp(<JobsPage />, { path: `/jobs?job=${fixtures.job.id}`, route: '/jobs' });
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(fixtures.job.title);
+    await userEvent.selectOptions(within(dialog).getByRole('combobox', { name: 'Application status' }), 'Remove from tracker');
+    await waitFor(() => expect(deleted).toBe(true));
+  });
+});
+
 describe('JobsPage keyboard', () => {
   it('j and k move the selection; Enter opens the job', async () => {
     stubApi();
@@ -117,6 +154,101 @@ describe('JobsPage keyboard', () => {
     const second = fixtures.jobs.jobs[1];
     const dialog = await screen.findByRole('dialog');
     expect(await within(dialog).findByRole('heading', { name: second.title })).toBeInTheDocument();
+  });
+
+  it('Enter on a focused row opens that row, not the cursor row', async () => {
+    stubApi();
+    renderApp(<JobsPage />, { path: '/jobs', route: '/jobs' });
+    const second = fixtures.jobs.jobs[1];
+    const row = await screen.findByRole('row', { name: `${second.title} at ${second.company}` });
+    row.focus();
+    await userEvent.keyboard('{Enter}');
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByRole('heading', { name: second.title })).toBeInTheDocument();
+  });
+
+  it('Enter on a button does not open a job', async () => {
+    stubApi();
+    renderApp(<JobsPage />, { path: '/jobs', route: '/jobs' });
+    await screen.findAllByText(fixtures.jobs.jobs[0].title);
+    const add = screen.getByRole('button', { name: /Add job/ });
+    fireEvent.keyDown(add, { key: 'Enter' });
+    // fireEvent does not press the button, so any dialog would be the page's doing.
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('JobsPage filters', () => {
+  it('a default sort of Newest is not a filter to clear', async () => {
+    stubApi({
+      'GET /api/settings': () => ({
+        theme: 'system', default_sort: 'newest', hidden_companies: [],
+        notifications: { email_digest: true, frequency: 'daily', strong_matches: true, min_score: 80, product_updates: false },
+      }),
+    });
+    renderApp(<JobsPage />, { path: '/jobs', route: '/jobs' });
+    await screen.findAllByText(fixtures.jobs.jobs[0].title);
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Sort/i })).toHaveValue('newest'));
+    expect(screen.queryByRole('button', { name: /Clear/ })).toBeNull();
+  });
+
+  it('Clear drops a search still being typed', async () => {
+    const searched: string[] = [];
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        searched.push(url.searchParams.get('q') ?? '');
+        return fixtures.jobs;
+      },
+    });
+    renderApp(<JobsPage />, { path: '/jobs?work_mode=remote', route: '/jobs' });
+    await screen.findAllByText(fixtures.jobs.jobs[0].title);
+    const box = screen.getByRole('textbox', { name: /Search/i });
+    fireEvent.change(box, { target: { value: 'golang' } });
+    await userEvent.click(screen.getByRole('button', { name: /Clear/ }));
+    expect(box).toHaveValue('');
+    await new Promise((r) => setTimeout(r, 450));
+    expect(searched).not.toContain('golang');
+  });
+});
+
+describe('JobsPage at /jobs/:id', () => {
+  function Where() {
+    const loc = useLocation();
+    return <output aria-label="location">{loc.pathname + loc.search}</output>;
+  }
+  function renderAt(path: string) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/jobs" element={<><JobsPage /><Where /></>} />
+            <Route path="/jobs/:id" element={<><JobsPage /><Where /></>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+  }
+
+  it('closing the drawer keeps the filters', async () => {
+    stubApi();
+    renderAt(`/jobs/${fixtures.job.id}?work_mode=remote`);
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(fixtures.job.title);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.getByLabelText('location')).toHaveTextContent(/^\/jobs\?work_mode=remote$/));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('changing a filter leaves the path job closed', async () => {
+    stubApi();
+    renderAt(`/jobs/${fixtures.job.id}?work_mode=remote`);
+    await screen.findByRole('dialog');
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    const first = fixtures.jobs.jobs[0];
+    await userEvent.click((await screen.findAllByText(first.title))[0]);
+    await waitFor(() => expect(screen.getByLabelText('location')).toHaveTextContent(`/jobs?work_mode=remote&job=${first.id}`));
   });
 });
 

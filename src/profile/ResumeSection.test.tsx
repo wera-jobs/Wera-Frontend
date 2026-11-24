@@ -145,6 +145,26 @@ describe('ResumeSection', () => {
     expect(screen.getByRole('button', { name: /Convert my resume/ })).toBeEnabled();
   });
 
+  it('picking another resume during a re-import closes the import', async () => {
+    stubApi({
+      'GET /api/profile': () => ({ resume_chars: 900 }),
+      'GET /api/resumes': () => ({ resumes: [
+        { id: 3, title: 'My resume', job_id: null, updated_at: '2026-10-10T00:00:00Z' },
+        { id: 4, title: 'SRE', job_id: 12, job_title: 'SRE', job_company: 'Acme', updated_at: '2026-10-10T00:00:00Z' },
+      ] }),
+      'GET /api/resumes/3': () => doc(),
+      'GET /api/resumes/4': () => doc({ id: 4, job_id: 12, job_title: 'SRE', job_company: 'Acme', data: { ...doc().data, name: 'Ada Tailored' } }),
+      'POST /api/resumes/preview': preview,
+    });
+    renderApp(<ResumeSection />, { path: '/profile/resume/3', route: '/profile/resume/:id?' });
+    await screen.findByLabelText('Name');
+    await userEvent.click(screen.getByRole('button', { name: 'Re-import' }));
+    expect(screen.getByText(/Importing replaces your main resume/)).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Resume' }), '4');
+    expect(await screen.findByLabelText('Name')).toHaveValue('Ada Tailored');
+    expect(screen.queryByText(/Importing replaces your main resume/)).not.toBeInTheDocument();
+  });
+
   it('edits with autosave, shows hidden items, previews and fits', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const saves: { data: ResumeDoc['data'] }[] = [];

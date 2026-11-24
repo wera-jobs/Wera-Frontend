@@ -100,6 +100,20 @@ describe('InterviewPage', () => {
     expect(localStorage.getItem('wera.interview.track')).toBe('frontend');
   });
 
+  it("links an interview to its prep and shows the prep's questions", async () => {
+    routes({
+      'GET /api/jobs': () => ({ count: 1, jobs: [{ id: 42, title: 'Backend Engineer', company: 'Acme' }] }),
+      'GET /api/jobs/42': () => ({ id: 42, title: 'Backend Engineer', company: 'Acme', deep: null }),
+      'GET /api/jobs/42/interview-prep': () => ({
+        prep: { role: 'Backend', they_value: [], intro: '', ask: [], questions: [{ question: 'How would you shard the orders table?', kind: 'role', why: '', points: [], prepare: '' }] },
+        model: 'm', created_at: '', updated_at: '',
+      }),
+    });
+    renderApp(<InterviewPage />);
+    expect(await screen.findByRole('link', { name: 'Backend Engineer' })).toHaveAttribute('href', '/jobs?job=42&tab=prep');
+    expect(await screen.findByText('How would you shard the orders table?')).toBeInTheDocument();
+  });
+
   it('runs a round for the track and stack: answer, see why, finish with a score', async () => {
     const fetchMock = routes({
       'GET /api/interview/quiz': (_init, url) => {

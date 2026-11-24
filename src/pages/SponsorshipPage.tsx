@@ -151,7 +151,7 @@ export default function SponsorshipPage() {
       {data.isLoading ? (
         <SkeletonRows rows={6} />
       ) : data.isLoadingError ? (
-        <ErrorState message={String(data.error)} onRetry={() => void data.refetch()} />
+        <ErrorState message={errorMessage(data.error)} onRetry={() => void data.refetch()} />
       ) : !rows.length ? (
         <EmptyState title={query ? `No sponsorship data for “${query}”` : 'No sponsorship data yet'} hint="Try the employer lookup below." />
       ) : (
@@ -177,7 +177,7 @@ export default function SponsorshipPage() {
                       onMouseEnter={() => files && prefetch(s.company_id)}
                       className={clsx('transition-colors', files && 'cursor-pointer hover:bg-surface-2/50', isOpen && 'bg-surface-2/40')}>
                       <td className="px-4 py-3">
-                        <Link to={`/jobs?q=${encodeURIComponent(s.company)}`} onClick={(e) => e.stopPropagation()} className="font-medium text-text hover:text-accent">
+                        <Link to={`/companies/${s.company_id}`} onClick={(e) => e.stopPropagation()} className="font-medium text-text hover:text-accent">
                           {s.company}
                         </Link>
                         <div className="text-xs text-faint">{industryLabel(s.industry)} · {s.open_jobs} open</div>

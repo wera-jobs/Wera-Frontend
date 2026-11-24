@@ -33,7 +33,9 @@ export function NotificationBell() {
   const go = (n: AppNotification) => {
     if (!n.read_at) read.mutate([n.id]);
     setOpen(false);
-    void navigate(n.kind === 'strong_matches' ? '/' : n.job_id ? `/jobs?job=${n.job_id}` : '/tracker');
+    // A company you follow posting several roles: they are in Jobs, not the tracker.
+    const home = n.kind === 'strong_matches' ? '/' : n.kind === 'followed_company' ? '/jobs' : '/tracker';
+    void navigate(n.job_id && n.kind !== 'strong_matches' ? `/jobs?job=${n.job_id}` : home);
   };
 
   return (

@@ -3,7 +3,8 @@ import { useProfileOptions } from '../api/profile';
 import type { Answers, Preferences, WorkAuthorization } from '../api/types';
 import { Field } from '../components/Field';
 import { INPUT_CLS } from '../lib/styles';
-import { Skeleton } from '../components/States';
+import { errorMessage } from '../api/client';
+import { ErrorState, Skeleton } from '../components/States';
 import { ChipSelect } from './ChipSelect';
 import { LocationPicker } from './LocationPicker';
 import { RoleFamilyPicker } from './RoleFamilyPicker';
@@ -55,7 +56,13 @@ export function PreferencesFields({
   onAnswers: (a: Answers) => void;
 }) {
   const options = useProfileOptions();
-  if (!options.data) return <Skeleton className="h-64 w-full" />;
+  if (!options.data) {
+    return options.isError ? (
+      <ErrorState message={errorMessage(options.error)} onRetry={() => void options.refetch()} />
+    ) : (
+      <Skeleton className="h-64 w-full" />
+    );
+  }
   const { fields, role_families, levels, industries } = options.data;
 
   const setAuth = (auth: WorkAuthorization) => {

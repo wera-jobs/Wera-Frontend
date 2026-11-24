@@ -72,6 +72,7 @@ export function useAuthMutation(kind: 'login' | 'signup') {
  * re-render to send the user to the login page.
  */
 export function signOutLocally(qc: QueryClient) {
+  rememberSession(false);
   qc.setQueryData(['me'], null);
   qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
 }
@@ -99,6 +100,7 @@ export function useDeleteAccount() {
   return useMutation({
     mutationFn: (password: string) =>
       api<void>('/api/auth/account', { method: 'DELETE', body: JSON.stringify({ password }) }),
+    onSuccess: () => rememberSession(false),
   });
 }
 

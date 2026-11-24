@@ -25,7 +25,7 @@ import type { AppStatus, JobDetail } from '../api/types';
 import { Description } from './Description';
 import { ClosedBadge, IndustryBadge, EarlyBadge, OldPostingBadge, StatusPill } from './JobBadges';
 import { CompanyLogo } from './CompanyLogo';
-import { Skeleton } from './States';
+import { ErrorState, Skeleton } from './States';
 import { Insights } from './JobInsights';
 import { absTime, relTime } from '../lib/format';
 import { handOffJob, useExtension } from '../lib/extension';
@@ -71,7 +71,7 @@ function Tabs({ tab, setTab }: { tab: DrawerTab; setTab: (t: DrawerTab) => void 
 }
 
 /** Right column: the fit analysis, facts, and the user's application. */
-function Header({ job }: { job: JobDetail }) {
+function Header({ job, onLeave }: { job: JobDetail; onLeave: () => void }) {
   const location = job.location_summary ?? job.location_raw;
   return (
     <div className="min-w-0">
@@ -86,7 +86,8 @@ function Header({ job }: { job: JobDetail }) {
       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
           <CompanyLogo name={job.company} url={job.logo_url} size="md" />
-          <Link to={`/companies/${job.company_id}`} className="font-medium text-text hover:text-accent hover:underline">
+          {/* Closes the view first: on a page that keeps it open (a company's own page), it would stay over the new page. */}
+          <Link to={`/companies/${job.company_id}`} onClick={onLeave} className="font-medium text-text hover:text-accent hover:underline">
             {job.company}
           </Link>
           {job.department && <span className="text-faint">· {job.department}</span>}
@@ -127,7 +128,7 @@ export function JobDrawer({
   /** The tab to open on, such as the interview prep the tracker offers. */
   initialTab?: DrawerTab;
 }) {
-  const { data: job, isLoading, error } = useJob(jobId);
+  const { data: job, isLoading, error, refetch } = useJob(jobId);
   const update = useUpdateApplication();
   const score = useScoreJob();
 
@@ -141,8 +142,9 @@ export function JobDrawer({
   }, [job, score]);
   const scrollers = useRef<(HTMLElement | null)[]>([]);
 
-  // New job: back to the top of both columns, with the keyboard on the
-  // posting, so arrows, Page Down and Space scroll it.
+  // New job: back to the top of both columns (and, on phones, of the body
+  // they stack in), with the keyboard on the posting, so arrows, Page Down
+  // and Space scroll it.
   useEffect(() => {
     scrollers.current.forEach((el) => el?.scrollTo({ top: 0 }));
     scrollers.current[0]?.focus({ preventScroll: true });
@@ -168,23 +170,41 @@ export function JobDrawer({
 
   useScrollLock();
 
-  const setStatus = (status: AppStatus) =>
+  const setStatus = (status: AppStatus | null) =>
     job && update.mutate({ id: job.id, status, notes: job.application_notes ?? '' });
   const setWithUndo = useStatusWithUndo();
   const extension = useExtension();
   const [tab, setTab] = useState<DrawerTab>(initialTab);
   const [tabJob, setTabJob] = useState(jobId);
   const [askedTab, setAskedTab] = useState(initialTab);
+  // A tab picked from outside the tab strip (the footer, a link to a tab):
+  // on phones the strip sits below the insights, so bring it into view.
+  // Each request bumps the count; the effect below handles each one once.
+  const [reveals, setReveals] = useState(initialTab !== 'posting' ? 1 : 0);
+  const revealed = useRef(0);
   if (tabJob !== jobId) {
     // A different job opens on its posting (or the tab it was opened for).
     setTabJob(jobId);
     setAskedTab(initialTab);
     setTab(initialTab);
+    if (initialTab !== 'posting') setReveals((n) => n + 1);
   } else if (askedTab !== initialTab) {
     // Asked again for a tab while open, such as interview prep from a toast.
     setAskedTab(initialTab);
     setTab(initialTab);
+    if (initialTab !== 'posting') setReveals((n) => n + 1);
   }
+  const showTab = (t: DrawerTab) => {
+    setTab(t);
+    if (t !== 'posting') setReveals((n) => n + 1);
+  };
+  const loaded = job != null;
+  useEffect(() => {
+    if (!loaded || revealed.current === reveals) return;
+    revealed.current = reveals;
+    // Only where the columns stack: on wider screens the tabs are in view.
+    if (window.matchMedia('(max-width: 767px)').matches) scrollers.current[0]?.scrollIntoView({ block: 'start' });
+  }, [reveals, loaded]);
   const hide = useHideCompany();
   const hideCompany = () => {
     if (!job) return;
@@ -192,7 +212,10 @@ export function JobDrawer({
       { id: job.company_id, hidden: true },
       {
         onSuccess: () => {
-          toast.success(`${job.company} hidden. Unhide it in Settings.`);
+          toast.success(`${job.company} hidden from your matches.`, {
+            label: 'Undo',
+            run: () => hide.mutate({ id: job.company_id, hidden: false }, { onError: (e: unknown) => toast.error(errorMessage(e)) }),
+          });
           onClose();
         },
         onError: (e: unknown) => toast.error(errorMessage(e)),
@@ -214,7 +237,7 @@ export function JobDrawer({
         {/* Top bar: header + actions */}
         <div className="flex shrink-0 items-start gap-4 border-b border-border px-5 py-4 md:px-6">
           {job ? (
-            <Header job={job} />
+            <Header job={job} onLeave={onClose} />
           ) : (
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-28" />
@@ -223,7 +246,8 @@ export function JobDrawer({
             </div>
           )}
           <div className="ml-auto flex shrink-0 items-center gap-1">
-            {job && (
+            {/* A job you added has no company board to hide. */}
+            {job && job.source !== 'manual' && (
               <button
                 onClick={hideCompany}
                 aria-label={`Hide ${job.company}`}
@@ -265,7 +289,12 @@ export function JobDrawer({
         </div>
 
         {/* Body: posting | insights (stacked on phones, insights first) */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain md:grid md:grid-cols-[minmax(0,1fr)_360px] md:overflow-hidden lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div
+          ref={(el) => {
+            scrollers.current[2] = el;
+          }}
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain md:grid md:grid-cols-[minmax(0,1fr)_360px] md:overflow-hidden lg:grid-cols-[minmax(0,1fr)_400px]"
+        >
           <div
             ref={(el) => {
               scrollers.current[0] = el;
@@ -281,9 +310,7 @@ export function JobDrawer({
                 ))}
               </div>
             ) : error ? (
-              <p className="text-xs text-bad">
-                Couldn't load this job: {error instanceof Error ? error.message : 'network error'}
-              </p>
+              <ErrorState message={`Couldn't load this job: ${errorMessage(error)}`} onRetry={() => void refetch()} />
             ) : job ? (
               <>
                 {/* Every tab, even for a posting without a description. */}
@@ -341,15 +368,16 @@ export function JobDrawer({
               {!job.closed_at && extension && <span className="font-normal opacity-80">· Wera fills it</span>}
             </a>
             <button
-              onClick={() => setStatus('saved')}
-              disabled={saved}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-medium text-text transition-colors duration-150 hover:border-accent/40 hover:text-accent disabled:cursor-default disabled:border-accent/30 disabled:text-accent"
+              onClick={() => setStatus(saved ? null : 'saved')}
+              aria-pressed={saved}
+              title={saved ? 'Saved. Click to unsave.' : undefined}
+              className={`inline-flex items-center gap-1.5 rounded-lg border bg-surface-2 px-3 py-2 text-xs font-medium transition-colors duration-150 hover:border-accent/40 hover:text-accent ${saved ? 'border-accent/30 text-accent' : 'border-border text-text'}`}
             >
               {saved ? <BookmarkCheck className="size-3.5" /> : <Bookmark className="size-3.5" />}
               {saved ? 'Saved' : 'Save'}
             </button>
             <button
-              onClick={() => setTab(tab === 'letter' ? 'posting' : 'letter')}
+              onClick={() => showTab(tab === 'letter' ? 'posting' : 'letter')}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-medium text-text transition-colors duration-150 hover:border-accent/40 hover:text-accent"
             >
               {tab === 'letter' ? <FileText className="size-3.5" /> : <PenLine className="size-3.5" />}

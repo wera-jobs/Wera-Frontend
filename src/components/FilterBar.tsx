@@ -68,10 +68,13 @@ function Select({
 /** Search + filters; state lives in the Jobs page URL, this bar only edits it. */
 export function FilterBar({
   values,
+  defaultSort = 'score',
   onChange,
   onReset,
 }: {
   values: FilterValues;
+  /** The person's own default order (Settings): only another order counts as a filter. */
+  defaultSort?: FilterValues['sort'];
   onChange: (patch: Partial<FilterValues>) => void;
   onReset: () => void;
 }) {
@@ -101,7 +104,7 @@ export function FilterBar({
     .map((value) => ({ value, label: familyLabel(value) }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  const active = [values.industry, values.category, values.min_score, values.min_pay, values.sponsorship, values.work_mode, values.status, values.posted_within, values.sort !== 'score']
+  const active = [values.industry, values.category, values.min_score, values.min_pay, values.sponsorship, values.work_mode, values.status, values.posted_within, values.sort !== defaultSort]
     .filter(Boolean).length;
   const isDefault = values.q === '' && active === 0;
 
@@ -231,7 +234,11 @@ export function FilterBar({
 
         {!isDefault && (
           <button
-            onClick={onReset}
+            onClick={() => {
+              // A search still being typed must not land after the reset.
+              setText('');
+              onReset();
+            }}
             className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-muted transition-colors duration-150 hover:border-bad/40 hover:text-bad"
           >
             <FilterX className="size-3.5" /> Clear

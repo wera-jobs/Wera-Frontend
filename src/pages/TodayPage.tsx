@@ -40,7 +40,7 @@ const FILTERS: Record<TodayFilter, { test: (j: Job, now: number) => boolean; emp
 };
 
 /** Today's best job, presented large above the list. */
-function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: number; onOpen: (id: number) => void; onStatus: (job: Job, status: AppStatus) => void }) {
+function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: number; onOpen: (id: number) => void; onStatus: (job: Job, status: AppStatus | null) => void }) {
   const meta = jobMeta(job);
   const saved = job.application_status === 'saved';
   return (
@@ -97,9 +97,10 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
           </a>
           <button
             type="button"
-            onClick={() => onStatus(job, 'saved')}
-            disabled={saved}
-            className={`${CHIP_BUTTON} px-2.5 py-1.5 text-text hover:border-accent/40 hover:text-accent disabled:border-accent/30 disabled:text-accent`}
+            onClick={() => onStatus(job, saved ? null : 'saved')}
+            aria-pressed={saved}
+            title={saved ? 'Saved. Click to unsave.' : undefined}
+            className={`${CHIP_BUTTON} px-2.5 py-1.5 hover:border-accent/40 hover:text-accent ${saved ? 'border-accent/30 text-accent' : 'text-text'}`}
           >
             {saved ? <BookmarkCheck className="size-3.5" /> : <Bookmark className="size-3.5" />} {saved ? 'Saved' : 'Save'}
           </button>

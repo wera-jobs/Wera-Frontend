@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { errorMessage } from '../api/client';
 import { useJobs, useSettings, useStatusWithUndo } from '../api/hooks';
 import { FilterBar, type FilterValues } from '../components/FilterBar';
 import { JobCard } from '../components/JobCard';
@@ -70,55 +71,59 @@ export default function JobsPage() {
     setAnchor(null);
   }
 
-  const patchParams = useCallback(
-    (patch: Record<string, string | number>, opts?: { keepOffset?: boolean }) => {
-      setSearchParams(
-        (sp) => {
-          const next = new URLSearchParams(sp);
-          for (const [k, v] of Object.entries(patch)) {
-            if (v === '' || v === 0) next.delete(k);
-            else next.set(k, String(v));
-          }
-          if (!opts?.keepOffset) next.delete('offset');
-          next.delete('job'); // filters changing invalidates the open drawer
-          return next;
-        },
-        { replace: true },
-      );
+  // Every change to the query goes through here. On /jobs/:id the id lives in
+  // the path, so a change moves to /jobs with the new query rather than
+  // leaving the path's job open or dropping the filters.
+  const updateParams = useCallback(
+    (edit: (next: URLSearchParams) => void) => {
+      if (routeId) {
+        const next = new URLSearchParams(searchParams);
+        edit(next);
+        void navigate({ pathname: '/jobs', search: next.toString() }, { replace: true });
+      } else {
+        setSearchParams(
+          (sp) => {
+            const next = new URLSearchParams(sp);
+            edit(next);
+            return next;
+          },
+          { replace: true },
+        );
+      }
     },
-    [setSearchParams],
+    [routeId, searchParams, navigate, setSearchParams],
+  );
+
+  const patchParams = useCallback(
+    (patch: Record<string, string | number>, opts?: { keepOffset?: boolean }) =>
+      updateParams((next) => {
+        for (const [k, v] of Object.entries(patch)) {
+          if (v === '' || v === 0) next.delete(k);
+          else next.set(k, String(v));
+        }
+        if (!opts?.keepOffset) next.delete('offset');
+        next.delete('job'); // filters changing invalidates the open drawer
+      }),
+    [updateParams],
   );
 
   const openDrawer = useCallback(
-    (id: number) => {
-      setSearchParams(
-        (sp) => {
-          const next = new URLSearchParams(sp);
-          next.set('job', String(id));
-          next.delete('tab'); // another job opens on its posting
-          return next;
-        },
-        { replace: true },
-      );
-    },
-    [setSearchParams],
+    (id: number) =>
+      updateParams((next) => {
+        next.set('job', String(id));
+        next.delete('tab'); // another job opens on its posting
+      }),
+    [updateParams],
   );
 
-  const closeDrawer = useCallback(() => {
-    if (routeId) {
-      void navigate('/jobs', { replace: true });
-    } else {
-      setSearchParams(
-        (sp) => {
-          const next = new URLSearchParams(sp);
-          next.delete('job');
-          next.delete('tab');
-          return next;
-        },
-        { replace: true },
-      );
-    }
-  }, [routeId, navigate, setSearchParams]);
+  const closeDrawer = useCallback(
+    () =>
+      updateParams((next) => {
+        next.delete('job');
+        next.delete('tab');
+      }),
+    [updateParams],
+  );
 
   const quickStatus = useStatusWithUndo();
 
@@ -145,10 +150,14 @@ export default function JobsPage() {
   // Keyboard: j/k move the cursor, Enter opens, o opens the posting, x selects for a bulk action.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || tag === 'A') return;
-      // While the drawer or a dialog is open it owns the keyboard (esc, o).
-      if (drawerId != null || adding) return;
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target instanceof Element ? e.target : null;
+      // Typing goes to the field, and an open dialog (the drawer, the palette,
+      // notifications) owns the keyboard.
+      if (target?.closest('input, select, textarea, [contenteditable="true"], [role="dialog"]')) return;
+      if (drawerId != null || adding || document.querySelector('[role="dialog"]')) return;
+      // Enter on a button, link or row is that element's own action.
+      if (e.key === 'Enter' && target?.closest('a, button, [role="button"], tr')) return;
       if (e.key === 'j' || e.key === 'k') {
         e.preventDefault();
         setSel((s) => {
@@ -211,10 +220,12 @@ export default function JobsPage() {
 
       <FilterBar
         values={values}
+        defaultSort={settings.data?.default_sort === 'newest' ? 'newest' : 'score'}
         onChange={(patch) => patchParams(patch)}
         onReset={() => {
-          const next = new URLSearchParams();
-          setSearchParams(next, { replace: true });
+          updateParams((next) => {
+            for (const k of [...next.keys()]) next.delete(k);
+          });
           void refetch();
         }}
       />
@@ -223,7 +234,7 @@ export default function JobsPage() {
         <SkeletonRows rows={8} />
       ) : error && !data ? (
         <ErrorState
-          message={error instanceof Error ? error.message : 'unknown error'}
+          message={errorMessage(error)}
           onRetry={() => void refetch()}
         />
       ) : jobs.length === 0 ? (

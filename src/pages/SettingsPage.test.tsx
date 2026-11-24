@@ -45,6 +45,25 @@ describe('SettingsPage', () => {
 });
 
 describe('SettingsPage: when things fail', () => {
+  it('sets the strong match alerts and their score', async () => {
+    const saved: { notifications?: { strong_matches?: boolean; min_score?: number } }[] = [];
+    mockApi({
+      'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'A', is_admin: false, created_at: '' }, avatar_version: null }),
+      'GET /api/settings': () => settings,
+      'GET /api/industries': () => ({ industries: [] }),
+      'PUT /api/settings': (init) => {
+        saved.push(jsonBody(init));
+        return { ...settings, ...(saved.at(-1) as object) };
+      },
+    });
+    renderApp(<SettingsPage />);
+    await userEvent.selectOptions(await screen.findByRole('combobox', { name: 'Strong match score' }), '90');
+    await waitFor(() => expect(saved.at(-1)?.notifications?.min_score).toBe(90));
+    await userEvent.click(screen.getByRole('switch', { name: 'Strong match alerts' }));
+    await waitFor(() => expect(saved.at(-1)?.notifications?.strong_matches).toBe(false));
+    expect(screen.getByRole('combobox', { name: 'Strong match score' })).toBeDisabled();
+  });
+
   it('shows a failed first load with a way to retry, not an endless placeholder', async () => {
     mockApi({
       'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'A', is_admin: false, created_at: '' }, avatar_version: null }),

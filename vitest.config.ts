@@ -1,6 +1,11 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 import viteConfig from './vite.config';
 
+// Tests run west of UTC, where a date-only string read as local time shows
+// the day before: a date shown without timeZone: 'UTC' fails here, not
+// only for people in the Americas.
+process.env.TZ = 'America/Los_Angeles';
+
 export default mergeConfig(
   viteConfig,
   defineConfig({

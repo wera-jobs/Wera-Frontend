@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { ArrowLeft, ArrowRight, Lightbulb, LoaderCircle, Mail, RotateCcw } from 'lucide-react';
 import { useAnswerStep, useScenario, type Person, type ScenarioDetail, type StepReveal } from '../../api/interview';
 import { ErrorState, Skeleton } from '../States';
+import { errorMessage } from '../../api/client';
 import { DifficultyPill } from './bits';
 import { RATING, practiceKey, verdict } from './text';
 
@@ -33,7 +34,7 @@ function roleOf(cast: Person[], name: string) {
 export function ScenarioPlayer({ id, onDone }: { id: string; onDone: () => void }) {
   const q = useScenario(id);
   if (q.isLoading) return <Skeleton className="h-[520px] w-full" />;
-  if (q.isError || !q.data) return <ErrorState message={String(q.error ?? 'Not found')} onRetry={() => void q.refetch()} />;
+  if (q.isError || !q.data) return <ErrorState message={q.isError ? errorMessage(q.error) : 'Not found'} onRetry={() => void q.refetch()} />;
   return <Run id={id} data={q.data} onDone={onDone} />;
 }
 

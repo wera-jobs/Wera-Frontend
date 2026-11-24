@@ -71,7 +71,7 @@ export default function PostPage() {
     );
   }
   if (post.isLoadingError) {
-    return <ErrorState message={post.error instanceof ApiError && post.error.status === 404 ? 'This post is no longer available.' : String(post.error)} />;
+    return <ErrorState message={post.error instanceof ApiError && post.error.status === 404 ? 'This post is no longer available.' : errorMessage(post.error)} />;
   }
   const p = post.data!;
 

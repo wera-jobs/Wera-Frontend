@@ -2,13 +2,17 @@ import { useEffect } from 'react';
 
 const QUESTION = 'You have changes that are not saved. Leave without saving them?';
 
+// Clicks already asked about: with several guarded sections on a page, one
+// answer covers them all.
+const asked = new WeakSet<Event>();
+
 /**
  * While there are unsaved edits, leaving asks first: closing or reloading
  * the tab (the browser's own question), and following a link inside the
  * app (ours). Links that open elsewhere (a new tab, a download) leave the
  * page where it is, so they pass.
  */
-export function useUnsavedGuard(dirty: boolean) {
+export function useUnsavedGuard(dirty: boolean, { unload = true }: { unload?: boolean } = {}) {
   useEffect(() => {
     if (!dirty) return;
     const onUnload = (e: BeforeUnloadEvent) => e.preventDefault();
@@ -18,17 +22,21 @@ export function useUnsavedGuard(dirty: boolean) {
       if (!a || a.target === '_blank' || a.hasAttribute('download') || a.origin !== window.location.origin) return;
       // The same page (a tab's own section link): nothing is lost.
       if (a.pathname === window.location.pathname) return;
+      if (asked.has(e)) return;
+      asked.add(e);
       if (!window.confirm(QUESTION)) {
         e.preventDefault();
         e.stopPropagation();
       }
     };
-    window.addEventListener('beforeunload', onUnload);
+    // unload: false for a page that asks on closing itself, from state that
+    // is current at that moment (this effect's copy is a render behind).
+    if (unload) window.addEventListener('beforeunload', onUnload);
     // Before the router sees the click.
     document.addEventListener('click', onClick, true);
     return () => {
       window.removeEventListener('beforeunload', onUnload);
       document.removeEventListener('click', onClick, true);
     };
-  }, [dirty]);
+  }, [dirty, unload]);
 }

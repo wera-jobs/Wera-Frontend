@@ -258,7 +258,7 @@ const LEARNS: DismissReason[] = ['too_senior', 'too_junior', 'location', 'field'
 export function useStatusWithUndo() {
   const update = useUpdateApplication();
   const navigate = useNavigate();
-  return (job: Pick<Job, 'id' | 'title' | 'application_status' | 'application_notes'>, status: AppStatus) => {
+  return (job: Pick<Job, 'id' | 'title' | 'application_status' | 'application_notes'>, status: AppStatus | null) => {
     const before = job.application_status ?? null;
     if (before === status) return;
     const undo = {
@@ -287,7 +287,8 @@ export function useStatusWithUndo() {
               options: [{ label: 'Prepare for it', run: () => void navigate(`/jobs?job=${job.id}&tab=prep`) }],
             }
           : undefined;
-    update.mutate({ id: job.id, status }, { onSuccess: () => toast.success(`${STATUS_DONE[status]}: ${job.title}`, undo, why) });
+    const done = status ? STATUS_DONE[status] : before === 'saved' ? 'Unsaved' : 'Removed from the tracker';
+    update.mutate({ id: job.id, status }, { onSuccess: () => toast.success(`${done}: ${job.title}`, undo, why) });
   };
 }
 

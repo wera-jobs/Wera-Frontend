@@ -378,6 +378,25 @@ export default function SettingsPage() {
             ]}
           />
         </Row>
+        <Row label="Strong match alerts" hint="A note in the bell when new jobs score at or above your bar.">
+          <Switch label="Strong match alerts" checked={n.strong_matches} onChange={(v) => setN({ strong_matches: v })} />
+        </Row>
+        <Row label="Strong match score" hint="The fit score that counts as strong.">
+          <select
+            aria-label="Strong match score"
+            value={n.min_score}
+            disabled={!n.strong_matches}
+            onChange={(e) => setN({ min_score: Number(e.target.value) })}
+            className="rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-text disabled:opacity-50"
+          >
+            {/* A bar set elsewhere (the API takes 50 to 100) stays on the list. */}
+            {[...new Set([60, 65, 70, 75, 80, 85, 90, 95, n.min_score])].sort((x, y) => x - y).map((v) => (
+              <option key={v} value={v}>
+                {v}+
+              </option>
+            ))}
+          </select>
+        </Row>
         <Row label="Product updates" hint="Occasional news about new Wera features.">
           <Switch label="Product updates" checked={n.product_updates} onChange={(v) => setN({ product_updates: v })} />
         </Row>
