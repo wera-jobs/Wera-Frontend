@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.34.4](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.3...wera-frontend-v0.34.4) (2026-11-24)
+
+
+### Bug Fixes
+
+* download the cover letter as the API's PDF instead of printing the page ([94d069d](https://github.com/wera-jobs/Wera-Frontend/commit/94d069d47f116c3210517621fa674dee3b20534b)), closes [#309](https://github.com/wera-jobs/Wera-Frontend/issues/309)
+
 ## [0.34.3](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.2...wera-frontend-v0.34.3) (2026-11-24)
 
 
