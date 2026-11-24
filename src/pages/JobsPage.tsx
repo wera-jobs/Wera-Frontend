@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { errorMessage } from '../api/client';
 import { useJobs, useSettings, useStatusWithUndo } from '../api/hooks';
 import { FilterBar, type FilterValues } from '../components/FilterBar';
 import { JobCard } from '../components/JobCard';
@@ -219,10 +220,12 @@ export default function JobsPage() {
 
       <FilterBar
         values={values}
+        defaultSort={settings.data?.default_sort === 'newest' ? 'newest' : 'score'}
         onChange={(patch) => patchParams(patch)}
         onReset={() => {
-          const next = new URLSearchParams();
-          setSearchParams(next, { replace: true });
+          updateParams((next) => {
+            for (const k of [...next.keys()]) next.delete(k);
+          });
           void refetch();
         }}
       />
@@ -231,7 +234,7 @@ export default function JobsPage() {
         <SkeletonRows rows={8} />
       ) : error && !data ? (
         <ErrorState
-          message={error instanceof Error ? error.message : 'unknown error'}
+          message={errorMessage(error)}
           onRetry={() => void refetch()}
         />
       ) : jobs.length === 0 ? (

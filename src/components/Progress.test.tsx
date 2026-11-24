@@ -39,4 +39,18 @@ describe('progress', () => {
     renderApp(<Progress />);
     expect(await screen.findByText('No applications yet')).toBeInTheDocument();
   });
+
+  it('labels each week by its own date, in any time zone', async () => {
+    stubApi({
+      'GET /api/analytics/applications': () => ({
+        now: { applied: 1, interviewing: 0, offer: 0, rejected: 0 },
+        reached: { applied: 1, interviewing: 0, offer: 0 },
+        weeks: [{ week: '2026-09-07', applied: 1, responded: 0, interview: 0 }],
+        sources: [], days_to_interview: null, days_to_offer: null,
+      }),
+    });
+    renderApp(<Progress />);
+    // Sep 7 at UTC midnight is Sep 6 in the Americas unless read as UTC.
+    expect(await screen.findByRole('button', { name: /^Week of Sep 7:/ })).toBeInTheDocument();
+  });
 });

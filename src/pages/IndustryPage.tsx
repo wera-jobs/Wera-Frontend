@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { IndustryIcon } from '../components/IndustryIcon';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import clsx from 'clsx';
-import { ArrowLeft, Briefcase, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Briefcase, ChevronRight } from 'lucide-react';
 import { useCompanies, useIndustries, useJobs } from '../api/hooks';
 import { JobCard } from '../components/JobCard';
 import { JobDrawer } from '../components/JobDrawer';
@@ -12,7 +12,6 @@ import { EmptyState, ErrorState, Skeleton, SkeletonRows } from '../components/St
 import { errorMessage } from '../api/client';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { stepId } from '../lib/format';
-import { boardURL } from '../lib/boards';
 
 function Matches({ industry, onOpen }: { industry: string; onOpen: (id: number) => void }) {
   // Scored matches only (min_score 1), the same set the match count covers.
@@ -72,11 +71,9 @@ function Companies({ industry }: { industry: string }) {
   return (
     <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
       {list.map((c) => (
-        <a
+        <Link
           key={c.id}
-          href={boardURL(c)}
-          target="_blank"
-          rel="noreferrer"
+          to={`/companies/${c.id}`}
           className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 py-2.5 transition-colors duration-150 hover:border-accent/40"
         >
           <div className="min-w-0">
@@ -91,8 +88,8 @@ function Companies({ industry }: { industry: string }) {
               )}
             </div>
           </div>
-          <ExternalLink className="size-3.5 shrink-0 text-faint transition-colors group-hover:text-accent" />
-        </a>
+          <ChevronRight className="size-3.5 shrink-0 text-faint transition-colors group-hover:text-accent" />
+        </Link>
       ))}
     </div>
   );

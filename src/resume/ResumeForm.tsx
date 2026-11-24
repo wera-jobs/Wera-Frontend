@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { ArrowDown, ArrowUp, ChevronDown, CircleAlert, Eye, EyeOff, GripVertical, Link2, MoreHorizontal, Plus, Sparkles, Trash2 } from 'lucide-react';
 import type { Bullet, Entry, ResumeData, ReviewCheck, Section, SkillGroup } from '../api/resumes';
@@ -30,13 +30,34 @@ function RowTools({ i, n, hidden, onMove, onHide, onDelete, what, extra }: {
 }) {
   // Phones: the tools fold behind one button so the text keeps its width.
   const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  // An open menu closes on a tap elsewhere or Escape, like any menu.
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('pointerdown', away);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
   return (
-    <div className="relative flex shrink-0 items-center">
+    <div ref={box} className="relative flex shrink-0 items-center">
       <span className="sm:hidden">
         <IconBtn label={`${what} actions`} active={open} onClick={() => setOpen((v) => !v)}><MoreHorizontal className="size-4" /></IconBtn>
       </span>
       <div className={clsx('items-center opacity-50 transition-opacity group-hover:opacity-100 focus-within:opacity-100 sm:flex',
-        open ? 'absolute top-full right-0 z-10 flex rounded-lg border border-border bg-bg opacity-100 shadow-lg' : 'hidden')}>
+        open ? 'absolute top-full right-0 z-10 flex rounded-lg border border-border bg-bg opacity-100 shadow-lg' : 'hidden')}
+        // Any action closes the menu: it has done its job.
+        onClick={(e) => {
+          if ((e.target as Element).closest('button')) setOpen(false);
+        }}>
       {extra}
       <IconBtn label={`Move ${what} up`} onClick={() => onMove(i - 1)} disabled={i === 0}><ArrowUp className="size-3.5" /></IconBtn>
       <IconBtn label={`Move ${what} down`} onClick={() => onMove(i + 1)} disabled={i === n - 1}><ArrowDown className="size-3.5" /></IconBtn>

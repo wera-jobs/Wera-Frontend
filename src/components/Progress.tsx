@@ -68,7 +68,7 @@ export function Progress() {
           <h2 id="weeks-title" className="text-sm font-semibold text-text">Applications per week</h2>
           <span className="text-xs text-muted" aria-live="polite">
             {shown
-              ? `Week of ${new Date(shown.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: ${shown.applied} sent, ${shown.responded} heard back, ${shown.interview} interview${shown.interview === 1 ? '' : 's'}`
+              ? `Week of ${new Date(shown.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })}: ${shown.applied} sent, ${shown.responded} heard back, ${shown.interview} interview${shown.interview === 1 ? '' : 's'}`
               : 'Last 12 weeks. Point at a week for its replies.'}
           </span>
         </div>
@@ -80,7 +80,7 @@ export function Progress() {
               onMouseEnter={() => setHover(i)}
               onFocus={() => setHover(i)}
               onBlur={() => setHover(null)}
-              aria-label={`Week of ${new Date(w.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}: ${w.applied} sent, ${w.responded} heard back`}
+              aria-label={`Week of ${new Date(w.week).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })}: ${w.applied} sent, ${w.responded} heard back`}
               className="flex h-full flex-1 items-end rounded-t-sm focus-visible:outline-2 focus-visible:outline-accent"
             >
               <span
@@ -91,7 +91,7 @@ export function Progress() {
           ))}
         </div>
         <div className="mt-1 flex justify-between text-[11px] text-faint">
-          <span>{new Date(weeks[0].week).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+          <span>{weeks[0] && new Date(weeks[0].week).toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })}</span>
           <span>This week</span>
         </div>
       </section>

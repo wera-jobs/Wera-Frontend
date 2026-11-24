@@ -178,6 +178,39 @@ describe('JobsPage keyboard', () => {
   });
 });
 
+describe('JobsPage filters', () => {
+  it('a default sort of Newest is not a filter to clear', async () => {
+    stubApi({
+      'GET /api/settings': () => ({
+        theme: 'system', default_sort: 'newest', hidden_companies: [],
+        notifications: { email_digest: true, frequency: 'daily', strong_matches: true, min_score: 80, product_updates: false },
+      }),
+    });
+    renderApp(<JobsPage />, { path: '/jobs', route: '/jobs' });
+    await screen.findAllByText(fixtures.jobs.jobs[0].title);
+    await waitFor(() => expect(screen.getByRole('combobox', { name: /Sort/i })).toHaveValue('newest'));
+    expect(screen.queryByRole('button', { name: /Clear/ })).toBeNull();
+  });
+
+  it('Clear drops a search still being typed', async () => {
+    const searched: string[] = [];
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        searched.push(url.searchParams.get('q') ?? '');
+        return fixtures.jobs;
+      },
+    });
+    renderApp(<JobsPage />, { path: '/jobs?work_mode=remote', route: '/jobs' });
+    await screen.findAllByText(fixtures.jobs.jobs[0].title);
+    const box = screen.getByRole('textbox', { name: /Search/i });
+    fireEvent.change(box, { target: { value: 'golang' } });
+    await userEvent.click(screen.getByRole('button', { name: /Clear/ }));
+    expect(box).toHaveValue('');
+    await new Promise((r) => setTimeout(r, 450));
+    expect(searched).not.toContain('golang');
+  });
+});
+
 describe('JobsPage at /jobs/:id', () => {
   function Where() {
     const loc = useLocation();

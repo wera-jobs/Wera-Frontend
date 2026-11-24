@@ -14,7 +14,7 @@ import {
   trackForTitle, useDomains, useScenarios, useStartQuiz, useTracks,
   type Difficulty, type DomainStat, type Practice, type Question, type ScenarioCard, type Track,
 } from '../api/interview';
-import { useJob, useJobs } from '../api/hooks';
+import { useInterviewPrep, useJob, useJobs } from '../api/hooks';
 import { EmptyState, ErrorState, Skeleton } from '../components/States';
 import { Quiz } from '../components/interview/Quiz';
 import { PersonMark, ScenarioPlayer } from '../components/interview/ScenarioPlayer';
@@ -107,12 +107,16 @@ function UpNext({ next, starting, onStart, onOpenSim }: { next: Next; starting: 
 
 function UpcomingJob({ id, title, company, onPractice }: { id: number; title: string; company: string; onPractice: (track: string) => void }) {
   const job = useJob(id);
-  const topics = job.data?.deep?.raw.interview_topics ?? [];
+  // The questions from the job's interview prep, once written; before
+  // that, the topics from Wera's review of the posting.
+  const prep = useInterviewPrep(id);
+  const asked = prep.data?.prep.questions.map((q) => q.question) ?? [];
+  const topics = asked.length ? asked : job.data?.deep?.raw.interview_topics ?? [];
   return (
     <li className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2">
-          <Link to={`/jobs/${id}`} className="text-sm font-semibold text-text hover:text-accent">{title}</Link>
+          <Link to={`/jobs?job=${id}&tab=prep`} className="text-sm font-semibold text-text hover:text-accent">{title}</Link>
           <span className="text-xs text-muted">{company}</span>
         </div>
         {topics.length > 0 ? (
@@ -123,7 +127,7 @@ function UpcomingJob({ id, title, company, onPractice }: { id: number; title: st
               </li>
             ))}
           </ul>
-        ) : job.isLoading ? <Skeleton className="mt-2 h-8 w-3/4" /> : (
+        ) : job.isLoading || prep.isLoading ? <Skeleton className="mt-2 h-8 w-3/4" /> : (
           <p className="mt-1 text-[13px] text-faint">Open the job for Wera&apos;s full review and the topics it expects.</p>
         )}
       </div>
@@ -334,6 +338,11 @@ export default function InterviewPage() {
     rememberTrack(id);
     setParam('track', id);
   };
+  /** Practice for an interview: its role's rounds, scrolled to (the same role included). */
+  const practiceFor = (id: string) => {
+    pickTrack(id);
+    window.setTimeout(() => document.getElementById('practice')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+  };
 
   const header = (
     <header className="mb-5">
@@ -388,11 +397,11 @@ export default function InterviewPage() {
         </div>
         <ProgressLine practice={domains.data?.practice} domains={d} track={track} />
       </header>
-      <Upcoming onPractice={pickTrack} />
+      <Upcoming onPractice={practiceFor} />
       {next && <UpNext next={next} starting={start.isPending} onStart={startRound} onOpenSim={(id) => setParam('sim', id)} />}
       {start.isError ? <p role="alert" className="text-sm text-bad">{errorMessage(start.error, 'Could not start a round. Check your connection and try again.')}</p>
         : quiz && !quiz.length && <p role="status" className="text-sm text-muted">No questions match that choice yet. Try another difficulty or stack.</p>}
-      <section aria-label="Practice" className="space-y-4">
+      <section id="practice" aria-label="Practice" className="scroll-mt-16 space-y-4">
         <PracticeTabs tab={tab} onTab={(t) => setParam('tab', t === 'rounds' ? null : t)} rounds={track.domains.length} sims={mineSims} />
         <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === 'rounds'
