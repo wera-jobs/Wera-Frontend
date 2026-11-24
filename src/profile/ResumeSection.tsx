@@ -177,7 +177,11 @@ export function ResumeSection() {
         <p className="text-sm text-muted">Edit your resume, keep it to one page, and tailor a copy for any job from its Resume tab.</p>
         {resumes.length > 0 && (
           <div className="flex items-center gap-2">
-            <select value={id ?? ''} onChange={(e) => void navigate(`/profile/resume/${e.target.value}`)} aria-label="Resume"
+            <select value={id ?? ''} onChange={(e) => {
+                // Another resume: the re-import of the main one is over.
+                setReimport(false);
+                void navigate(`/profile/resume/${e.target.value}`);
+              }} aria-label="Resume"
               className="w-60 max-w-full truncate rounded-lg border border-border bg-surface px-3 py-1.5 text-sm">
               {resumes.map((r) => (
                 <option key={r.id} value={r.id}>{r.job_id == null ? 'My resume' : `Tailored: ${r.job_title} at ${r.job_company}`}</option>
@@ -190,7 +194,7 @@ export function ResumeSection() {
         )}
       </div>
 
-      {resumes.length === 0 || reimport ? (
+      {resumes.length === 0 || (reimport && id === base?.id) ? (
         <>
           {reimport && <p className="text-xs text-warn">Importing replaces your main resume. Tailored copies stay as they are.</p>}
           {!reimport && background?.status === 'failed' && (
