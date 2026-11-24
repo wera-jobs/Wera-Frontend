@@ -3,6 +3,9 @@
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render } from '@testing-library/react';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { fixtures, stubApi } from '../test/fixtures';
 import { jsonResponse, renderApp, jsonBody } from '../test/render';
 import IndustriesPage from './IndustriesPage';
@@ -117,6 +120,68 @@ describe('JobsPage keyboard', () => {
     const second = fixtures.jobs.jobs[1];
     const dialog = await screen.findByRole('dialog');
     expect(await within(dialog).findByRole('heading', { name: second.title })).toBeInTheDocument();
+  });
+
+  it('Enter on a focused row opens that row, not the cursor row', async () => {
+    stubApi();
+    renderApp(<JobsPage />, { path: '/jobs', route: '/jobs' });
+    const second = fixtures.jobs.jobs[1];
+    const row = await screen.findByRole('row', { name: `${second.title} at ${second.company}` });
+    row.focus();
+    await userEvent.keyboard('{Enter}');
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByRole('heading', { name: second.title })).toBeInTheDocument();
+  });
+
+  it('Enter on a button does not open a job', async () => {
+    stubApi();
+    renderApp(<JobsPage />, { path: '/jobs', route: '/jobs' });
+    await screen.findAllByText(fixtures.jobs.jobs[0].title);
+    const add = screen.getByRole('button', { name: /Add job/ });
+    fireEvent.keyDown(add, { key: 'Enter' });
+    // fireEvent does not press the button, so any dialog would be the page's doing.
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+});
+
+describe('JobsPage at /jobs/:id', () => {
+  function Where() {
+    const loc = useLocation();
+    return <output aria-label="location">{loc.pathname + loc.search}</output>;
+  }
+  function renderAt(path: string) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/jobs" element={<><JobsPage /><Where /></>} />
+            <Route path="/jobs/:id" element={<><JobsPage /><Where /></>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+  }
+
+  it('closing the drawer keeps the filters', async () => {
+    stubApi();
+    renderAt(`/jobs/${fixtures.job.id}?work_mode=remote`);
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(fixtures.job.title);
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.getByLabelText('location')).toHaveTextContent(/^\/jobs\?work_mode=remote$/));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('changing a filter leaves the path job closed', async () => {
+    stubApi();
+    renderAt(`/jobs/${fixtures.job.id}?work_mode=remote`);
+    await screen.findByRole('dialog');
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    const first = fixtures.jobs.jobs[0];
+    await userEvent.click((await screen.findAllByText(first.title))[0]);
+    await waitFor(() => expect(screen.getByLabelText('location')).toHaveTextContent(`/jobs?work_mode=remote&job=${first.id}`));
   });
 });
 
