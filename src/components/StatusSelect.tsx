@@ -11,6 +11,8 @@ export const APP_STATUSES: { value: AppStatus; label: string }[] = [
   { value: 'not_interested', label: 'Not interested' },
 ];
 
+const NONE = 'none';
+
 export function StatusSelect({
   value,
   onChange,
@@ -18,7 +20,8 @@ export function StatusSelect({
   label = 'Application status',
 }: {
   value: AppStatus | null;
-  onChange: (status: AppStatus) => void;
+  /** null takes the job off the tracker. */
+  onChange: (status: AppStatus | null) => void;
   className?: string;
   label?: string;
 }) {
@@ -26,7 +29,7 @@ export function StatusSelect({
     <div className={clsx('relative', className)}>
       <select
         value={value ?? ''}
-        onChange={(e) => onChange(e.target.value as AppStatus)}
+        onChange={(e) => onChange(e.target.value === NONE ? null : (e.target.value as AppStatus))}
         aria-label={label}
         className="w-full appearance-none rounded-lg border border-border bg-surface-2 py-1.5 pr-7 pl-2.5 text-xs font-medium text-text transition-colors duration-150 hover:border-accent/40"
       >
@@ -39,6 +42,7 @@ export function StatusSelect({
             {s.label}
           </option>
         ))}
+        {value != null && <option value={NONE}>Remove from tracker</option>}
       </select>
       <ChevronDown className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-faint" />
     </div>

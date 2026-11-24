@@ -105,6 +105,40 @@ describe('JobsPage', () => {
   });
 });
 
+describe('taking a job off the tracker', () => {
+  it('clicking Saved in the job view unsaves the job', async () => {
+    let deleted = false;
+    stubApi({
+      [`GET /api/jobs/${fixtures.job.id}`]: () => ({ ...fixtures.job, application_status: 'saved' }),
+      [`DELETE /api/jobs/${fixtures.job.id}/application`]: () => {
+        deleted = true;
+        return { ...fixtures.job, application_status: null };
+      },
+    });
+    renderApp(<JobsPage />, { path: `/jobs?job=${fixtures.job.id}`, route: '/jobs' });
+    const dialog = await screen.findByRole('dialog');
+    const saved = await within(dialog).findByRole('button', { name: /Saved/, pressed: true });
+    await userEvent.click(saved);
+    await waitFor(() => expect(deleted).toBe(true));
+  });
+
+  it('Remove from tracker in the status menu clears the status', async () => {
+    let deleted = false;
+    stubApi({
+      [`GET /api/jobs/${fixtures.job.id}`]: () => ({ ...fixtures.job, application_status: 'applied' }),
+      [`DELETE /api/jobs/${fixtures.job.id}/application`]: () => {
+        deleted = true;
+        return { ...fixtures.job, application_status: null };
+      },
+    });
+    renderApp(<JobsPage />, { path: `/jobs?job=${fixtures.job.id}`, route: '/jobs' });
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(fixtures.job.title);
+    await userEvent.selectOptions(within(dialog).getByRole('combobox', { name: 'Application status' }), 'Remove from tracker');
+    await waitFor(() => expect(deleted).toBe(true));
+  });
+});
+
 describe('JobsPage keyboard', () => {
   it('j and k move the selection; Enter opens the job', async () => {
     stubApi();

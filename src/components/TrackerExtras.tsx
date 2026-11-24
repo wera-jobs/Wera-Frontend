@@ -68,7 +68,7 @@ export function TrackerList({
   statuses: AppStatus[];
   matches: (job: Job) => boolean;
   onOpen: (id: number) => void;
-  onStatus: (id: number, status: AppStatus) => void;
+  onStatus: (id: number, status: AppStatus | null) => void;
 }) {
   // The column list changes length ("Show not interested"), so one
   // useQueries call, never a hook per status.
@@ -94,7 +94,7 @@ export function ArchivedList({
 }: {
   matches: (job: Job) => boolean;
   onOpen: (id: number) => void;
-  onStatus: (id: number, status: AppStatus) => void;
+  onStatus: (id: number, status: AppStatus | null) => void;
 }) {
   const { data, isLoading } = useJobs({ archived: 1, limit: 200, sort: 'newest' });
   if (isLoading) return <Skeleton className="h-40 w-full" />;
@@ -102,7 +102,7 @@ export function ArchivedList({
   return <Rows jobs={jobs} empty="Nothing archived. Archive an application from its job view to clear it off the board." onOpen={onOpen} onStatus={onStatus} />;
 }
 
-function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; onOpen: (id: number) => void; onStatus: (id: number, status: AppStatus) => void }) {
+function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; onOpen: (id: number) => void; onStatus: (id: number, status: AppStatus | null) => void }) {
   if (jobs.length === 0) return <EmptyState title={empty} />;
   return (
     <div className="overflow-hidden rounded-card border border-border bg-surface">

@@ -168,7 +168,7 @@ export function JobDrawer({
 
   useScrollLock();
 
-  const setStatus = (status: AppStatus) =>
+  const setStatus = (status: AppStatus | null) =>
     job && update.mutate({ id: job.id, status, notes: job.application_notes ?? '' });
   const setWithUndo = useStatusWithUndo();
   const extension = useExtension();
@@ -341,9 +341,10 @@ export function JobDrawer({
               {!job.closed_at && extension && <span className="font-normal opacity-80">· Wera fills it</span>}
             </a>
             <button
-              onClick={() => setStatus('saved')}
-              disabled={saved}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-medium text-text transition-colors duration-150 hover:border-accent/40 hover:text-accent disabled:cursor-default disabled:border-accent/30 disabled:text-accent"
+              onClick={() => setStatus(saved ? null : 'saved')}
+              aria-pressed={saved}
+              title={saved ? 'Saved. Click to unsave.' : undefined}
+              className={`inline-flex items-center gap-1.5 rounded-lg border bg-surface-2 px-3 py-2 text-xs font-medium transition-colors duration-150 hover:border-accent/40 hover:text-accent ${saved ? 'border-accent/30 text-accent' : 'border-border text-text'}`}
             >
               {saved ? <BookmarkCheck className="size-3.5" /> : <Bookmark className="size-3.5" />}
               {saved ? 'Saved' : 'Save'}

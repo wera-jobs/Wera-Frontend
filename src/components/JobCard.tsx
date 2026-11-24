@@ -33,7 +33,7 @@ export function JobCard({
   /** Position in the grid; drives the staggered entrance delay. */
   index?: number;
   onOpen: (id: number) => void;
-  onQuickStatus?: (job: Job, status: AppStatus) => void;
+  onQuickStatus?: (job: Job, status: AppStatus | null) => void;
   quickActions?: boolean;
 }) {
   // One quiet line instead of a wall of badges; the sponsor chip stays
@@ -126,10 +126,11 @@ export function JobCard({
                 </a>
                 <button
                   type="button"
-                  onClick={() => onQuickStatus?.(job, 'saved')}
-                  disabled={saved}
-                  aria-label={saved ? 'Saved' : 'Save job'}
-                  className={`${CHIP_BUTTON} text-text hover:border-accent/40 hover:text-accent disabled:border-accent/30 disabled:text-accent`}
+                  onClick={() => onQuickStatus?.(job, saved ? null : 'saved')}
+                  aria-pressed={saved}
+                  aria-label={saved ? 'Unsave job' : 'Save job'}
+                  title={saved ? 'Saved. Click to unsave.' : undefined}
+                  className={`${CHIP_BUTTON} hover:border-accent/40 hover:text-accent ${saved ? 'border-accent/30 text-accent' : 'text-text'}`}
                 >
                   {saved ? <BookmarkCheck className="size-3" /> : <Bookmark className="size-3" />} {saved ? 'Saved' : 'Save'}
                 </button>

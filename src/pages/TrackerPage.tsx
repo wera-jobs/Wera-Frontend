@@ -41,7 +41,7 @@ function KanbanCard({
   /** Position in the column; drives the staggered entrance delay. */
   index?: number;
   onOpen: (id: number) => void;
-  onStatus: (id: number, status: AppStatus) => void;
+  onStatus: (id: number, status: AppStatus | null) => void;
 }) {
   const verdict = verdictOf(job.fit_score);
   return (
@@ -311,7 +311,7 @@ function Column({
   /** On a phone one stage shows at a time; wider screens show the whole board. */
   shownOnPhone: boolean;
   onOpen: (id: number) => void;
-  onStatus: (id: number, status: AppStatus) => void;
+  onStatus: (id: number, status: AppStatus | null) => void;
 }) {
   const { data, isLoading } = useJobs({ status, limit: 100, sort: 'newest' });
   const { setNodeRef, isOver } = useDroppable({ id: status });
@@ -371,7 +371,7 @@ export default function TrackerPage() {
   );
 
   // Moving a job to Interviewing offers its interview prep in one click.
-  const onStatus = (id: number, status: AppStatus) =>
+  const onStatus = (id: number, status: AppStatus | null) =>
     update.mutate(
       { id, status },
       {

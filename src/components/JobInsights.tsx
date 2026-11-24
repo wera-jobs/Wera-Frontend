@@ -131,7 +131,7 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
   const update = useUpdateApplication();
   const [notes, setNotes] = useState<string | null>(null); // null: mirror the server (reset per job by key)
   const currentNotes = notes ?? job.application_notes ?? '';
-  const setStatus = (status: AppStatus) => update.mutate({ id: job.id, status, notes: currentNotes });
+  const setStatus = (status: AppStatus | null) => update.mutate({ id: job.id, status, notes: currentNotes });
   const saveNotes = () => {
     if (notes == null) return;
     update.mutate({ id: job.id, status: job.application_status ?? 'saved', notes });
