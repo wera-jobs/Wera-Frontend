@@ -6,6 +6,7 @@ import { useCreatePost } from '../api/community';
 import { Prose } from '../components/Prose';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { useUnsavedGuard } from '../lib/useUnsavedGuard';
 
 const SUGGESTED = ['offers', 'interviews', 'resume', 'networking', 'new-grad', 'visa', 'big-tech', 'startups'];
 
@@ -19,6 +20,8 @@ export default function NewPostPage() {
   const [preview, setPreview] = useState(false);
   const words = body.trim() ? body.trim().split(/\s+/).length : 0;
   const err = errorOrNull(create.error);
+  // A draft not published yet is lost on leaving: ask first.
+  useUnsavedGuard(!create.isSuccess && Boolean(title.trim() || body.trim()));
 
   const submit = () =>
     create.mutate(

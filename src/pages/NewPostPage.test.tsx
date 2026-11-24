@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { jsonResponse, mockApi, renderApp } from '../test/render';
 import NewPostPage from './NewPostPage';
 
@@ -35,5 +35,14 @@ describe('NewPostPage', () => {
     await userEvent.paste('## Heading\n\n- a point');
     await userEvent.click(screen.getByRole('button', { name: /Preview/ }));
     expect(screen.getByRole('heading', { name: 'Heading' })).toBeInTheDocument();
+  });
+
+  it('asks before a draft is left behind', async () => {
+    mockApi({});
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderApp(<NewPostPage />, { path: '/community/new' });
+    await userEvent.type(screen.getByLabelText('Title'), 'A draft');
+    await userEvent.click(screen.getAllByRole('link')[0]);
+    expect(confirm).toHaveBeenCalledTimes(1);
   });
 });

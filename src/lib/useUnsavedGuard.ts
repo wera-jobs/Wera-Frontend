@@ -2,6 +2,10 @@ import { useEffect } from 'react';
 
 const QUESTION = 'You have changes that are not saved. Leave without saving them?';
 
+// Clicks already asked about: with several guarded sections on a page, one
+// answer covers them all.
+const asked = new WeakSet<Event>();
+
 /**
  * While there are unsaved edits, leaving asks first: closing or reloading
  * the tab (the browser's own question), and following a link inside the
@@ -18,6 +22,8 @@ export function useUnsavedGuard(dirty: boolean, { unload = true }: { unload?: bo
       if (!a || a.target === '_blank' || a.hasAttribute('download') || a.origin !== window.location.origin) return;
       // The same page (a tab's own section link): nothing is lost.
       if (a.pathname === window.location.pathname) return;
+      if (asked.has(e)) return;
+      asked.add(e);
       if (!window.confirm(QUESTION)) {
         e.preventDefault();
         e.stopPropagation();
