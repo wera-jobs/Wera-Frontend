@@ -9,6 +9,7 @@ import type { AppStatus, Job } from '../api/types';
 import { eventKindLabel, resumeText, whenText } from '../lib/events';
 import { relTime } from '../lib/format';
 import { StatusSelect } from './StatusSelect';
+import { StatusPill } from './JobBadges';
 import { CompanyLogo } from './CompanyLogo';
 import { errorMessage } from '../api/client';
 import { EmptyState, ErrorState, Skeleton } from './States';
@@ -131,6 +132,8 @@ function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; o
                     <span className="truncate">{job.company}</span>
                   </span>
                 </button>
+                {/* Phones have no Status column: the stage shows here instead. */}
+                <span className="mt-1 block sm:hidden"><StatusPill value={job.application_status} /></span>
                 <NextStep job={job} className="md:hidden" />
                 {resumeText(job.resume_used) && <span className="block truncate text-[11px] text-faint">{resumeText(job.resume_used)}</span>}
               </td>
