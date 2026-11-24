@@ -139,7 +139,10 @@ export default function CompanyPage() {
                       {r.title}
                     </button>
                   ) : (
-                    <span className="block truncate font-medium text-text">{r.title}</span>
+                    // Not one of your matches, so Wera has no review of it: the posting itself.
+                    <a href={r.url} target="_blank" rel="noreferrer" className="block truncate font-medium text-text hover:text-accent">
+                      {r.title}
+                    </a>
                   )}
                   <span className="block truncate text-muted">{r.location}</span>
                 </span>

@@ -71,7 +71,7 @@ function Tabs({ tab, setTab }: { tab: DrawerTab; setTab: (t: DrawerTab) => void 
 }
 
 /** Right column: the fit analysis, facts, and the user's application. */
-function Header({ job }: { job: JobDetail }) {
+function Header({ job, onLeave }: { job: JobDetail; onLeave: () => void }) {
   const location = job.location_summary ?? job.location_raw;
   return (
     <div className="min-w-0">
@@ -86,7 +86,8 @@ function Header({ job }: { job: JobDetail }) {
       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
           <CompanyLogo name={job.company} url={job.logo_url} size="md" />
-          <Link to={`/companies/${job.company_id}`} className="font-medium text-text hover:text-accent hover:underline">
+          {/* Closes the view first: on a page that keeps it open (a company's own page), it would stay over the new page. */}
+          <Link to={`/companies/${job.company_id}`} onClick={onLeave} className="font-medium text-text hover:text-accent hover:underline">
             {job.company}
           </Link>
           {job.department && <span className="text-faint">· {job.department}</span>}
@@ -211,7 +212,10 @@ export function JobDrawer({
       { id: job.company_id, hidden: true },
       {
         onSuccess: () => {
-          toast.success(`${job.company} hidden. Unhide it in Settings.`);
+          toast.success(`${job.company} hidden from your matches.`, {
+            label: 'Undo',
+            run: () => hide.mutate({ id: job.company_id, hidden: false }, { onError: (e: unknown) => toast.error(errorMessage(e)) }),
+          });
           onClose();
         },
         onError: (e: unknown) => toast.error(errorMessage(e)),
@@ -233,7 +237,7 @@ export function JobDrawer({
         {/* Top bar: header + actions */}
         <div className="flex shrink-0 items-start gap-4 border-b border-border px-5 py-4 md:px-6">
           {job ? (
-            <Header job={job} />
+            <Header job={job} onLeave={onClose} />
           ) : (
             <div className="flex-1 space-y-2">
               <Skeleton className="h-4 w-28" />
@@ -242,7 +246,8 @@ export function JobDrawer({
             </div>
           )}
           <div className="ml-auto flex shrink-0 items-center gap-1">
-            {job && (
+            {/* A job you added has no company board to hide. */}
+            {job && job.source !== 'manual' && (
               <button
                 onClick={hideCompany}
                 aria-label={`Hide ${job.company}`}

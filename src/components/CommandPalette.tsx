@@ -13,7 +13,10 @@ import clsx from 'clsx';
 import {
   BadgeCheck,
   Briefcase,
+  Building2,
+  CalendarCheck,
   CornerDownLeft,
+  FileText,
   Globe,
   ListChecks,
   Search,
@@ -21,6 +24,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { api } from '../api/client';
+import { useCompanies } from '../api/hooks';
 import { NAV } from '../layout/nav';
 import { useScrollLock } from '../lib/useScrollLock';
 import type { JobList } from '../api/types';
@@ -29,7 +33,7 @@ interface PaletteItem {
   id: string;
   label: string;
   hint?: string;
-  group: 'Go to' | 'Actions' | 'Jobs';
+  group: 'Go to' | 'Actions' | 'Companies' | 'Jobs';
   icon: LucideIcon;
   run: () => void;
 }
@@ -59,8 +63,15 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
     queryFn: () => api<JobList>('/api/jobs?limit=200&sort=score'),
   });
 
+  const companies = useCompanies();
+  const list = useRef<HTMLDivElement>(null);
+
   useScrollLock();
   useEffect(() => inputRef.current?.focus(), []);
+  // The arrow keys move the highlight; keep it inside the scrolled list.
+  useEffect(() => {
+    list.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
+  }, [sel]);
 
   const items = useMemo<PaletteItem[]>(() => {
     const q = query.trim().toLowerCase();
@@ -71,6 +82,11 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       icon: n.icon,
       run: () => void navigate(n.to),
     }));
+    // Pages that are not in the main menu but worth a jump.
+    nav.push(
+      { id: 'nav-review', label: 'Weekly review', group: 'Go to', icon: CalendarCheck, run: () => void navigate('/review') },
+      { id: 'nav-resume', label: 'My resume', group: 'Go to', icon: FileText, run: () => void navigate('/profile/resume') },
+    );
     const actions: PaletteItem[] = [
       {
         id: 'strong',
@@ -113,11 +129,19 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
       icon: Briefcase,
       run: () => void navigate(`/jobs?job=${j.id}`),
     }));
+    const companyItems: PaletteItem[] = (companies.data?.companies ?? []).map((c) => ({
+      id: `company-${c.id}`,
+      label: c.name,
+      hint: c.jobs_open ? `${c.jobs_open} open` : undefined,
+      group: 'Companies',
+      icon: Building2,
+      run: () => void navigate(`/companies/${c.id}`),
+    }));
     if (!q) return [...nav, ...actions, ...jobItems.slice(0, 5)];
-    return [...nav, ...actions, ...jobItems]
+    return [...nav, ...actions, ...companyItems, ...jobItems]
       .filter((it) => it.label.toLowerCase().includes(q) || it.hint?.toLowerCase().includes(q))
       .slice(0, 12);
-  }, [query, jobs.data, navigate]);
+  }, [query, jobs.data, companies.data, navigate]);
 
   const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown') {
@@ -162,13 +186,13 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
               setSel(0);
             }}
             onKeyDown={onKeyDown}
-            placeholder="Search jobs, jump to a page, run the pipeline…"
+            placeholder="Search jobs, companies, pages…"
             aria-label="Command palette input"
             className="h-12 w-full bg-transparent text-sm text-text outline-none placeholder:text-faint"
           />
           <Kbd>esc</Kbd>
         </div>
-        <div className="max-h-80 overflow-y-auto p-2">
+        <div ref={list} className="max-h-80 overflow-y-auto p-2">
           {items.length === 0 && (
             <p className="px-3 py-8 text-center text-xs text-faint">No matches</p>
           )}
@@ -185,6 +209,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
                   it.run();
                 }}
                 onMouseEnter={() => setSel(i)}
+                data-active={i === sel}
                 className={clsx(
                   'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm transition-colors duration-100',
                   i === sel ? 'bg-accent/10 text-accent' : 'text-text hover:bg-surface-2',
