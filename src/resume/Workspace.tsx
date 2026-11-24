@@ -8,8 +8,9 @@ import {
 import { errorMessage, isOutage } from '../api/client';
 import { useDeleteResume, useFitResume, useSaveResume, useTemplates, type Layout, type ResumeData, type ResumeDoc } from '../api/resumes';
 import { toast } from '../lib/toast';
+import { useUnsavedGuard } from '../lib/useUnsavedGuard';
 import { hiddenCount, showAll, targetId, type Issues } from './edit';
-import { LatexEditor } from './LatexEditor';
+import { LatexEditor, type LatexHandle } from './LatexEditor';
 import { ResumeForm } from './ResumeForm';
 import { ResumePreview } from './ResumePreview';
 import { ReviewPanel, ScoreBadge } from './ReviewPanel';
@@ -80,6 +81,14 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
   const [tab, setTab] = useState<Tab>('edit');
   const [picker, setPicker] = useState(false);
   const [latexPreview, setLatexPreview] = useState<ResumeData | null>(null);
+  // LaTeX edits not applied to the resume yet (the editor reports them).
+  const [latexDirty, setLatexDirty] = useState(false);
+  const latexDirtyRef = useRef(false); // current at once, for closing the tab
+  const onLatexDirty = useCallback((d: boolean) => {
+    latexDirtyRef.current = d;
+    setLatexDirty(d);
+  }, []);
+  const latex = useRef<LatexHandle>(null);
   const [synced, setSynced] = useState(doc.updated_at);
 
   // Adopt newer server changes (fitting, tailoring) when nothing local is
@@ -133,7 +142,7 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
   // Closing the tab with edits not saved yet asks first.
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
-      if (edits.current !== savedEdits.current) e.preventDefault();
+      if (edits.current !== savedEdits.current || latexDirtyRef.current) e.preventDefault();
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
@@ -158,11 +167,42 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
     return m;
   }, [preview.review]);
 
-  /** Saves pending edits, then runs next (downloads and fitting use the saved copy). */
+  // Following a link in the app with edits not saved (or LaTeX not applied) asks first.
+  useUnsavedGuard(dirty || latexDirty || saveRetries > 0, { unload: false });
+
+  /**
+   * LaTeX edits not applied yet are applied when they read cleanly, and
+   * dropped only if the person agrees. Resolves to the resume to use, or
+   * null to stop.
+   */
+  const settleLatex = async (): Promise<ResumeData | null> => {
+    const settled = latexDirty ? await latex.current?.settle() : null;
+    if (settled == null) return draft;
+    latexDirtyRef.current = false;
+    if (settled !== 'unreadable') {
+      toast.success('Applied your LaTeX edits.');
+      return settled;
+    }
+    if (!window.confirm("Your LaTeX edits don't read as a resume yet, so they can't be applied. Discard them?")) {
+      latexDirtyRef.current = true;
+      return null;
+    }
+    latex.current?.discard();
+    return draft;
+  };
+  /** Saves pending edits (LaTeX ones too), then runs next (downloads and fitting use the saved copy). */
   const withSaved = (next: () => void) => {
-    if (!dirty) return next();
-    const at = edits.current;
-    save.mutate({ data: draft, layout }, { onSuccess: (s) => { savedAt(at, s); next(); }, onError: (e) => toast.error(errorMessage(e, 'Something went wrong')) });
+    void settleLatex().then((data) => {
+      if (!data) return;
+      if (!dirty && data === draft) return next();
+      const at = edits.current;
+      save.mutate({ data, layout }, { onSuccess: (s) => { savedAt(at, s); next(); }, onError: (e) => toast.error(errorMessage(e, 'Something went wrong')) });
+    });
+  };
+  const pickTab = (next: Tab) => {
+    if (next === tab) return;
+    if (tab !== 'latex') return setTab(next);
+    void settleLatex().then((data) => data && setTab(next));
   };
   const fitNow = () => withSaved(() => fit.mutate(undefined, {
     onSuccess: (d) => toast.success(d.fit?.summary ?? 'Fitted.'),
@@ -171,7 +211,7 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
   const go = (path: string) => withSaved(() => { window.location.href = path; });
 
   const jump = (target: string) => {
-    setTab('edit');
+    pickTab('edit');
     window.setTimeout(() => {
       const el = document.getElementById(targetId(target));
       if (!el) return;
@@ -184,7 +224,8 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
 
   const hidden = hiddenCount(draft);
   const template = templates.data?.templates.find((t) => t.id === (layout.template ?? 'ivy'));
-  const status = save.isPending ? 'Saving…' : dirty ? 'Unsaved' : 'Saved';
+  const status = save.isPending ? 'Saving…' : latexDirty ? 'LaTeX not applied' : dirty ? 'Unsaved' : 'Saved';
+  const clean = !dirty && !latexDirty && !save.isPending;
   const filename = `${draft.name.trim().replace(/\s+/g, '_') || 'Resume'}_Resume.tex`;
   const TABS: { id: Tab; label: string; icon: typeof PenLine; badge?: number }[] = [
     { id: 'edit', label: 'Edit', icon: PenLine },
@@ -237,14 +278,14 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
         </span>
         <a href="#resume-preview" className="text-xs font-medium text-accent xl:hidden">Preview ↓</a>
         <span className="ml-auto flex items-center gap-2">
-          {preview.review && <ScoreBadge score={preview.review.score} onClick={() => setTab('review')} />}
+          {preview.review && <ScoreBadge score={preview.review.score} onClick={() => pickTab('review')} />}
           <Popover label="Download" icon={<Download className="size-3.5" />} align="right">
             <MenuItem icon={<Download className="size-4" />} label="PDF" hint="Ready to send, exactly as previewed" onClick={() => go(`/api/resumes/${doc.id}/pdf?download=1`)} />
             <MenuItem icon={<Code2 className="size-4" />} label="LaTeX (.tex)" hint={`${template?.name ?? 'Ivy'} template; opens in Overleaf`} onClick={() => go(`/api/resumes/${doc.id}/tex`)} />
             <MenuItem icon={<FileText className="size-4" />} label="Plain text" hint="For forms that want it pasted" onClick={() => go(`/api/resumes/${doc.id}/txt?download=1`)} />
           </Popover>
-          <span className={clsx('inline-flex items-center gap-1 text-[11px]', dirty ? 'text-faint' : 'text-good')} aria-live="polite">
-            {!dirty && !save.isPending && <CheckCircle2 className="size-3" />} {status}
+          <span className={clsx('inline-flex items-center gap-1 text-[11px]', latexDirty ? 'text-warn' : clean ? 'text-good' : 'text-faint')} aria-live="polite">
+            {clean && <CheckCircle2 className="size-3" />} {status}
           </span>
         </span>
       </div>
@@ -254,7 +295,7 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
         <div className="min-w-0">
           <div role="tablist" className="mb-3 flex gap-1 border-b border-border">
             {TABS.map((t) => (
-              <button key={t.id} role="tab" type="button" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
+              <button key={t.id} role="tab" type="button" aria-selected={tab === t.id} onClick={() => pickTab(t.id)}
                 className={clsx('-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors',
                   tab === t.id ? 'border-accent text-accent' : 'border-transparent text-muted hover:text-text')}>
                 <t.icon className="size-3.5" /> {t.label}
@@ -269,7 +310,7 @@ export function Workspace({ doc }: { doc: ResumeDoc }) {
             )}
           </div>
           {tab === 'edit' && <ResumeForm data={draft} onChange={edit} issues={issues} jobId={doc.job_id} />}
-          {tab === 'latex' && <LatexEditor data={draft} layout={layout} filename={filename} onPreview={setLatexPreview} onApply={edit} />}
+          {tab === 'latex' && <LatexEditor handle={latex} data={draft} layout={layout} filename={filename} onPreview={setLatexPreview} onApply={edit} onDirty={onLatexDirty} />}
           {tab === 'review' && <ReviewPanel review={preview.review} onJump={jump} onFit={fitNow} />}
         </div>
         <div id="resume-preview" className="min-w-0 scroll-mt-16 xl:sticky xl:top-32">

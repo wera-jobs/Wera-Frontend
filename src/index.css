@@ -247,6 +247,11 @@ a.inline-flex:active {
   textarea {
     font-size: max(16px, 1em);
   }
+  /* The LaTeX editor draws its text under a clear field: both (and the
+     line numbers) take the same size, or the caret lands between letters. */
+  .code-area {
+    font-size: 16px;
+  }
 }
 
 /* What a phone shows until the app has loaded (see index.html). */
