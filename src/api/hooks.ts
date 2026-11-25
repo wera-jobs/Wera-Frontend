@@ -29,6 +29,7 @@ import type {
   Stats,
   InterviewPrep,
   PracticeFeedback,
+  PracticeThread,
 } from './types';
 
 export interface JobsParams {
@@ -404,10 +405,43 @@ export function useWriteInterviewPrep(jobId: number) {
 }
 
 /** Feedback on a practice answer to one of a job's questions. */
+export function usePracticeThreads(jobId: number) {
+  return useQuery({
+    queryKey: ['practice-threads', jobId],
+    queryFn: () => api<{ threads: PracticeThread[] }>(`/api/jobs/${jobId}/interview-prep/practice`),
+    retry: false,
+  });
+}
+
 export function usePracticeAnswer(jobId: number) {
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { question: string; answer: string }) =>
-      api<PracticeFeedback>(`/api/jobs/${jobId}/interview-prep/practice`, { method: 'POST', body: JSON.stringify(body) }),
+    mutationFn: (body: { question: string; answer: string; follow_up?: string }) =>
+      api<PracticeFeedback & { thread?: PracticeThread }>(`/api/jobs/${jobId}/interview-prep/practice`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['practice-threads', jobId] });
+    },
+  });
+}
+
+/** Adds one verified skill to the user's profile Skills section and optionally re-scores a job. */
+export function useAddProfileSkill() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { skill: string; job_id?: number }) =>
+      api<{ skill: string; added: boolean }>('/api/profile/skills', { method: 'POST', body: JSON.stringify(body) }),
+    onSuccess: (_res, vars) => {
+      void qc.invalidateQueries({ queryKey: ['profile'] });
+      if (vars.job_id) {
+        void qc.invalidateQueries({ queryKey: ['job', vars.job_id] });
+        void qc.invalidateQueries({ queryKey: ['job-keywords', vars.job_id] });
+      }
+      void qc.invalidateQueries({ queryKey: ['jobs'] });
+      void qc.invalidateQueries({ queryKey: ['today'] });
+    },
   });
 }
 

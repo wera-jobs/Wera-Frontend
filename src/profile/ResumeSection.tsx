@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FileCode2, FileText, LoaderCircle, Sparkles, Upload } from 'lucide-react';
+import { Copy, FileCode2, FileText, LoaderCircle, Pencil, Plus, Sparkles, Star, Upload } from 'lucide-react';
 import { errorMessage } from '../api/client';
 import {
-  useImportResume, useResume, useResumes, type ResumeDoc,
+  useCreateResume, useImportResume, usePatchResume, useResume, useResumes, type ResumeDoc,
 } from '../api/resumes';
 import { useProfile } from '../api/profile';
 import { ErrorState, Skeleton } from '../components/States';
@@ -147,12 +147,17 @@ export function ResumeSection() {
   const [manual, setManual] = useState(false);
   const [kept, setKept] = useState<string | null>(null);
   const fallback = useCallback(() => setManual(true), []);
-  const base = list.data?.resumes.find((r) => r.job_id == null);
+  const base = list.data?.resumes.find((r) => r.job_id == null && r.is_default) ?? list.data?.resumes.find((r) => r.job_id == null);
   // /profile/resume/foo is not a resume: never ask the API for /resumes/NaN.
   const linked = params.id != null && /^[1-9]\d*$/.test(params.id) ? Number(params.id) : null;
   const badLink = params.id != null && linked == null;
   const id = params.id != null ? linked : (base?.id ?? null);
   const doc = useResume(id);
+  const create = useCreateResume();
+  const patch = usePatchResume(id ?? 0);
+  const currentSummary = list.data?.resumes.find((r) => r.id === id);
+  const isBase = currentSummary != null && currentSummary.job_id == null;
+  const baseCount = (list.data?.resumes ?? []).filter((r) => r.job_id == null).length;
 
   if (list.isLoading || profile.isLoading) return <Skeleton className="h-96 w-full" />;
   if (list.isLoadingError) return <ErrorState message={errorMessage(list.error, 'Something went wrong')} onRetry={() => void list.refetch()} />;
@@ -176,7 +181,7 @@ export function ResumeSection() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">Edit your resume, keep it to one page, and tailor a copy for any job from its Resume tab.</p>
         {resumes.length > 0 && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <select value={id ?? ''} onChange={(e) => {
                 // Another resume: the re-import of the main one is over.
                 setReimport(false);
@@ -184,9 +189,76 @@ export function ResumeSection() {
               }} aria-label="Resume"
               className="w-60 max-w-full truncate rounded-lg border border-border bg-surface px-3 py-1.5 text-sm">
               {resumes.map((r) => (
-                <option key={r.id} value={r.id}>{r.job_id == null ? 'My resume' : `Tailored: ${r.job_title} at ${r.job_company}`}</option>
+                <option key={r.id} value={r.id}>
+                  {r.job_id == null
+                    ? `${r.title || 'My resume'}${r.is_default ? ' (Default)' : ''}`
+                    : `Tailored: ${r.job_title} at ${r.job_company}`}
+                </option>
               ))}
             </select>
+            {isBase && currentSummary && !currentSummary.is_default && (
+              <button
+                type="button"
+                disabled={patch.isPending}
+                onClick={() =>
+                  patch.mutate(
+                    { is_default: true },
+                    {
+                      onSuccess: () => toast.success(`Set "${currentSummary.title || 'My resume'}" as your default resume.`),
+                      onError: (e: unknown) => toast.error(errorMessage(e, 'Could not set default')),
+                    },
+                  )
+                }
+                className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-text hover:border-accent/40 disabled:opacity-60"
+              >
+                <Star className="size-3.5 text-accent" /> Set default
+              </button>
+            )}
+            {isBase && currentSummary && (
+              <button
+                type="button"
+                disabled={patch.isPending}
+                onClick={() => {
+                  const next = window.prompt('Rename this base resume:', currentSummary.title || 'My resume');
+                  if (!next?.trim()) return;
+                  patch.mutate(
+                    { title: next.trim() },
+                    {
+                      onSuccess: () => toast.success('Renamed resume.'),
+                      onError: (e: unknown) => toast.error(errorMessage(e, 'Could not rename')),
+                    },
+                  );
+                }}
+                aria-label="Rename resume"
+                className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2 py-1.5 text-xs text-muted hover:border-accent/40 hover:text-text"
+              >
+                <Pencil className="size-3.5" /> Rename
+              </button>
+            )}
+            {baseCount < 10 && (
+              <button
+                type="button"
+                disabled={create.isPending}
+                onClick={() => {
+                  const title = window.prompt('Name for new base resume (e.g. Backend SWE, ML Engineer):', '');
+                  if (title === null) return;
+                  create.mutate(
+                    { title: title.trim() || undefined, from_id: isBase && id ? id : undefined },
+                    {
+                      onSuccess: (created) => {
+                        toast.success(`Created "${created.title}".`);
+                        void navigate(`/profile/resume/${created.id}`);
+                      },
+                      onError: (e: unknown) => toast.error(errorMessage(e, 'Could not create resume')),
+                    },
+                  );
+                }}
+                className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-text hover:border-accent/40 disabled:opacity-60"
+              >
+                {isBase ? <Copy className="size-3.5" /> : <Plus className="size-3.5" />}
+                {isBase ? 'Duplicate' : 'New base'}
+              </button>
+            )}
             {id === base?.id && (
               <button onClick={() => setReimport((v) => !v)} className="rounded-lg px-2 py-1.5 text-xs text-muted hover:text-text">{reimport ? 'Cancel' : 'Re-import'}</button>
             )}

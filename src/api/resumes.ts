@@ -94,6 +94,7 @@ export interface ResumeDoc {
   job_id: number | null;
   job_title: string | null;
   job_company: string | null;
+  is_default?: boolean;
   data: ResumeData;
   layout: Layout;
   fit: FitResult | null;
@@ -109,6 +110,7 @@ export interface ResumeSummary {
   job_id: number | null;
   job_title: string | null;
   job_company: string | null;
+  is_default?: boolean;
   one_page: boolean | null;
   updated_at: string;
 }
@@ -233,10 +235,38 @@ export function useJobResume(jobId: number) {
   });
 }
 
+export function useCreateResume() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { title?: string; from_id?: number }) =>
+      api<ResumeDoc>('/api/resumes', { method: 'POST', body: JSON.stringify(v) }),
+    onSuccess: (doc) => {
+      qc.setQueryData(['resume', doc.id], doc);
+      void qc.invalidateQueries({ queryKey: ['resumes'] });
+    },
+  });
+}
+
+export function usePatchResume(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { title?: string; is_default?: boolean }) =>
+      api<ResumeDoc>(`/api/resumes/${id}`, { method: 'PATCH', body: JSON.stringify(v) }),
+    onSuccess: (doc) => {
+      qc.setQueryData(['resume', doc.id], doc);
+      void qc.invalidateQueries({ queryKey: ['resumes'] });
+    },
+  });
+}
+
 export function useTailorResume(jobId: number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () => api<{ resume: ResumeDoc; coverage_before: Coverage }>(`/api/jobs/${jobId}/resume`, { method: 'POST' }),
+    mutationFn: (opts?: { base_resume_id?: number; request?: string }) =>
+      api<{ resume: ResumeDoc; coverage_before: Coverage }>(`/api/jobs/${jobId}/resume`, {
+        method: 'POST',
+        body: opts ? JSON.stringify(opts) : undefined,
+      }),
     onSuccess: (r) => {
       qc.setQueryData(['job-resume', jobId], r.resume);
       qc.setQueryData(['resume', r.resume.id], r.resume);

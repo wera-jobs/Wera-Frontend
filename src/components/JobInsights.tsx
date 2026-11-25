@@ -3,8 +3,10 @@
 // and the user's application status and notes.
 import { useState } from 'react';
 import clsx from 'clsx';
-import { Ban } from 'lucide-react';
-import { useUpdateApplication } from '../api/hooks';
+import { Ban, LoaderCircle, Plus } from 'lucide-react';
+import { errorMessage } from '../api/client';
+import { useAddProfileSkill, useUpdateApplication } from '../api/hooks';
+import { toast } from '../lib/toast';
 import type { AppStatus, DeepAnalysis, FitParts, JobDetail } from '../api/types';
 import { absTime, compact, money, payText, prettyReason, relTime, toYou, verdictLabel, verdictOf } from '../lib/format';
 import { ApplicationDetails } from './ApplicationDetails';
@@ -129,6 +131,7 @@ export function FitBreakdown({ parts }: { parts: FitParts }) {
 
 export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean }) {
   const update = useUpdateApplication();
+  const addSkill = useAddProfileSkill();
   const [notes, setNotes] = useState<string | null>(null); // null: mirror the server (reset per job by key)
   const currentNotes = notes ?? job.application_notes ?? '';
   const setStatus = (status: AppStatus | null) => update.mutate({ id: job.id, status, notes: currentNotes });
@@ -238,11 +241,35 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
           )}
           {missing.length > 0 && (
             <>
-              <div className="mt-3 mb-1.5 text-[11px] text-muted">They also want</div>
+              <div className="mt-3 mb-1.5 flex items-center justify-between gap-2 text-[11px] text-muted">
+                <span>They also want</span>
+                <span className="text-[10px] text-faint">Click a skill you have to add it</span>
+              </div>
               <div className="flex flex-wrap gap-1.5">
-                {missing.map((s) => (
-                  <Badge key={s}>{s}</Badge>
-                ))}
+                {missing.map((s) => {
+                  const busy = addSkill.isPending && addSkill.variables?.skill === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      disabled={addSkill.isPending}
+                      title={`I have ${s}: add to profile & re-score`}
+                      onClick={() =>
+                        addSkill.mutate(
+                          { skill: s, job_id: job.id },
+                          {
+                            onSuccess: () => toast.success(`Added ${s} to your profile and refreshed score.`),
+                            onError: (e: unknown) => toast.error(errorMessage(e, `Could not add ${s}`)),
+                          },
+                        )
+                      }
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[11px] font-medium text-muted transition-colors hover:border-accent/50 hover:text-text disabled:opacity-50"
+                    >
+                      {busy ? <LoaderCircle className="size-3 animate-spin text-accent" /> : <Plus className="size-3 text-accent" />}
+                      {s}
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}
