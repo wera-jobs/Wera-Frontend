@@ -3,6 +3,8 @@ import clsx from 'clsx';
 import { Link } from 'react-router-dom';
 import {
   Ban,
+  Bell,
+  BellOff,
   Bookmark,
   BookmarkCheck,
   CalendarDays,
@@ -15,7 +17,7 @@ import {
   PenLine,
   X,
 } from 'lucide-react';
-import { useHideCompany, useJob, useScoreJob, useStatusWithUndo, useUpdateApplication } from '../api/hooks';
+import { useFollowCompany, useHideCompany, useJob, useScoreJob, useStatusWithUndo, useUpdateApplication } from '../api/hooks';
 import { CoverLetterPanel } from './CoverLetterPanel';
 import { InterviewPrepPanel } from './InterviewPrepPanel';
 import { JobResumePanel } from './JobResumePanel';
@@ -207,6 +209,18 @@ export function JobDrawer({
     if (window.matchMedia('(max-width: 767px)').matches) scrollers.current[0]?.scrollIntoView({ block: 'start' });
   }, [reveals, loaded]);
   const hide = useHideCompany();
+  const follow = useFollowCompany();
+  const toggleFollow = () => {
+    if (!job) return;
+    const next = !job.company_followed;
+    follow.mutate(
+      { id: job.company_id, follow: next },
+      {
+        onSuccess: () => toast.success(next ? `Following ${job.company}.` : `Stopped following ${job.company}.`),
+        onError: (e: unknown) => toast.error(errorMessage(e)),
+      },
+    );
+  };
   const hideCompany = () => {
     if (!job) return;
     hide.mutate(
@@ -247,16 +261,31 @@ export function JobDrawer({
             </div>
           )}
           <div className="ml-auto flex shrink-0 items-center gap-1">
-            {/* A job you added has no company board to hide. */}
+            {/* A job you added has no company board to follow or hide. */}
             {job && job.source !== 'manual' && (
-              <button
-                onClick={hideCompany}
-                aria-label={`Hide ${job.company}`}
-                title={`Hide all ${job.company} jobs`}
-                className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-2 hover:text-text"
-              >
-                <EyeOff className="size-4" />
-              </button>
+              <>
+                <button
+                  onClick={toggleFollow}
+                  disabled={follow.isPending}
+                  aria-pressed={!!job.company_followed}
+                  aria-label={job.company_followed ? `Unfollow ${job.company}` : `Follow ${job.company}`}
+                  title={job.company_followed ? `Following ${job.company}` : `Follow ${job.company} for new roles`}
+                  className={clsx(
+                    'rounded-lg p-2 transition-colors hover:bg-surface-2',
+                    job.company_followed ? 'text-accent' : 'text-muted hover:text-text',
+                  )}
+                >
+                  {job.company_followed ? <BellOff className="size-4" /> : <Bell className="size-4" />}
+                </button>
+                <button
+                  onClick={hideCompany}
+                  aria-label={`Hide ${job.company}`}
+                  title={`Hide all ${job.company} jobs`}
+                  className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-2 hover:text-text"
+                >
+                  <EyeOff className="size-4" />
+                </button>
+              </>
             )}
             {onNavigate && (
               <>

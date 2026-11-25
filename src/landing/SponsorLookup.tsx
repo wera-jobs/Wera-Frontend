@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { Search } from 'lucide-react';
+import { LoaderCircle, Search } from 'lucide-react';
+import { api, ApiError } from '../api/client';
+import { compact, wage } from '../lib/format';
 
 interface EmployerSample {
   name: string;
@@ -11,9 +14,23 @@ interface EmployerSample {
   titles: string[];
 }
 
-// Curated snapshot from public US Department of Labor H-1B LCA disclosures,
-// giving visitors a working preview of Wera's wage and sponsorship lookup
-// before they create an account.
+interface PublicEmployerHit {
+  key: string;
+  name: string;
+  filings: number;
+  median_wage: number | null;
+}
+
+interface PublicH1BSummary {
+  key: string;
+  name: string;
+  filings: number;
+  new_hires: number;
+  wage_median: number | null;
+  levels: { name: string; filings: number }[];
+  titles: { name: string; filings: number }[];
+}
+
 const EMPLOYERS: EmployerSample[] = [
   {
     name: 'Stripe',
@@ -149,59 +166,88 @@ const EMPLOYERS: EmployerSample[] = [
 
 const QUICK_PICKS = ['Stripe', 'NVIDIA', 'Datadog', 'JPMorgan Chase', 'Mayo Clinic'];
 
-/** Interactive preview of Wera's US DOL wage and H-1B sponsorship lookup. */
+/** Interactive US DOL wage and H-1B sponsorship lookup, backed by live public endpoints with instant sample fallback. */
 export function SponsorLookup({ totalEmployers }: { totalEmployers: string }) {
   const [query, setQuery] = useState('');
+  const deferred = useDeferredValue(query.trim());
   const [selected, setSelected] = useState(EMPLOYERS[0].name);
+  const [liveKey, setLiveKey] = useState<string | null>(null);
 
-  const matches = useMemo(() => {
+  const searchQ = useQuery({
+    queryKey: ['public-h1b-employers', deferred],
+    queryFn: () => api<{ employers: PublicEmployerHit[] }>(`/api/public/h1b/employers?q=${encodeURIComponent(deferred)}`),
+    enabled: deferred.length >= 2,
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+
+  const detailQ = useQuery({
+    queryKey: ['public-h1b-employer', liveKey],
+    queryFn: () => api<PublicH1BSummary>(`/api/public/h1b/employer?key=${encodeURIComponent(liveKey ?? '')}`),
+    enabled: liveKey != null,
+    staleTime: 30 * 60_000,
+    retry: false,
+  });
+
+  const sampleMatches = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return EMPLOYERS;
     return EMPLOYERS.filter((e) => e.name.toLowerCase().includes(q) || e.sector.toLowerCase().includes(q));
   }, [query]);
 
-  const current = useMemo(() => {
-    if (query.trim() && matches.length > 0) return matches[0];
+  const liveHits = searchQ.data?.employers ?? [];
+  const rateLimited = (searchQ.error instanceof ApiError && searchQ.error.status === 429)
+    || (detailQ.error instanceof ApiError && detailQ.error.status === 429);
+
+  const activeSample = useMemo(() => {
+    if (query.trim() && sampleMatches.length > 0) return sampleMatches[0];
     return EMPLOYERS.find((e) => e.name === selected) ?? EMPLOYERS[0];
-  }, [matches, query, selected]);
+  }, [query, sampleMatches, selected]);
+
+  const liveDetail = liveKey && detailQ.data ? detailQ.data : null;
+  const liveMaxLevel = liveDetail ? Math.max(1, ...liveDetail.levels.map((l) => l.filings)) : 1;
 
   return (
     <div className="rounded-xl border border-border bg-surface p-5 sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <label htmlFor="landing-employer-search" className="text-xs font-medium text-muted">
-          Try a sample employer lookup
-        </label>
-        <span className="font-mono text-[11px] text-faint">US DOL LCA disclosures</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="font-mono text-[11px] tracking-wider text-faint uppercase">
+          {liveDetail ? 'Live DOL LCA summary' : 'Sample employer lookup'}
+        </span>
+        <span className="font-mono text-[11px] text-faint">{totalEmployers} US employers</span>
       </div>
 
-      <div className="relative mt-2.5">
+      <label className="relative mt-3 block">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" />
         <input
-          id="landing-employer-search"
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Filter sample employers (Stripe, NVIDIA, Mayo Clinic...)"
-          className="w-full rounded-lg border border-border bg-bg py-2 pr-3 pl-9 text-sm text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (!e.target.value.trim()) setLiveKey(null);
+          }}
+          placeholder="Search any US employer (Stripe, Deloitte, Mayo Clinic…)"
+          aria-label="Try a sample employer lookup"
+          className="w-full rounded-lg border border-border bg-bg py-2 pr-3 pl-9 text-sm text-text placeholder:text-faint focus:border-accent focus:outline-none"
         />
-      </div>
+      </label>
 
-      <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="Sample employers">
+      <div className="mt-2.5 flex flex-wrap gap-1.5">
         {QUICK_PICKS.map((name) => {
-          const active = current.name === name && !query.trim();
+          const isActive = !liveKey && !query.trim() && activeSample.name === name;
           return (
             <button
               key={name}
               type="button"
               onClick={() => {
                 setQuery('');
+                setLiveKey(null);
                 setSelected(name);
               }}
               className={clsx(
-                'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors',
-                active
-                  ? 'border-text bg-text text-bg'
-                  : 'border-border bg-bg text-muted hover:border-text/30 hover:text-text',
+                'rounded-md border px-2.5 py-1 text-xs transition-colors',
+                isActive
+                  ? 'border-accent/50 bg-accent/10 font-medium text-accent'
+                  : 'border-border bg-bg/60 text-muted hover:border-text/30 hover:text-text',
               )}
             >
               {name}
@@ -210,56 +256,138 @@ export function SponsorLookup({ totalEmployers }: { totalEmployers: string }) {
         })}
       </div>
 
-      {query.trim() && matches.length === 0 ? (
-        <div className="mt-5 rounded-lg border border-border bg-bg p-4 text-sm text-muted">
-          <p className="font-medium text-text">"{query.trim()}" isn't in this 10-employer preview.</p>
-          <p className="mt-1 text-xs text-muted">
-            Create a free account to search all {totalEmployers} employers in Wera's full DOL dataset.
-          </p>
+      {deferred.length >= 2 && liveHits.length > 0 && (
+        <ul className="mt-3 max-h-40 divide-y divide-border overflow-y-auto rounded-lg border border-border bg-bg/60 text-xs">
+          {liveHits.slice(0, 6).map((hit) => (
+            <li key={hit.key}>
+              <button
+                type="button"
+                onClick={() => setLiveKey(hit.key)}
+                className={clsx(
+                  'flex w-full items-center justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-surface-2/60',
+                  liveKey === hit.key && 'bg-accent/10 text-accent',
+                )}
+              >
+                <span className="truncate font-medium text-text">{hit.name}</span>
+                <span className="shrink-0 font-mono text-[11px] text-muted">
+                  {compact(hit.filings)} filed{hit.median_wage ? ` · ${wage(hit.median_wage)}` : ''}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {rateLimited && (
+        <p className="mt-3 text-xs text-warn">
+          Preview lookup limit reached. Create a free account for unlimited employer lookups.
+        </p>
+      )}
+
+      {detailQ.isLoading ? (
+        <div className="mt-5 flex items-center justify-center gap-2 border-t border-border py-10 text-xs text-muted">
+          <LoaderCircle className="size-4 animate-spin text-accent" /> Loading DOL filings…
         </div>
-      ) : (
+      ) : liveDetail ? (
         <div className="mt-5 border-t border-border pt-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
             <div>
-              <h3 className="text-base font-semibold text-text">{current.name}</h3>
-              <p className="text-xs text-faint">{current.sector}</p>
+              <h3 className="text-lg font-semibold tracking-tight text-text">{liveDetail.name || liveKey}</h3>
+              <p className="text-xs text-faint">US DOL certified LCA disclosures</p>
             </div>
-            <div className="flex items-baseline gap-5">
-              <div className="text-right">
-                <div className="font-mono text-lg font-semibold text-text">{current.filings.toLocaleString()}</div>
-                <div className="text-[11px] text-faint">certified / yr</div>
+            <div className="flex gap-5">
+              <div>
+                <div className="font-mono text-base font-semibold text-text">{liveDetail.filings.toLocaleString()}</div>
+                <div className="text-[11px] text-faint">certified filings</div>
               </div>
-              <div className="text-right">
-                <div className="font-mono text-lg font-semibold text-text">{current.median}</div>
+              <div>
+                <div className="font-mono text-base font-semibold text-accent">{wage(liveDetail.wage_median)}</div>
                 <div className="text-[11px] text-faint">median base</div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 space-y-2">
-            {current.levels.map((b) => (
-              <div key={b.level} className="flex items-center gap-3 text-xs">
-                <span className="w-14 shrink-0 whitespace-nowrap font-mono text-faint">Lvl {b.level}</span>
-                <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
-                  <span className="block h-full rounded-full bg-accent/80 transition-all duration-300" style={{ width: `${b.pct}%` }} />
+          {liveDetail.levels.length > 0 && (
+            <div className="mt-5 space-y-2">
+              <div className="text-[11px] font-medium text-muted">Filings by DOL wage level</div>
+              {liveDetail.levels.map((lv) => (
+                <div key={lv.name} className="flex items-center gap-3 text-xs">
+                  <span className="w-16 shrink-0 whitespace-nowrap font-mono text-[11px] text-faint">{lv.name}</span>
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
+                    <div
+                      className="h-full rounded-full bg-accent/80 transition-all duration-300"
+                      style={{ width: `${Math.max(6, Math.round((lv.filings / liveMaxLevel) * 100))}%` }}
+                    />
+                  </div>
+                  <span className="w-12 text-right font-mono text-xs text-text">{compact(lv.filings)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {liveDetail.titles.length > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-border pt-4">
+              <span className="mr-1 text-[11px] text-faint">Common titles:</span>
+              {liveDetail.titles.map((t) => (
+                <span key={t.name} className="rounded-md bg-surface-2 px-2 py-0.5 text-[11px] text-muted">
+                  {t.name}
                 </span>
-                <span className="w-12 text-right font-mono text-muted">{b.pay}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : query.trim() && sampleMatches.length === 0 && liveHits.length === 0 && !searchQ.isLoading ? (
+        <div className="mt-5 rounded-lg border border-dashed border-border px-4 py-8 text-center">
+          <p className="text-sm font-medium text-text">“{query.trim()}” isn't in this 10-employer preview.</p>
+          <p className="mt-1 text-xs text-muted">
+            Sign up free to search all {totalEmployers} employers from public US DOL LCA disclosures.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-5 border-t border-border pt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight text-text">{activeSample.name}</h3>
+              <p className="text-xs text-faint">{activeSample.sector} · US DOL certified LCA disclosures</p>
+            </div>
+            <div className="flex gap-5">
+              <div>
+                <div className="font-mono text-base font-semibold text-text">{activeSample.filings.toLocaleString()}</div>
+                <div className="text-[11px] text-faint">filings / yr</div>
+              </div>
+              <div>
+                <div className="font-mono text-base font-semibold text-accent">{activeSample.median}</div>
+                <div className="text-[11px] text-faint">median base</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-2">
+            <div className="text-[11px] font-medium text-muted">Base wage distribution (DOL Levels I–IV)</div>
+            {activeSample.levels.map((lv) => (
+              <div key={lv.level} className="flex items-center gap-3 text-xs">
+                <span className="w-14 shrink-0 whitespace-nowrap font-mono text-[11px] text-faint">Lvl {lv.level}</span>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
+                  <div
+                    className="h-full rounded-full bg-accent/80 transition-all duration-300"
+                    style={{ width: `${lv.pct}%` }}
+                  />
+                </div>
+                <span className="w-12 text-right font-mono text-xs text-text">{lv.pay}</span>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
-            <span className="text-faint">Common titles:</span>
-            {current.titles.map((t) => (
-              <span key={t} className="rounded bg-surface-2 px-2 py-0.5 text-text">{t}</span>
+          <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-border pt-4">
+            <span className="mr-1 text-[11px] text-faint">Common titles:</span>
+            {activeSample.titles.map((t) => (
+              <span key={t} className="rounded-md bg-surface-2 px-2 py-0.5 text-[11px] text-muted">
+                {t}
+              </span>
             ))}
           </div>
         </div>
       )}
-
-      <p className="mt-4 text-[11px] text-faint">
-        Sample figures from public LCA filings. Inside Wera you can look up all {totalEmployers} employers and filter jobs by sponsorship.
-      </p>
     </div>
   );
 }

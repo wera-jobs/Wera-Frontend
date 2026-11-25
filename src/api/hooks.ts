@@ -43,6 +43,8 @@ export interface JobsParams {
   status?: string;
   /** 1: only archived applications. */
   archived?: number;
+  /** 1: only jobs from companies the user follows. */
+  followed?: number;
   since?: string;
   posted_within?: number;
   sort?: string;
@@ -66,10 +68,10 @@ function toQuery(params: object): string {
  * (they can wait all day under the daily score limit), else every 5
  * minutes.
  */
-export function useToday(profileUpdatedAt?: string) {
+export function useToday(profileUpdatedAt?: string, followed = false) {
   return useQuery({
-    queryKey: ['today'],
-    queryFn: () => api<JobList>('/api/today'),
+    queryKey: followed ? ['today', 'followed'] : ['today'],
+    queryFn: () => api<JobList>(followed ? '/api/today?followed=1' : '/api/today'),
     refetchInterval: (query) => {
       const justSaved =
         profileUpdatedAt != null && Date.now() - new Date(profileUpdatedAt).getTime() < 3 * 60_000;

@@ -29,6 +29,8 @@ interface Review {
   gaps: { skill: string; count: number }[];
   gaps_of: number;
   suggestions: { text: string; link: string }[];
+  weekly_goal?: number;
+  goal_streak_weeks?: number;
 }
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
@@ -97,10 +99,12 @@ export default function ReviewPage() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatTile
               label="Applications sent"
-              value={weeklyGoal > 0 ? `${r.applied.length}/${weeklyGoal}` : r.applied.length}
+              value={(r.weekly_goal ?? weeklyGoal) > 0 ? `${r.applied.length}/${r.weekly_goal || weeklyGoal}` : r.applied.length}
               sub={
-                weeklyGoal > 0
-                  ? (r.applied.length >= weeklyGoal ? 'weekly goal met' : `${weeklyGoal - r.applied.length} left to reach goal`)
+                (r.weekly_goal ?? weeklyGoal) > 0
+                  ? (r.applied.length >= (r.weekly_goal || weeklyGoal)
+                    ? ((r.goal_streak_weeks ?? 0) > 1 ? `goal met · ${r.goal_streak_weeks}-week streak` : 'weekly goal met')
+                    : `${(r.weekly_goal || weeklyGoal) - r.applied.length} left to reach goal`)
                   : (diff === 0 ? 'same as the week before' : `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than the week before`)
               }
             />

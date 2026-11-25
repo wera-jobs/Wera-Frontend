@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useSaveSettings, useSettings } from '../api/hooks';
 
 const KEY = 'wera.weekly_goal';
 
@@ -24,11 +25,28 @@ export function writeWeeklyGoal(goal: number): number {
   return clamped;
 }
 
-/** User-configurable weekly application target, persisted in localStorage. */
+/**
+ * User-configurable weekly application target, synced with PUT /api/settings
+ * (`weekly_application_goal`) and mirrored to localStorage for instant paint.
+ */
 export function useWeeklyGoal() {
-  const [goal, setGoalState] = useState<number>(() => readWeeklyGoal());
-  const setGoal = useCallback((next: number) => {
-    setGoalState(writeWeeklyGoal(next));
-  }, []);
+  const settings = useSettings();
+  const save = useSaveSettings();
+  const [local, setLocal] = useState<number>(() => readWeeklyGoal());
+  const serverGoal = settings.data?.weekly_application_goal;
+  const goal = serverGoal != null ? serverGoal : local;
+
+  const setGoal = useCallback(
+    (next: number) => {
+      const clamped = writeWeeklyGoal(next);
+      setLocal(clamped);
+      if (settings.data) {
+        const { hidden_companies: _hidden, ...rest } = settings.data;
+        save.mutate({ ...rest, weekly_application_goal: clamped });
+      }
+    },
+    [settings.data, save],
+  );
+
   return [goal, setGoal] as const;
 }
