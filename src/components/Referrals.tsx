@@ -63,7 +63,7 @@ export function Referrals({ jobId, company, title }: { jobId: number; company: s
       </ul>
 
       <div className="space-y-2 pt-1">
-        <div className="flex flex-wrap gap-1" role="group" aria-label="Contact role">
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Outreach recipient">
           {CONTACT_ROLES.map((r) => (
             <button
               key={r.id}
