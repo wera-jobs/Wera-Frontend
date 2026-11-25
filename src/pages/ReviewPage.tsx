@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Lightbulb, Target } from 'lucide-react';
 import { api } from '../api/client';
+import { useAppAnalytics } from '../api/hooks';
 import { StatTile } from '../components/StatTile';
 import { ErrorState, SkeletonRows } from '../components/States';
+import { useWeeklyGoal } from '../lib/goals';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
 interface Item {
@@ -59,6 +61,8 @@ export default function ReviewPage() {
   useDocumentTitle('Your week');
   const [day, setDay] = useState(() => ymd(new Date()));
   const [now] = useState(() => Date.now());
+  const [weeklyGoal] = useWeeklyGoal();
+  const analytics = useAppAnalytics();
   const { data: r, isLoading, error, refetch } = useQuery({
     queryKey: ['review', day],
     queryFn: () => api<Review>(`/api/review/weekly?week=${day}`),
@@ -93,13 +97,56 @@ export default function ReviewPage() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatTile
               label="Applications sent"
-              value={r.applied.length}
-              sub={diff === 0 ? 'same as the week before' : `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than the week before`}
+              value={weeklyGoal > 0 ? `${r.applied.length}/${weeklyGoal}` : r.applied.length}
+              sub={
+                weeklyGoal > 0
+                  ? (r.applied.length >= weeklyGoal ? 'weekly goal met' : `${weeklyGoal - r.applied.length} left to reach goal`)
+                  : (diff === 0 ? 'same as the week before' : `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than the week before`)
+              }
             />
             <StatTile label="Replies" value={r.replies.length} sub="interviews, offers and rejections" />
             <StatTile label="Strong matches" value={`${r.strong_acted}/${r.strong_new}`} sub="acted on, of the new ones" />
             <StatTile label="Waiting 2+ weeks" value={r.waiting} sub="applied, no reply or next step" to="/tracker" />
           </div>
+
+          {analytics.data && analytics.data.reached.applied > 0 && (
+            <section aria-labelledby="funnel-review-title" className="rounded-card border border-border bg-surface p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h2 id="funnel-review-title" className="flex items-center gap-2 text-sm font-semibold text-text">
+                  <Target className="size-4 text-accent" /> Pipeline conversion
+                </h2>
+                <Link to="/tracker" className="text-xs font-medium text-accent hover:underline">
+                  Full analytics in Tracker
+                </Link>
+              </div>
+              <div className="mt-3 space-y-2">
+                {(() => {
+                  const { reached, sources } = analytics.data;
+                  const responded = sources.reduce((n, s) => n + s.responded, 0);
+                  const stages = [
+                    { label: 'Applied', n: reached.applied, tone: 'bg-accent' },
+                    { label: 'Heard back', n: responded, tone: 'bg-accent-2' },
+                    { label: 'Interviewing', n: reached.interviewing, tone: 'bg-warn' },
+                    { label: 'Offer', n: reached.offer, tone: 'bg-good' },
+                  ];
+                  return stages.map((st) => {
+                    const pct = Math.round((st.n / Math.max(1, reached.applied)) * 100);
+                    return (
+                      <div key={st.label} className="grid grid-cols-[6rem_1fr_5.5rem] items-center gap-3 text-xs">
+                        <span className="text-muted">{st.label}</span>
+                        <span className="h-2 overflow-hidden rounded-full bg-surface-2">
+                          <span className={`block h-full rounded-full ${st.tone}`} style={{ width: `${pct}%` }} />
+                        </span>
+                        <span className="text-right font-mono text-text">
+                          {st.n} <span className="text-faint">{st.label === 'Applied' ? '' : `${pct}%`}</span>
+                        </span>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </section>
+          )}
 
           <section aria-labelledby="suggest-title" className="rounded-card border border-border bg-surface p-4">
             <h2 id="suggest-title" className="flex items-center gap-2 text-sm font-semibold text-text">
