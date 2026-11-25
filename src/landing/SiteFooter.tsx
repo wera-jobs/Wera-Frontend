@@ -5,7 +5,7 @@ import { Logo } from '../components/Logo';
 const COLUMNS: { title: string; links: [string, string][] }[] = [
   {
     title: 'Product',
-    links: [['How it works', '/#how'], ['Features', '/#features'], ['International students', '/#international'], ['Chrome extension', '/#extension'], ['Get started', '/signup']],
+    links: [['How it works', '/#how'], ['Features', '/#features'], ['Pay & visas', '/#pay-and-visas'], ['Chrome extension', '/#extension'], ['Get started', '/signup']],
   },
   { title: 'Company', links: [['About', '/about'], ['Careers', '/careers'], ['Press', '/press'], ['Contact', '/contact']] },
   { title: 'Help', links: [['Help center', '/help'], ['How Wera uses AI', '/ai'], ['Accessibility', '/accessibility'], ['Security', '/security']] },
