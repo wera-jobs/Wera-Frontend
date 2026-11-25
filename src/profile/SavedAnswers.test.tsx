@@ -76,4 +76,28 @@ describe('SavedAnswers', () => {
     expect(screen.getByRole('button', { name: /3 answers to one form's own questions/ })).toBeInTheDocument();
     expect(screen.queryByText('systemd')).toBeNull();
   });
+
+  it('groups by topic, collapses large lists, and folds duplicate-answer wordings', async () => {
+    stubApi({
+      'GET /api/applicant/answers': () => ({ answers: [
+        answer(1, 'Will you require visa sponsorship?', 'Yes', { uses: 5 }),
+        answer(2, 'Do you need sponsorship now or in the future?', 'Yes', { uses: 2 }),
+        answer(3, 'Are you authorized to work in the US?', 'Yes', { uses: 3 }),
+        answer(4, 'How did you hear about us?', 'LinkedIn', { uses: 4 }),
+        answer(5, 'How did you hear about this role?', 'LinkedIn', { uses: 2 }),
+        answer(6, 'What is your expected salary?', '$150,000'),
+        answer(7, 'Are you willing to relocate?', 'Yes'),
+      ] }),
+    });
+    renderApp(<SavedAnswers />);
+    // With > 6 common answers, topic buckets start collapsed.
+    const workAuthBtn = await screen.findByRole('button', { name: /Work authorization & visas/ });
+    expect(workAuthBtn).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(workAuthBtn);
+    expect(workAuthBtn).toHaveAttribute('aria-expanded', 'true');
+    // 3 identical "Yes" sponsorship/auth answers fold into 1 cluster row.
+    expect(screen.getByText(/Used 10 times across 3 wordings/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /Show 2 more wordings/ }));
+    expect(screen.getByText('Do you need sponsorship now or in the future?')).toBeInTheDocument();
+  });
 });

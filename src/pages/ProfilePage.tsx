@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import clsx from 'clsx';
-import { ArrowRight, Camera, Download, FileText, LoaderCircle, Save, UserRound } from 'lucide-react';
+import { ArrowRight, Camera, CheckCircle2, Circle, Download, FileText, LoaderCircle, Save, UserRound } from 'lucide-react';
 import { useAvatar, useMe } from '../api/auth';
 import { errorMessage, errorOrNull } from '../api/client';
+import { useApplicant } from '../api/extension';
 import { useDraftProfile, useMyUsage, useProfile, useSaveProfile } from '../api/profile';
 import type { Answers, Preferences } from '../api/types';
 import { Avatar } from '../components/Avatar';
@@ -19,14 +20,75 @@ import { ApplicationDetails } from '../profile/ApplicationDetails';
 import { SavedAnswers } from '../profile/SavedAnswers';
 import { ResumeSection } from '../profile/ResumeSection';
 
-function Card({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+function Card({ title, hint, badge, children }: { title: string; hint?: string; badge?: string; children: React.ReactNode }) {
   return (
     <section className="rounded-card border border-border bg-surface p-5">
-      <h2 className="text-sm font-semibold text-text">{title}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-text">{title}</h2>
+        {badge && <span className="rounded-full border border-border bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-faint">{badge}</span>}
+      </div>
       {hint && <p className="mt-0.5 mb-4 text-xs text-muted">{hint}</p>}
       {!hint && <div className="mb-4" />}
       {children}
     </section>
+  );
+}
+
+function ProfileReadiness({
+  resumeChars,
+  prefs,
+  markdown,
+}: {
+  resumeChars: number;
+  prefs: Preferences;
+  markdown: string;
+}) {
+  const applicant = useApplicant();
+  const a = applicant.data?.applicant;
+  const items = [
+    { label: 'Resume uploaded', done: resumeChars > 0, href: '/profile/resume', isRoute: true },
+    { label: 'Target roles & level set', done: prefs.role_families.length > 0 && prefs.levels.length > 0, href: '#want', isRoute: false },
+    { label: 'Profile text saved', done: markdown.trim().length > 0, href: '#text', isRoute: false },
+    { label: 'Autofill contact details', done: Boolean(a?.first_name && a?.email), href: '#application', isRoute: false },
+  ];
+  const doneCount = items.filter((i) => i.done).length;
+  const pct = Math.round((doneCount / items.length) * 100);
+
+  return (
+    <Card title="Profile readiness" hint={doneCount === items.length ? 'Ready for matching and extension autofill.' : 'Complete these for better matches and faster autofill.'}>
+      <div className="mb-3 flex items-center justify-between text-xs">
+        <span className="font-mono font-semibold text-text">{doneCount}/{items.length}</span>
+        <span className="text-faint">{pct}%</span>
+      </div>
+      <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-surface-2">
+        <div className={clsx('h-full transition-all duration-300', doneCount === items.length ? 'bg-good' : 'bg-accent')} style={{ width: `${pct}%` }} />
+      </div>
+      <ul className="space-y-2 text-xs">
+        {items.map((item) => (
+          <li key={item.label} className="flex items-center gap-2">
+            {item.done
+              ? <CheckCircle2 className="size-3.5 shrink-0 text-good" />
+              : <Circle className="size-3.5 shrink-0 text-faint" />}
+            {item.done ? (
+              <span className="text-muted">{item.label}</span>
+            ) : item.isRoute ? (
+              <Link to={item.href} className="font-medium text-text hover:text-accent hover:underline">{item.label}</Link>
+            ) : (
+              <a
+                href={item.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById(item.href.slice(1))?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                }}
+                className="font-medium text-text hover:text-accent hover:underline"
+              >
+                {item.label}
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 
@@ -282,7 +344,7 @@ function ProfileOverview() {
       <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           <div id="want" className="scroll-mt-20">
-            <Card title="What you want">
+            <Card title="What you want" badge="Saves with Profile text">
               <PreferencesFields
                 prefs={prefs}
                 answers={answers}
@@ -292,7 +354,7 @@ function ProfileOverview() {
             </Card>
           </div>
           <div id="text" className="scroll-mt-20">
-            <Card title="Profile text">
+            <Card title="Profile text" badge="Saves with What you want">
               <ProfileEditor
                 value={markdown}
                 onChange={edit(setMarkdown)}
@@ -313,17 +375,18 @@ function ProfileOverview() {
             </Card>
           </div>
           <div id="application" className="scroll-mt-20">
-            <Card title="Application details" hint="Filled into job applications by the Chrome extension.">
+            <Card title="Application details" badge="Saves separately" hint="Filled into job applications by the Chrome extension.">
               <ApplicationDetails />
             </Card>
           </div>
           <div id="answers" className="scroll-mt-20">
-            <Card title="Saved answers" hint="What you answered on application forms. The Chrome extension gives the same answer when another form asks the same question.">
+            <Card title="Saved answers" badge="Auto-saved" hint="What you answered on application forms. The Chrome extension gives the same answer when another form asks the same question.">
               <SavedAnswers />
             </Card>
           </div>
         </div>
         <div className="space-y-5 lg:sticky lg:top-20 lg:self-start">
+          <ProfileReadiness resumeChars={resumeChars} prefs={prefs} markdown={markdown} />
           <ResumeCard resumeChars={resumeChars} onUploaded={setResumeChars} />
           <UsageCard />
         </div>
