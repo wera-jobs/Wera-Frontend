@@ -17,6 +17,7 @@
   --color-bad: #FF5C7A;
 
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Newsreader Variable", Georgia, "Times New Roman", serif;
   --font-mono: "Geist Mono Variable", ui-monospace, "SF Mono", monospace;
 
   /* Chart and decoration tokens (not Tailwind utilities). */
@@ -285,15 +286,6 @@ a.inline-flex:active {
   --color-accent-2: #4A63C8;
   --color-warn: #8A5D0F;
   --color-bad: #B83A50;
-}
-@keyframes drift-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@keyframes drift-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-.drift-left { animation: drift-left var(--drift, 90s) linear infinite; }
-.drift-right { animation: drift-right var(--drift, 90s) linear infinite; }
-@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.float-y { animation: float-y 6s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .drift-left, .drift-right, .float-y { animation: none; }
 }
 
 /* Tracker empty state: a card drifting from Saved toward Applied. */

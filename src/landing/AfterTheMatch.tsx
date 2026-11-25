@@ -48,10 +48,11 @@ export function AfterTheMatch() {
   const { theme } = useTheme();
   const [active, setActive] = useState(0);
   return (
-    <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-28 sm:px-6">
+    <section id="features" className="mx-auto max-w-6xl scroll-mt-20 border-t border-border px-4 py-24 sm:px-6">
       <div className="grid items-start gap-x-16 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div>
-          <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">Everything after the match.</h2>
+          <p className="font-mono text-xs tracking-wider text-faint uppercase">Inside Wera</p>
+          <h2 className="font-display mt-3 text-3xl font-normal tracking-[-0.02em] text-balance sm:text-4xl">Everything after the match.</h2>
           <p className="mt-3 max-w-md leading-relaxed text-muted">
             Your resume, your applications and your interview prep sit next to your jobs, so nothing ends up in a spreadsheet.
           </p>
@@ -95,7 +96,7 @@ export function AfterTheMatch() {
               src={screen(item.id, 'wide', theme)}
               alt={i === active ? item.alt : ''}
               aria-hidden={i !== active}
-              loading="lazy"
+              loading={i === 0 ? 'eager' : 'lazy'}
               decoding="async"
               className={clsx(
                 'absolute top-9 left-9 w-[125%] max-w-none rounded-tl-lg border-t border-l border-border transition-opacity duration-200',

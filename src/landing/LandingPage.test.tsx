@@ -112,6 +112,31 @@ describe('landing page', () => {
     expect(screen.queryByText(/never applies for you/)).not.toBeInTheDocument();
   });
 
+  it('lets visitors switch hero previews and try the sample employer wage lookup', async () => {
+    stubApi({
+      'GET /api/auth/me': () => new Response('{}', { status: 401 }),
+      'GET /api/public/stats': () => ({ companies: 572, industries: 28, open_jobs: 43742, h1b_filings: 495460, h1b_employers: 57990 }),
+    });
+    renderApp(
+      <Routes>
+        <Route element={<RequireAuth />}><Route index element={<p>today</p>} /></Route>
+      </Routes>,
+      { path: '/' },
+    );
+    const trackerTab = await screen.findByRole('tab', { name: 'Tracker' });
+    await userEvent.click(trackerTab);
+    expect(trackerTab).toHaveAttribute('aria-selected', 'true');
+
+    const nvidiaBtn = screen.getByRole('button', { name: 'NVIDIA' });
+    await userEvent.click(nvidiaBtn);
+    expect(screen.getByRole('heading', { level: 3, name: 'NVIDIA' })).toBeInTheDocument();
+    expect(screen.getByText('$196k')).toBeInTheDocument();
+
+    const search = screen.getByLabelText('Try a sample employer lookup');
+    await userEvent.type(search, 'Unknown Corp');
+    expect(screen.getByText(/isn't in this 10-employer preview/)).toBeInTheDocument();
+  });
+
   it('shows a company page with the footer', () => {
     renderApp(<Routes><Route path="careers" element={<InfoPage page="careers" />} /></Routes>, { path: '/careers' });
     expect(screen.getByRole('heading', { level: 1, name: 'Careers' })).toBeInTheDocument();
