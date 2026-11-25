@@ -7,19 +7,21 @@ import {
 import { useJobs, useUpdateApplication } from '../api/hooks';
 import type { AppStatus, Job } from '../api/types';
 import { AutofilledBadge, ClosedBadge } from '../components/JobBadges';
+import { AddJobDialog } from '../components/AddJobDialog';
 import { JobDrawer, type DrawerTab } from '../components/JobDrawer';
 import { CompanyLogo } from '../components/CompanyLogo';
 import { StatusSelect } from '../components/StatusSelect';
 import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
 import { Progress } from '../components/Progress';
-import { errorMessage } from '../api/client';
+import { api, errorMessage } from '../api/client';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
-import { Archive, ExternalLink, EyeOff, KanbanSquare, List, Search, TrendingUp } from 'lucide-react';
+import { Archive, Clock, Download, ExternalLink, EyeOff, KanbanSquare, List, Plus, Search, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { JobList } from '../api/types';
 
 const COLUMNS: AppStatus[] = ['saved', 'applied', 'interviewing', 'offer', 'rejected'];
 
@@ -31,6 +33,47 @@ const COLUMN_LABEL: Record<AppStatus, string> = {
   rejected: 'Rejected',
   not_interested: 'Not interested',
 };
+
+const COLUMN_DOT: Record<AppStatus, string> = {
+  saved: 'bg-faint',
+  applied: 'bg-accent',
+  interviewing: 'bg-warn',
+  offer: 'bg-good',
+  rejected: 'bg-bad/70',
+  not_interested: 'bg-faint/60',
+};
+
+const STALE_DAYS = 14;
+
+function csvCell(v: string | number | null | undefined): string {
+  const s = String(v ?? '');
+  return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
+}
+
+async function exportTrackerCsv(statuses: AppStatus[]) {
+  try {
+    const rows: Job[] = [];
+    for (const status of statuses) {
+      const { jobs } = await api<JobList>(`/api/jobs?status=${status}&limit=200&offset=0`);
+      rows.push(...jobs);
+    }
+    const csv = [
+      ['company', 'title', 'status', 'fit_score', 'pay', 'location', 'next_step', 'url', 'notes'].join(','),
+      ...rows.map((j) =>
+        [j.company, j.title, j.application_status, j.fit_score, payText(j, true), j.location_summary ?? j.location_raw, j.next_step, j.url, j.application_notes]
+          .map(csvCell)
+          .join(','),
+      ),
+    ].join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'wera-tracker.csv' });
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${rows.length} application${rows.length === 1 ? '' : 's'}.`);
+  } catch (e) {
+    toast.error(`Couldn't export: ${errorMessage(e)}`);
+  }
+}
 
 function KanbanCard({
   job,
@@ -45,6 +88,9 @@ function KanbanCard({
   onStatus: (id: number, status: AppStatus | null) => void;
 }) {
   const verdict = verdictOf(job.fit_score);
+  const [now] = useState(() => Date.now());
+  const daysOld = Math.floor((now - new Date(job.first_seen_at).getTime()) / 86_400_000);
+  const stale = job.application_status === 'applied' && !job.next_step_at && !job.closed_at && daysOld >= STALE_DAYS;
   return (
     <div
       className="group anim-rise rounded-xl border border-border bg-surface p-3 transition-colors duration-150 hover:border-accent/40"
@@ -87,6 +133,11 @@ function KanbanCard({
           {payText(job, true) && <span className="font-medium text-muted">{payText(job, true)}</span>}
           <AutofilledBadge at={job.autofilled_at} />
           <ClosedBadge at={job.closed_at} />
+          {stale && (
+            <span className="inline-flex items-center gap-0.5 rounded bg-warn/10 px-1.5 py-px font-medium text-warn" title="Applied over 2 weeks ago with no next step scheduled">
+              <Clock className="size-2.5" /> {daysOld}d no reply
+            </span>
+          )}
         </div>
         <NextStep job={job} className="mt-1" />
       </div>
@@ -328,7 +379,10 @@ function Column({
       )}
     >
       <header className="mb-2 flex items-center justify-between px-1">
-        <h3 className="text-xs font-semibold text-text">{COLUMN_LABEL[status]}</h3>
+        <h3 className="flex items-center gap-1.5 text-xs font-semibold text-text">
+          <span aria-hidden className={clsx('size-2 rounded-full', COLUMN_DOT[status])} />
+          {COLUMN_LABEL[status]}
+        </h3>
         <span className="font-mono text-xs text-faint">{jobs.length}</span>
       </header>
       {/* On a board each column scrolls on its own, so a long list does not make the page long; a phone's one stage runs down the page. */}
@@ -370,6 +424,7 @@ export default function TrackerPage() {
     setDrawerId(id);
   };
   const [dragging, setDragging] = useState<Job | null>(null);
+  const [adding, setAdding] = useState(false);
   const [view, setView] = useState<'board' | 'list' | 'archived' | 'progress'>('board');
   // A small move or a short press before a drag, so clicks, the status menu and scrolling keep working.
   const sensors = useSensors(
@@ -458,8 +513,34 @@ export default function TrackerPage() {
           <EyeOff className="size-3.5" />
           Show not interested
           </label>
+          {!empty && (
+            <button
+              type="button"
+              onClick={() => void exportTrackerCsv(columns)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent/40 hover:text-text"
+            >
+              <Download className="size-3.5" /> Export CSV
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setAdding(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg transition-colors hover:bg-accent/85"
+          >
+            <Plus className="size-3.5" /> Add job
+          </button>
         </div>
       </header>
+
+      {adding && (
+        <AddJobDialog
+          onClose={() => setAdding(false)}
+          onAdded={(id) => {
+            setAdding(false);
+            openJob(id);
+          }}
+        />
+      )}
 
       {empty && (view === 'board' || view === 'list') && <TrackerEmpty />}
       {!empty && <Upcoming onOpen={openJob} />}

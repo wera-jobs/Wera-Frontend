@@ -1,13 +1,13 @@
 // The tracker's views beyond the board: what's coming up, a list of every
 // application, and the archive.
 import { useState } from 'react';
-import { CalendarClock } from 'lucide-react';
+import { ArrowUpDown, CalendarClock } from 'lucide-react';
 import clsx from 'clsx';
 import { useQueries } from '@tanstack/react-query';
 import { jobsQuery, useJobs, useUpcomingEvents } from '../api/hooks';
 import type { AppStatus, Job } from '../api/types';
 import { eventKindLabel, resumeText, whenText } from '../lib/events';
-import { relTime } from '../lib/format';
+import { relTime, verdictColor, verdictOf } from '../lib/format';
 import { StatusSelect } from './StatusSelect';
 import { StatusPill } from './JobBadges';
 import { CompanyLogo } from './CompanyLogo';
@@ -108,21 +108,57 @@ export function ArchivedList({
   return <Rows jobs={jobs} empty="Nothing archived. Archive an application from its job view to clear it off the board." onOpen={onOpen} onStatus={onStatus} />;
 }
 
+type SortKey = 'default' | 'role' | 'status' | 'score' | 'found';
+
+function SortBtn({ k, label, active, onSort }: { k: SortKey; label: string; active: boolean; onSort: (k: SortKey) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(k)}
+      className={clsx('inline-flex items-center gap-1 hover:text-text', active && 'text-accent')}
+    >
+      {label} <ArrowUpDown className="size-3 opacity-60" />
+    </button>
+  );
+}
+
 function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; onOpen: (id: number) => void; onStatus: (id: number, status: AppStatus | null) => void }) {
+  const [sort, setSort] = useState<SortKey>('default');
+  const [desc, setDesc] = useState(false);
+
   if (jobs.length === 0) return <EmptyState title={empty} />;
+
+  const toggleSort = (key: SortKey) => {
+    if (sort === key) setDesc((d) => !d);
+    else {
+      setSort(key);
+      setDesc(key === 'score' || key === 'found');
+    }
+  };
+
+  const sorted = sort === 'default' ? jobs : [...jobs].sort((a, b) => {
+    let cmp = 0;
+    if (sort === 'role') cmp = `${a.company} ${a.title}`.localeCompare(`${b.company} ${b.title}`);
+    else if (sort === 'status') cmp = STATUS_ORDER.indexOf(a.application_status ?? 'saved') - STATUS_ORDER.indexOf(b.application_status ?? 'saved');
+    else if (sort === 'score') cmp = (a.fit_score ?? -1) - (b.fit_score ?? -1);
+    else if (sort === 'found') cmp = new Date(a.first_seen_at).getTime() - new Date(b.first_seen_at).getTime();
+    return desc ? -cmp : cmp;
+  });
+
   return (
     <div className="overflow-hidden rounded-card border border-border bg-surface">
       <table className="w-full table-fixed text-left text-xs">
         <thead className="border-b border-border text-[11px] text-faint">
           <tr>
-            <th scope="col" className="px-3 py-2 font-medium">Role</th>
-            <th scope="col" className="hidden w-40 px-3 py-2 font-medium sm:table-cell">Status</th>
+            <th scope="col" className="px-3 py-2 font-medium"><SortBtn k="role" label="Role" active={sort === 'role'} onSort={toggleSort} /></th>
+            <th scope="col" className="hidden w-16 px-3 py-2 font-medium sm:table-cell"><SortBtn k="score" label="Fit" active={sort === 'score'} onSort={toggleSort} /></th>
+            <th scope="col" className="hidden w-40 px-3 py-2 font-medium sm:table-cell"><SortBtn k="status" label="Status" active={sort === 'status'} onSort={toggleSort} /></th>
             <th scope="col" className="hidden px-3 py-2 font-medium md:table-cell">Next step</th>
-            <th scope="col" className="hidden w-28 px-3 py-2 font-medium lg:table-cell">Found</th>
+            <th scope="col" className="hidden w-28 px-3 py-2 font-medium lg:table-cell"><SortBtn k="found" label="Found" active={sort === 'found'} onSort={toggleSort} /></th>
           </tr>
         </thead>
         <tbody>
-          {jobs.map((job) => (
+          {sorted.map((job) => (
             <tr key={job.id} className="border-b border-border last:border-0 hover:bg-surface-2/60">
               <td className="px-3 py-2">
                 <button type="button" onClick={() => onOpen(job.id)} className="block w-full min-w-0 text-left">
@@ -136,6 +172,9 @@ function Rows({ jobs, empty, onOpen, onStatus }: { jobs: Job[]; empty: string; o
                 <span className="mt-1 block sm:hidden"><StatusPill value={job.application_status} /></span>
                 <NextStep job={job} className="md:hidden" />
                 {resumeText(job.resume_used) && <span className="block truncate text-[11px] text-faint">{resumeText(job.resume_used)}</span>}
+              </td>
+              <td className={clsx('hidden px-3 py-2 font-mono font-semibold sm:table-cell', verdictColor[verdictOf(job.fit_score)])}>
+                {job.fit_score ?? '—'}
               </td>
               <td className="hidden px-3 py-2 sm:table-cell">
                 <StatusSelect value={job.application_status} onChange={(s) => onStatus(job.id, s)} label={`Status for ${job.title}`} />
