@@ -7,6 +7,7 @@ import { usePosts } from '../api/community';
 import { Avatar } from '../components/Avatar';
 import { Reactions } from '../components/Reactions';
 import { EmptyState, ErrorState, SkeletonRows } from '../components/States';
+import { EXAMPLE_POSTS } from '../data/examplePosts';
 import { errorMessage } from '../api/client';
 import { relTime } from '../lib/format';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
@@ -20,7 +21,18 @@ export default function CommunityPage() {
   const feed = usePosts(tag);
 
   const needle = query.trim().toLowerCase();
-  const visiblePosts = (feed.data?.posts ?? [])
+  const matchingExamples = EXAMPLE_POSTS.filter((p) => !tag || p.tags.includes(tag));
+  const mergedTags = (() => {
+    const counts = new Map<string, number>();
+    for (const t of feed.data?.tags ?? []) counts.set(t.tag, t.count);
+    for (const p of EXAMPLE_POSTS) {
+      for (const t of p.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .map(([name, count]) => ({ tag: name, count }))
+      .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+  })();
+  const visiblePosts = [...(feed.data?.posts ?? []), ...matchingExamples]
     .filter((p) => !needle || `${p.title} ${p.excerpt} ${p.tags.join(' ')} ${p.author.name}`.toLowerCase().includes(needle))
     .sort((a, b) => {
       if (sort === 'discussed') return b.comment_count - a.comment_count;
@@ -49,9 +61,9 @@ export default function CommunityPage() {
         </Link>
       </header>
 
-      {!!feed.data?.tags.length && (
+      {!!mergedTags.length && (
         <div className="mb-5 flex flex-wrap gap-1.5">
-          {[{ tag: '', count: 0 }, ...feed.data.tags].map((t) => (
+          {[{ tag: '', count: 0 }, ...mergedTags].map((t) => (
             <button
               key={t.tag || 'all'}
               onClick={() => setSp(t.tag ? { tag: t.tag } : {})}
@@ -115,13 +127,16 @@ export default function CommunityPage() {
           {visiblePosts.map((p, i) => (
             <li key={p.id} className="anim-rise" style={{ animationDelay: `${Math.min(i * 40, STAGGER_MAX_MS)}ms` }}>
               <Link
-                to={`/community/${p.id}`}
+                to={`/community/${p.slug ?? p.id}`}
                 className="group block rounded-card border border-border bg-surface p-5 transition-all duration-200 hover:-translate-y-px hover:border-accent/30 hover:shadow-[var(--shadow-card-hover)]"
               >
-                <div className="mb-2 flex items-center gap-2 text-xs text-muted">
+                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted">
                   <Avatar user={p.author} size={22} self={false} />
                   <span className="font-medium text-text">{p.author.name}</span>
                   <span className="text-faint">· {relTime(p.created_at)} · {p.read_minutes} min read</span>
+                  {p.is_example && (
+                    <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">Example</span>
+                  )}
                 </div>
                 <h2 className="font-serif text-xl leading-snug font-semibold text-text transition-colors group-hover:text-accent">
                   {p.title}
