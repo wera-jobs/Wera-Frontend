@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { STAGGER_MAX_MS } from '../lib/styles';
 import { Link, useSearchParams } from 'react-router-dom';
 import clsx from 'clsx';
-import { MessageCircle, PenSquare, Users } from 'lucide-react';
+import { MessageCircle, PenSquare, Search, Users } from 'lucide-react';
 import { usePosts } from '../api/community';
 import { Avatar } from '../components/Avatar';
 import { Reactions } from '../components/Reactions';
@@ -14,7 +15,21 @@ export default function CommunityPage() {
   useDocumentTitle('Community');
   const [sp, setSp] = useSearchParams();
   const tag = sp.get('tag') ?? '';
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<'newest' | 'discussed' | 'helpful'>('newest');
   const feed = usePosts(tag);
+
+  const needle = query.trim().toLowerCase();
+  const visiblePosts = (feed.data?.posts ?? [])
+    .filter((p) => !needle || `${p.title} ${p.excerpt} ${p.tags.join(' ')} ${p.author.name}`.toLowerCase().includes(needle))
+    .sort((a, b) => {
+      if (sort === 'discussed') return b.comment_count - a.comment_count;
+      if (sort === 'helpful') {
+        const sum = (r: Record<string, number>) => Object.values(r).reduce((n, v) => n + v, 0);
+        return sum(b.reactions) - sum(a.reactions);
+      }
+      return b.created_at.localeCompare(a.created_at);
+    });
 
   return (
     <div className="mx-auto max-w-3xl pb-10">
@@ -52,19 +67,52 @@ export default function CommunityPage() {
         </div>
       )}
 
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <label className="relative min-w-48 flex-1">
+          <span className="sr-only">Search posts</span>
+          <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-faint" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search posts, companies, tags…"
+            className="w-full rounded-lg border border-border bg-surface py-1.5 pr-2.5 pl-8 text-xs text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
+          />
+        </label>
+        <div role="group" aria-label="Sort posts" className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-xs">
+          {(
+            [
+              ['newest', 'Newest'],
+              ['discussed', 'Most discussed'],
+              ['helpful', 'Most helpful'],
+            ] as const
+          ).map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              aria-pressed={sort === k}
+              onClick={() => setSort(k)}
+              className={clsx('rounded-md px-2.5 py-1 font-medium transition-colors', sort === k ? 'bg-accent/10 text-accent' : 'text-muted hover:text-text')}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {feed.isLoading ? (
         <SkeletonRows rows={4} />
       ) : feed.isLoadingError ? (
         <ErrorState message={errorMessage(feed.error)} onRetry={() => void feed.refetch()} />
-      ) : !feed.data?.posts.length ? (
+      ) : !visiblePosts.length ? (
         <EmptyState
           icon={<Users className="size-6 text-faint" />}
-          title={tag ? `No posts tagged #${tag} yet` : 'No posts yet'}
+          title={needle ? `No posts match “${query}”` : tag ? `No posts tagged #${tag} yet` : 'No posts yet'}
           hint="Landed an offer or learned something in an interview loop? Be the first to share it."
         />
       ) : (
         <ul className="space-y-3">
-          {feed.data.posts.map((p, i) => (
+          {visiblePosts.map((p, i) => (
             <li key={p.id} className="anim-rise" style={{ animationDelay: `${Math.min(i * 40, STAGGER_MAX_MS)}ms` }}>
               <Link
                 to={`/community/${p.id}`}

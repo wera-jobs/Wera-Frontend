@@ -18,11 +18,11 @@ import { ThemeChoice } from '../lib/theme';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
-function Section({ icon: Icon, title, hint, children, tone }: {
-  icon: typeof Bell; title: string; hint?: string; children: ReactNode; tone?: 'danger';
+function Section({ id, icon: Icon, title, hint, children, tone }: {
+  id?: string; icon: typeof Bell; title: string; hint?: string; children: ReactNode; tone?: 'danger';
 }) {
   return (
-    <section className={clsx('rounded-card border bg-surface p-5', tone === 'danger' ? 'border-bad/30' : 'border-border')}>
+    <section id={id} className={clsx('scroll-mt-20 rounded-card border bg-surface p-5', tone === 'danger' ? 'border-bad/30' : 'border-border')}>
       <div className="mb-4 flex items-start gap-3">
         <span className={clsx('mt-0.5 rounded-lg p-1.5', tone === 'danger' ? 'bg-bad/10 text-bad' : 'bg-surface-2 text-muted')}>
           <Icon className="size-4" />
@@ -322,13 +322,38 @@ export default function SettingsPage() {
         <p className="mt-1 text-xs text-muted">Changes save as you make them.</p>
       </header>
 
-      <Section icon={Palette} title="Appearance">
+      <nav aria-label="Settings sections" className="sticky top-14 z-20 -mx-1 flex flex-wrap gap-1.5 bg-bg/90 px-1 py-2 backdrop-blur">
+        {(
+          [
+            ['appearance', 'Appearance'],
+            ['feed', 'Job feed'],
+            ['notifications', 'Notifications'],
+            ['extension', 'Extension'],
+            ['account', 'Account & data'],
+          ] as const
+        ).map(([id, label]) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+              window.history.replaceState(window.history.state, '', `#${id}`);
+            }}
+            className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-accent/40 hover:text-text"
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
+
+      <Section id="appearance" icon={Palette} title="Appearance">
         <Row label="Theme" hint="Match system follows your device's light or dark setting.">
           <ThemeChoice />
         </Row>
       </Section>
 
-      <Section icon={SlidersHorizontal} title="Job feed">
+      <Section id="feed" icon={SlidersHorizontal} title="Job feed">
         <Row label="Sort jobs by" hint="The default order on the Jobs page.">
           <Segmented
             label="Default sort"
@@ -363,7 +388,7 @@ export default function SettingsPage() {
         </div>
       </Section>
 
-      <Section icon={Bell} title="Notifications" hint={mailEnabled ? 'Sent to ' + (me.data?.email ?? 'your address') + '.' : 'Email notifications are coming soon. Your choices are saved now and will apply when they launch.'}>
+      <Section id="notifications" icon={Bell} title="Notifications" hint={mailEnabled ? 'Sent to ' + (me.data?.email ?? 'your address') + '.' : 'Email notifications are coming soon. Your choices are saved now and will apply when they launch.'}>
         <Row label="Match digest" hint="A summary of your best new matches.">
           <Switch label="Match digest" checked={n.email_digest} onChange={(v) => setN({ email_digest: v })} />
         </Row>
@@ -402,11 +427,11 @@ export default function SettingsPage() {
         </Row>
       </Section>
 
-      <Section icon={Puzzle} title="Chrome extension" hint="Save jobs, write cover letters, tailor your resume and fill applications from any job site: it lists every field, fills what you approve and continues page by page. It never submits.">
+      <Section id="extension" icon={Puzzle} title="Chrome extension" hint="Save jobs, write cover letters, tailor your resume and fill applications from any job site: it lists every field, fills what you approve and continues page by page. It never submits.">
         <Connections />
       </Section>
 
-      <Section icon={KeyRound} title="Account" hint={me.data?.email}>
+      <Section id="account" icon={KeyRound} title="Account" hint={me.data?.email}>
         {mailEnabled && <EmailStatus verified={me.data?.email_verified ?? false} />}
         <PasswordForm />
         <Row label="Export applications" hint="Every job you saved, applied to or tracked, as CSV.">
