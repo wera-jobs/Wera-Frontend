@@ -1,11 +1,55 @@
+import { useMemo } from 'react';
+
+interface SkillMatcher {
+  re: RegExp;
+  kind: Map<string, 'matched' | 'missing'>;
+}
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildMatcher(matched: string[], missing: string[]): SkillMatcher | null {
+  const kind = new Map<string, 'matched' | 'missing'>();
+  for (const s of missing) {
+    const t = s.trim();
+    if (t.length >= 2) kind.set(t.toLowerCase(), 'missing');
+  }
+  for (const s of matched) {
+    const t = s.trim();
+    if (t.length >= 2) kind.set(t.toLowerCase(), 'matched');
+  }
+  if (kind.size === 0) return null;
+  // Longest terms first so "TypeScript" matches before "Script" and "Node.js" before "Node".
+  const terms = [...kind.keys()].sort((a, b) => b.length - a.length).map(escapeRe);
+  // Lookarounds avoid matching inside longer words while still working for symbols like C++ or C#.
+  return {
+    re: new RegExp(`(?<![\\p{L}\\p{N}])(${terms.join('|')})(?![\\p{L}\\p{N}])`, 'giu'),
+    kind,
+  };
+}
+
 /**
  * Renders a plain-text job description: blocks are separated by blank
  * lines; a short block without closing punctuation reads as a heading; a
  * block of several lines (or lines starting with a bullet) reads as a
- * list. Job boards differ wildly, so this stays heuristic and never drops
- * text.
+ * list. Optionally highlights matched and missing skills inline.
  */
-export function Description({ text }: { text: string }) {
+export function Description({
+  text,
+  matched = [],
+  missing = [],
+  highlight = false,
+}: {
+  text: string;
+  matched?: string[];
+  missing?: string[];
+  highlight?: boolean;
+}) {
+  const matcher = useMemo(
+    () => (highlight ? buildMatcher(matched, missing) : null),
+    [highlight, matched, missing],
+  );
   const blocks = text
     .split(/\n{2,}/)
     .map((b) => b.trim())
@@ -30,7 +74,7 @@ export function Description({ text }: { text: string }) {
                 <li key={j} className="flex gap-2.5">
                   <span className="mt-[9px] size-1 shrink-0 rounded-full bg-faint" />
                   <span>
-                    <Linkify text={l} />
+                    <Linkify text={l} matcher={matcher} />
                   </span>
                 </li>
               ))}
@@ -39,7 +83,7 @@ export function Description({ text }: { text: string }) {
         }
         return (
           <p key={i}>
-            <Linkify text={lines[0]} />
+            <Linkify text={lines[0]} matcher={matcher} />
           </p>
         );
       })}
@@ -53,8 +97,36 @@ function isHeading(line: string, next: string | undefined): boolean {
 
 const URL_RE = /(https?:\/\/[^\s)]+[^\s).,;:!?'"])/g;
 
-/** Turns bare http(s) URLs into links that open in a new tab. */
-function Linkify({ text }: { text: string }) {
+function HighlightSkills({ text, matcher }: { text: string; matcher: SkillMatcher | null }) {
+  if (!matcher) return <>{text}</>;
+  const parts = text.split(matcher.re);
+  if (parts.length === 1) return <>{text}</>;
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (i % 2 === 0) return part;
+        const k = matcher.kind.get(part.toLowerCase());
+        if (!k) return part;
+        return (
+          <mark
+            key={i}
+            title={k === 'matched' ? 'Matched on your profile' : 'Missing from your profile'}
+            className={
+              k === 'matched'
+                ? 'rounded bg-good/15 px-1 py-px font-medium text-good'
+                : 'rounded bg-warn/15 px-1 py-px font-medium text-warn'
+            }
+          >
+            {part}
+          </mark>
+        );
+      })}
+    </>
+  );
+}
+
+/** Turns bare http(s) URLs into links that open in a new tab, and highlights skills in non-URL text. */
+function Linkify({ text, matcher }: { text: string; matcher: SkillMatcher | null }) {
   const parts = text.split(URL_RE);
   return (
     <>
@@ -70,7 +142,7 @@ function Linkify({ text }: { text: string }) {
             {p.replace(/^https?:\/\/(www\.)?/, '')}
           </a>
         ) : (
-          p
+          <HighlightSkills key={i} text={p} matcher={matcher} />
         ),
       )}
     </>
