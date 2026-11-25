@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.36.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.35.0...wera-frontend-v0.36.0) (2026-11-25)
+
+
+### Features
+
+* **v36:** wire Contacts CRM and Offers compensation calculator with DOL LCA benchmarks ([2cc860a](https://github.com/wera-jobs/Wera-Frontend/commit/2cc860a7a8709b193279abe05573c2497cd4298d))
+* **v36:** wire Contacts CRM and Offers compensation calculator with DOL LCA benchmarks ([873ba3b](https://github.com/wera-jobs/Wera-Frontend/commit/873ba3b7f0aeb0cd02c0a2c49188f8dac89e1347))
+* **v36:** wire live landing feeds, backend weekly goal sync, and followed-company filters ([bcdd314](https://github.com/wera-jobs/Wera-Frontend/commit/bcdd3140ee21df8619320ea6fb801cc8b68e66da))
+* **v36:** wire live landing feeds, backend weekly goal sync, and followed-company filters ([6869526](https://github.com/wera-jobs/Wera-Frontend/commit/6869526646551dd85d600679cba2e2f51e2b2c8e))
+* **v36:** wire one-click skill add, multiple base resumes, and multi-turn interview practice ([8f28837](https://github.com/wera-jobs/Wera-Frontend/commit/8f28837edc53612d1b5b9d578d0e90d27652c3f3))
+* **v36:** wire one-click skill add, multiple base resumes, and multi-turn interview practice ([f80d7f9](https://github.com/wera-jobs/Wera-Frontend/commit/f80d7f9484f2e6c31e44247f0c36449040a357b7))
+* wire all wera-v0.36.0 endpoints across Landing, Jobs, Profile, Interview, and Tracker ([d7fe1b5](https://github.com/wera-jobs/Wera-Frontend/commit/d7fe1b5abd81930ffd9bb1b6771e32860c4b2603))
+
 ## [0.35.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.4...wera-frontend-v0.35.0) (2026-11-25)
 
 
