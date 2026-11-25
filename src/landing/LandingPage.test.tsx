@@ -137,6 +137,34 @@ describe('landing page', () => {
     expect(screen.getByText(/isn't in this 10-employer preview/)).toBeInTheDocument();
   });
 
+  it('filters jobs added today, toggles FAQ answers, and renders footer social placeholders', async () => {
+    stubApi({
+      'GET /api/auth/me': () => new Response('{}', { status: 401 }),
+      'GET /api/public/stats': () => ({ companies: 572, industries: 28, open_jobs: 43742, h1b_filings: 495460, h1b_employers: 57990 }),
+    });
+    renderApp(
+      <Routes>
+        <Route element={<RequireAuth />}><Route index element={<p>today</p>} /></Route>
+      </Routes>,
+      { path: '/' },
+    );
+
+    expect(await screen.findByRole('heading', { level: 2, name: 'Jobs added today.' })).toBeInTheDocument();
+    const designTab = screen.getByRole('tab', { name: 'Product & Design' });
+    await userEvent.click(designTab);
+    expect(screen.getByText('Product Designer, Design Systems')).toBeInTheDocument();
+    expect(screen.queryByText('Software Engineer, Payments Infrastructure')).not.toBeInTheDocument();
+
+    const autoApplyQ = screen.getByRole('button', { name: /Does Wera auto-apply/ });
+    expect(autoApplyQ).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(autoApplyQ);
+    expect(autoApplyQ).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText(/Mass auto-applying hurts response rates/)).toBeInTheDocument();
+
+    expect(screen.getByRole('link', { name: /LinkedIn/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /GitHub/ })).toBeInTheDocument();
+  });
+
   it('shows a company page with the footer', () => {
     renderApp(<Routes><Route path="careers" element={<InfoPage page="careers" />} /></Routes>, { path: '/careers' });
     expect(screen.getByRole('heading', { level: 1, name: 'Careers' })).toBeInTheDocument();
