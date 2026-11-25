@@ -15,7 +15,9 @@ import {
   type Difficulty, type DomainStat, type Practice, type Question, type ScenarioCard, type Track,
 } from '../api/interview';
 import { useInterviewPrep, useJob, useJobs } from '../api/hooks';
+import { CompanyLogo } from '../components/CompanyLogo';
 import { EmptyState, ErrorState, Skeleton } from '../components/States';
+import { whenText } from '../lib/events';
 import { Quiz } from '../components/interview/Quiz';
 import { PersonMark, ScenarioPlayer } from '../components/interview/ScenarioPlayer';
 import { DifficultyPill } from '../components/interview/bits';
@@ -64,12 +66,16 @@ function RolePicker({ tracks, value, suggested, onChange }: { tracks: Track[]; v
   );
 }
 
-/** Where the user stands, in one line under the title. */
+/** Where the user stands, in one line under the title, plus weakest topic cue. */
 function ProgressLine({ practice, domains, track }: { practice?: Practice; domains: DomainStat[]; track: Track }) {
   const inTrack = domains.filter((d) => track.domains.includes(d.domain));
   const answered = inTrack.reduce((a, d) => a + d.answered, 0);
   const right = inTrack.reduce((a, d) => a + d.correct, 0);
   const streak = practice?.streak ?? 0;
+  const weakest = inTrack
+    .filter((d) => d.answered > 0)
+    .sort((a, b) => a.correct / a.answered - b.correct / b.answered)[0];
+  const weakPct = weakest ? Math.round((weakest.correct / weakest.answered) * 100) : null;
   return (
     <ul aria-label="Your practice" className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-muted">
       <li className="inline-flex items-center gap-1.5"><Flame className={clsx('size-3.5', streak ? 'text-accent' : 'text-faint')} />
@@ -78,6 +84,13 @@ function ProgressLine({ practice, domains, track }: { practice?: Practice; domai
         <span><b className="font-semibold text-text tabular-nums">{practice?.week ?? 0}</b> answers this week</span></li>
       <li className="inline-flex items-center gap-1.5"><Target className="size-3.5 text-faint" />
         <span>{answered ? <><b className="font-semibold text-text tabular-nums">{Math.round((right / answered) * 100)}%</b> right in this role</> : 'No answers in this role yet'}</span></li>
+      {weakest && weakPct != null && weakPct < 80 && (
+        <li className="inline-flex items-center gap-1.5 text-xs">
+          <span className="rounded-full bg-warn/10 px-2 py-0.5 font-medium text-warn">
+            Focus next: {weakest.domain} ({weakPct}%)
+          </span>
+        </li>
+      )}
     </ul>
   );
 }
@@ -105,7 +118,21 @@ function UpNext({ next, starting, onStart, onOpenSim }: { next: Next; starting: 
   );
 }
 
-function UpcomingJob({ id, title, company, onPractice }: { id: number; title: string; company: string; onPractice: (track: string) => void }) {
+function UpcomingJob({
+  id,
+  title,
+  company,
+  logoUrl,
+  nextStepAt,
+  onPractice,
+}: {
+  id: number;
+  title: string;
+  company: string;
+  logoUrl?: string | null;
+  nextStepAt?: string | null;
+  onPractice: (track: string) => void;
+}) {
   const job = useJob(id);
   // The questions from the job's interview prep, once written; before
   // that, the topics from Wera's review of the posting.
@@ -115,9 +142,15 @@ function UpcomingJob({ id, title, company, onPractice }: { id: number; title: st
   return (
     <li className="flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start">
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-baseline gap-x-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <CompanyLogo name={company} url={logoUrl} size="sm" />
           <Link to={`/jobs?job=${id}&tab=prep`} className="text-sm font-semibold text-text hover:text-accent">{title}</Link>
           <span className="text-xs text-muted">{company}</span>
+          {nextStepAt && (
+            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">
+              {whenText(nextStepAt, false)}
+            </span>
+          )}
         </div>
         {topics.length > 0 ? (
           <ul className="mt-1.5 space-y-1">
@@ -131,10 +164,18 @@ function UpcomingJob({ id, title, company, onPractice }: { id: number; title: st
           <p className="mt-1 text-[13px] text-faint">Open the job for Wera&apos;s full review and the topics it expects.</p>
         )}
       </div>
-      <button onClick={() => onPractice(trackForTitle(title))}
-        className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text hover:border-accent/40 hover:text-accent">
-        Practice for it <ArrowRight className="size-3.5" />
-      </button>
+      <div className="flex shrink-0 flex-wrap items-center gap-1.5 self-start">
+        <Link
+          to={`/jobs?job=${id}&tab=prep`}
+          className="inline-flex items-center gap-1 rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium text-text hover:border-accent/40 hover:text-accent"
+        >
+          Job prep
+        </Link>
+        <button onClick={() => onPractice(trackForTitle(title))}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text hover:border-accent/40 hover:text-accent">
+          Practice for it <ArrowRight className="size-3.5" />
+        </button>
+      </div>
     </li>
   );
 }
@@ -148,7 +189,9 @@ function Upcoming({ onPractice }: { onPractice: (track: string) => void }) {
     <section aria-labelledby="upcoming" className="space-y-2.5">
       <h2 id="upcoming" className="text-sm font-semibold text-text">Your interviews</h2>
       <ul className="divide-y divide-border rounded-card border border-border bg-surface">
-        {list.map((j) => <UpcomingJob key={j.id} id={j.id} title={j.title} company={j.company} onPractice={onPractice} />)}
+        {list.map((j) => (
+          <UpcomingJob key={j.id} id={j.id} title={j.title} company={j.company} logoUrl={j.logo_url} nextStepAt={j.next_step_at} onPractice={onPractice} />
+        ))}
       </ul>
     </section>
   );
@@ -156,19 +199,23 @@ function Upcoming({ onPractice }: { onPractice: (track: string) => void }) {
 
 const KIND: Record<string, string> = { technical: 'Technical', behavioral: 'Behavioral', product: 'Product' };
 
-/** A topic as a row: how far along it is, and one button to practice it. */
+/** A topic as a row: how far along it is, accuracy color coding, and one button to practice it. */
 function TopicRow({ name, sub, d, starting, onStart }: { name: string; sub: string; d: DomainStat; starting: boolean; onStart: () => void }) {
   const pct = d.questions ? Math.round((d.answered / d.questions) * 100) : 0;
+  const acc = d.answered > 0 ? Math.round((d.correct / d.answered) * 100) : null;
+  const accTone = acc == null ? 'text-muted' : acc >= 80 ? 'text-good' : acc >= 50 ? 'text-warn' : 'text-bad';
+  const barTone = acc == null ? 'bg-accent' : acc >= 80 ? 'bg-good' : acc >= 50 ? 'bg-warn' : 'bg-bad';
   return (
     <li className="flex items-center gap-4 px-4 py-3">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-text">{name}</p>
         <p className="mt-0.5 text-xs text-muted tabular-nums">
-          {sub} · {d.answered}/{d.questions} answered{d.answered > 0 && ` · ${Math.round((d.correct / d.answered) * 100)}% right`}
+          {sub} · {d.answered}/{d.questions} answered
+          {acc != null && <> · <span className={clsx('font-medium', accTone)}>{acc}% right</span></>}
         </p>
       </div>
       <span aria-hidden className="hidden h-1.5 w-28 shrink-0 overflow-hidden rounded-full bg-surface-2 sm:block">
-        <span className="block h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
+        <span className={clsx('block h-full rounded-full', barTone)} style={{ width: `${pct}%` }} />
       </span>
       <button onClick={onStart} disabled={starting} aria-label={`Start 10 questions: ${name}`}
         className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text hover:border-accent/40 hover:text-accent disabled:opacity-60">
