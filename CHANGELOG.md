@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.35.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.4...wera-frontend-v0.35.0) (2026-11-25)
+
+
+### Features
+
+* **interview:** upgrade prep hub, quiz pacing, scenario context, and study mode ([21221f1](https://github.com/wera-jobs/Wera-Frontend/commit/21221f1a5bf8a8bb1248033481839394497849bf))
+* **interview:** upgrade prep hub, quiz pacing, scenario context, and study mode ([b92ca32](https://github.com/wera-jobs/Wera-Frontend/commit/b92ca32ecd7c25cbce9a8cb527a9390b84007890))
+* **jobs:** add filter chips, inline skill highlights, referral templates, and resume diff ([7027091](https://github.com/wera-jobs/Wera-Frontend/commit/7027091cc1a77893736a6c5314aa7101d59757e3))
+* **jobs:** add filter chips, inline skill highlights, referral templates, and resume diff ([22d9cef](https://github.com/wera-jobs/Wera-Frontend/commit/22d9cef27cc51da9391055014493084de6d93395))
+* **landing:** add jobs added today, FAQ accordion, and footer social links ([8be24b6](https://github.com/wera-jobs/Wera-Frontend/commit/8be24b692041d2a59e7e02a7a9a1ca1fe7b64eaa))
+* **landing:** add jobs added today, FAQ accordion, and footer social links ([11becda](https://github.com/wera-jobs/Wera-Frontend/commit/11becdac39ff36bd74f1cbbc9c8890d8f041264b))
+* **landing:** redesign landing page with editorial layout and product previews ([1cd1223](https://github.com/wera-jobs/Wera-Frontend/commit/1cd122307e3e7234441b0e3feed7dc96e76c4163))
+* **landing:** redesign landing page with editorial layout and product previews ([75b39d1](https://github.com/wera-jobs/Wera-Frontend/commit/75b39d1ee861771ca84bc9ccc67c1c3d3d10f990))
+* **landing:** release redesigned landing page ([1b8845c](https://github.com/wera-jobs/Wera-Frontend/commit/1b8845ce7a4d2bfac897f98a9ae4dc36d9e441ca))
+* **landing:** use real company logos and scrollable list in jobs added today ([ba61143](https://github.com/wera-jobs/Wera-Frontend/commit/ba611434aaa4755a85d0fb3194f3e670a3d15f27))
+* **landing:** use real company logos and scrollable list in jobs added today ([dd50604](https://github.com/wera-jobs/Wera-Frontend/commit/dd50604d5bc62c3281db576cba5b70b9e8a1bdca))
+* **profile:** group saved answers by topic and add profile readiness meter ([1693f5c](https://github.com/wera-jobs/Wera-Frontend/commit/1693f5cc33f2643ea0fb1d471a0f396cecb939ab))
+* **profile:** group saved answers by topic and add profile readiness meter ([fca1325](https://github.com/wera-jobs/Wera-Frontend/commit/fca1325e1eef7df3f2572e6c2b2a726fb52db2e8))
+* release frontend SOTA and UI upgrades across Profile, Jobs, Tracker, Interview, and Navigation ([769729e](https://github.com/wera-jobs/Wera-Frontend/commit/769729ed416aa12189386cf71ac7c8d98b177f60))
+* **tracker:** add weekly goals, pipeline funnel, CSV export, sorting, and quick-add ([36b0c1c](https://github.com/wera-jobs/Wera-Frontend/commit/36b0c1c7d838f127b2ea798e0078659093ade2ea))
+* **tracker:** add weekly goals, pipeline funnel, CSV export, sorting, and quick-add ([982ac11](https://github.com/wera-jobs/Wera-Frontend/commit/982ac119e1200bf3b58a694c3888d06e7b12839c))
+* **ui:** add mobile More sheet, discovery filters, and settings jump nav ([497d2cb](https://github.com/wera-jobs/Wera-Frontend/commit/497d2cb68b038bf719320fd04df81d03ed56d8b3))
+* **ui:** add mobile More sheet, discovery filters, and settings jump nav ([4761865](https://github.com/wera-jobs/Wera-Frontend/commit/476186527008567e73ad929ac16636d390f3aa56))
+
+
+### Bug Fixes
+
+* **landing:** render placeholder social icons without dead hrefs ([df561b6](https://github.com/wera-jobs/Wera-Frontend/commit/df561b68a8622c6e25e3cfdf1f6488ee74bddac5))
+* **referrals:** rename outreach role group aria-label to avoid collision ([db2696b](https://github.com/wera-jobs/Wera-Frontend/commit/db2696b299c011e470eefe3a3e6d61dd2ddc92a3))
+* **today:** place weekly goal control inline with posted-within bar ([25c096f](https://github.com/wera-jobs/Wera-Frontend/commit/25c096ffced1a4b61c4716b8d355d1ef8e7775e0))
+
 ## [0.34.4](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.34.3...wera-frontend-v0.34.4) (2026-11-24)
 
 
