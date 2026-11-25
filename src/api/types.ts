@@ -429,4 +429,18 @@ export interface PracticeFeedback {
   strengths: string[];
   improve: string[];
   outline: string[];
+  follow_up?: string;
+}
+
+export interface PracticeTurn {
+  question: string;
+  answer: string;
+  feedback: PracticeFeedback;
+  at: string;
+}
+
+export interface PracticeThread {
+  question: string;
+  turns: PracticeTurn[];
+  updated_at: string;
 }

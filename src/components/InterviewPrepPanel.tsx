@@ -3,8 +3,8 @@ import clsx from 'clsx';
 import { CheckCircle2, Copy, Eye, EyeOff, GraduationCap, LoaderCircle, MessageSquareText, RefreshCw, Sparkles } from 'lucide-react';
 import { errorMessage } from '../api/client';
 import { ErrorState } from './States';
-import { useInterviewPrep, usePracticeAnswer, useWriteInterviewPrep } from '../api/hooks';
-import type { JobDetail, PracticeFeedback, PrepQuestion } from '../api/types';
+import { useInterviewPrep, usePracticeAnswer, usePracticeThreads, useWriteInterviewPrep } from '../api/hooks';
+import type { JobDetail, PracticeFeedback, PracticeThread, PrepQuestion } from '../api/types';
 import { copyText } from '../lib/clipboard';
 import { relTime } from '../lib/format';
 import { toast } from '../lib/toast';
@@ -91,21 +91,31 @@ function Question({
   q,
   n,
   studyMode,
+  savedThread,
   onPracticed,
 }: {
   jobId: number;
   q: PrepQuestion;
   n: number;
   studyMode: boolean;
+  savedThread?: PracticeThread;
   onPracticed: () => void;
 }) {
   const [answer, setAnswer] = useState(() => readDraft(jobId, q.question));
-  const [open, setOpen] = useState(() => answer.trim().length > 0);
+  const [followUpAnswer, setFollowUpAnswer] = useState('');
+  const [open, setOpen] = useState(() => answer.trim().length > 0 || (savedThread?.turns.length ?? 0) > 0);
   const [revealed, setRevealed] = useState(false);
   const practice = usePracticeAnswer(jobId);
   const words = answer.trim().split(/\s+/).filter(Boolean).length;
+  const followWords = followUpAnswer.trim().split(/\s+/).filter(Boolean).length;
   const spokenSec = Math.round((words / 130) * 60);
   const hideNotes = studyMode && !revealed;
+
+  const thread = practice.data?.thread ?? savedThread;
+  const latestTurn = thread?.turns[thread.turns.length - 1];
+  const latestFeedback = practice.data ?? latestTurn?.feedback;
+  const followUpPrompt = latestFeedback?.follow_up?.trim() || '';
+  const isPracticed = Boolean(latestFeedback);
 
   const onChange = (val: string) => {
     setAnswer(val);
@@ -120,9 +130,9 @@ function Question({
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <p className="text-sm font-medium text-text">{q.question}</p>
             <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">{KIND[q.kind] ?? q.kind}</span>
-            {practice.data && (
+            {isPracticed && (
               <span className="inline-flex items-center gap-1 text-[10px] font-medium text-good">
-                <CheckCircle2 className="size-3" /> Practiced
+                <CheckCircle2 className="size-3" /> Practiced{(thread?.turns.length ?? 0) > 1 ? ` (${thread?.turns.length} turns)` : ''}
               </span>
             )}
           </div>
@@ -160,7 +170,7 @@ function Question({
               <MessageSquareText className="size-3.5" /> Practice this answer
             </button>
           ) : (
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2.5 pt-1">
               <textarea
                 value={answer}
                 onChange={(e) => onChange(e.target.value)}
@@ -185,8 +195,8 @@ function Question({
                   }
                   className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-50"
                 >
-                  {practice.isPending ? <LoaderCircle className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-                  {practice.isPending ? 'Reading your answer…' : 'Get feedback'}
+                  {practice.isPending && !practice.variables?.follow_up ? <LoaderCircle className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                  {practice.isPending && !practice.variables?.follow_up ? 'Reading your answer…' : 'Get feedback'}
                 </button>
                 {words < 10 ? (
                   <span className="text-[11px] text-faint">At least 10 words.</span>
@@ -194,7 +204,45 @@ function Question({
                   <span className="font-mono text-[11px] text-faint">{words} words · ~{spokenSec}s spoken</span>
                 )}
               </div>
-              {practice.data && <Feedback f={practice.data} />}
+              {latestFeedback && <Feedback f={latestFeedback} />}
+              {followUpPrompt && (
+                <div className="space-y-2 rounded-lg border border-accent/25 bg-accent/[0.04] p-3">
+                  <div className="text-[11px] font-semibold tracking-wide text-accent uppercase">Interviewer follow-up</div>
+                  <p className="text-xs font-medium text-text">{followUpPrompt}</p>
+                  <textarea
+                    value={followUpAnswer}
+                    onChange={(e) => setFollowUpAnswer(e.target.value)}
+                    rows={3}
+                    maxLength={4000}
+                    aria-label={`Your answer to follow-up: ${followUpPrompt}`}
+                    placeholder="Reply to the follow-up question…"
+                    className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-xs leading-relaxed text-text placeholder:text-faint focus:border-accent/60"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={followWords < 10 || practice.isPending}
+                      onClick={() =>
+                        practice.mutate(
+                          { question: q.question, follow_up: followUpPrompt, answer: followUpAnswer },
+                          {
+                            onSuccess: () => {
+                              setFollowUpAnswer('');
+                              onPracticed();
+                            },
+                            onError: (e) => toast.error(errorMessage(e)),
+                          },
+                        )
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-50"
+                    >
+                      {practice.isPending && practice.variables?.follow_up ? <LoaderCircle className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                      Reply to follow-up
+                    </button>
+                    {followWords < 10 && <span className="text-[11px] text-faint">At least 10 words.</span>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -206,11 +254,13 @@ function Question({
 /** Interview prep for a job: the role, an intro, likely questions with study mode, practice, and questions to ask. */
 export function InterviewPrepPanel({ job }: { job: JobDetail }) {
   const prep = useInterviewPrep(job.id);
+  const threadsQ = usePracticeThreads(job.id);
   const write = useWriteInterviewPrep(job.id);
   const [kindFilter, setKindFilter] = useState<PrepQuestion['kind'] | 'all'>('all');
   const [studyMode, setStudyMode] = useState(false);
   const [practicedSet, setPracticedSet] = useState<Set<string>>(() => new Set());
   const generate = () => write.mutate(undefined, { onError: (e) => toast.error(errorMessage(e)) });
+  const threadByQuestion = new Map((threadsQ.data?.threads ?? []).map((t) => [t.question.trim().toLowerCase(), t]));
 
   if (prep.isLoading) return <div className="skeleton h-96 w-full" />;
   // A failed read is not "no prep": preparing again would replace it and spend AI.
@@ -328,6 +378,7 @@ export function InterviewPrepPanel({ job }: { job: JobDetail }) {
               q={q}
               n={i + 1}
               studyMode={studyMode}
+              savedThread={threadByQuestion.get(q.question.trim().toLowerCase())}
               onPracticed={() => setPracticedSet((prev) => new Set(prev).add(q.question))}
             />
           ))}
