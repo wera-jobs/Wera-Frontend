@@ -12,6 +12,8 @@ export interface Author {
 
 export interface PostSummary {
   id: number;
+  slug?: string;
+  is_example?: boolean;
   title: string;
   excerpt: string;
   tags: string[];
@@ -49,8 +51,12 @@ export function usePosts(tag: string) {
   });
 }
 
-export function usePost(id: number) {
-  return useQuery({ queryKey: ['post', id], queryFn: () => api<Post>(`/api/posts/${id}`) });
+export function usePost(id: number, enabled = true) {
+  return useQuery({
+    queryKey: ['post', id],
+    queryFn: () => api<Post>(`/api/posts/${id}`),
+    enabled: enabled && Number.isFinite(id) && id > 0,
+  });
 }
 
 export function useCreatePost() {

@@ -8,6 +8,7 @@ import { Avatar } from '../components/Avatar';
 import { Prose } from '../components/Prose';
 import { Reactions } from '../components/Reactions';
 import { ErrorState, Skeleton } from '../components/States';
+import { getExamplePost } from '../data/examplePosts';
 import { absTime, relTime } from '../lib/format';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
@@ -54,14 +55,17 @@ function CommentBox({ postId }: { postId: number }) {
 }
 
 export default function PostPage() {
-  const id = Number(useParams().id);
-  const post = usePost(id);
+  const rawId = useParams().id;
+  const example = getExamplePost(rawId);
+  const id = Number(rawId);
+  const post = usePost(id, !example);
   const del = useDeletePost();
   const delComment = useDeleteComment(id);
   const navigate = useNavigate();
-  useDocumentTitle(post.data?.title ?? 'Community');
+  const resolved = example ?? post.data;
+  useDocumentTitle(resolved?.title ?? 'Community');
 
-  if (post.isLoading) {
+  if (!example && post.isLoading) {
     return (
       <div className="mx-auto max-w-2xl space-y-4">
         <Skeleton className="h-10 w-3/4" />
@@ -70,10 +74,10 @@ export default function PostPage() {
       </div>
     );
   }
-  if (post.isLoadingError) {
+  if (!example && (post.isLoadingError || !post.data)) {
     return <ErrorState message={post.error instanceof ApiError && post.error.status === 404 ? 'This post is no longer available.' : errorMessage(post.error)} />;
   }
-  const p = post.data!;
+  const p = resolved!;
 
   return (
     <article className="mx-auto max-w-2xl pb-16">
@@ -84,7 +88,12 @@ export default function PostPage() {
       <div className="mt-4 flex items-center gap-3 border-b border-border pb-5">
         <Avatar user={p.author} size={40} self={false} />
         <div className="text-sm">
-          <div className="font-medium text-text">{p.author.name}</div>
+          <div className="flex items-center gap-2 font-medium text-text">
+            {p.author.name}
+            {p.is_example && (
+              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">Example</span>
+            )}
+          </div>
           <div className="text-xs text-faint" title={absTime(p.created_at)}>
             {relTime(p.created_at)} · {p.read_minutes} min read
           </div>
@@ -127,7 +136,16 @@ export default function PostPage() {
         <h2 className="mb-4 text-sm font-semibold text-text">
           {p.comments.length ? `${p.comments.length} comment${p.comments.length === 1 ? '' : 's'}` : 'Comments'}
         </h2>
-        <CommentBox postId={p.id} />
+        {p.is_example ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-4 py-3 text-xs text-muted">
+            <span>This is an example post showing what fits well in the community.</span>
+            <Link to="/community/new" className="font-semibold text-accent hover:underline">
+              Write your own post
+            </Link>
+          </div>
+        ) : (
+          <CommentBox postId={p.id} />
+        )}
         <ul className="mt-6 space-y-5">
           {p.comments.map((c) => (
             <li key={c.id} className="group flex gap-3 anim-rise">

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import clsx from 'clsx';
 import { Heart, Lightbulb, PartyPopper } from 'lucide-react';
 import { useReact, type PostSummary, type ReactionKind } from '../api/community';
@@ -11,22 +12,29 @@ const KINDS: { kind: ReactionKind; label: string; Icon: typeof Heart; on: string
 /** The three reactions with counts; click to toggle yours. */
 export function Reactions({ post, compact }: { post: PostSummary; compact?: boolean }) {
   const react = useReact(post.id);
+  const [localMine, setLocalMine] = useState<ReactionKind[]>([]);
+  const activeMine = post.is_example ? localMine : post.my_reactions;
   return (
     <div className="flex flex-wrap gap-1.5">
       {KINDS.map(({ kind, label, Icon, on }) => {
-        const mine = post.my_reactions.includes(kind);
-        const n = post.reactions[kind] ?? 0;
+        const mine = activeMine.includes(kind);
+        const base = post.reactions[kind] ?? 0;
+        const n = post.is_example ? base + (mine ? 1 : 0) : base;
         if (compact && n === 0) return null;
         return (
           <button
             key={kind}
             type="button"
             aria-pressed={mine}
-            aria-label={`${label} (${n})`}
+            aria-label={n > 0 ? `${label} ${n}` : label}
             title={label}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              if (post.is_example) {
+                setLocalMine((prev) => (prev.includes(kind) ? prev.filter((k) => k !== kind) : [...prev, kind]));
+                return;
+              }
               react.mutate({ kind, on: !mine });
             }}
             className={clsx(
