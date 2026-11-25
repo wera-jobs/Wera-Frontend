@@ -12,6 +12,7 @@ import { JobDrawer, type DrawerTab } from '../components/JobDrawer';
 import { CompanyLogo } from '../components/CompanyLogo';
 import { StatusSelect } from '../components/StatusSelect';
 import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
+import { ContactsView, OffersView } from '../components/TrackerCrmViews';
 import { Progress } from '../components/Progress';
 import { api, errorMessage } from '../api/client';
 import { Skeleton } from '../components/States';
@@ -19,7 +20,7 @@ import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
-import { Archive, Clock, Download, ExternalLink, EyeOff, KanbanSquare, List, Plus, Search, TrendingUp } from 'lucide-react';
+import { Archive, Clock, DollarSign, Download, ExternalLink, EyeOff, KanbanSquare, List, Plus, Search, TrendingUp, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { JobList } from '../api/types';
 
@@ -425,7 +426,7 @@ export default function TrackerPage() {
   };
   const [dragging, setDragging] = useState<Job | null>(null);
   const [adding, setAdding] = useState(false);
-  const [view, setView] = useState<'board' | 'list' | 'archived' | 'progress'>('board');
+  const [view, setView] = useState<'board' | 'list' | 'contacts' | 'offers' | 'archived' | 'progress'>('board');
   // A small move or a short press before a drag, so clicks, the status menu and scrolling keep working.
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
@@ -484,6 +485,8 @@ export default function TrackerPage() {
               [
                 ['board', 'Board', KanbanSquare],
                 ['list', 'List', List],
+                ['contacts', 'Contacts', Users],
+                ['offers', 'Offers', DollarSign],
                 ['archived', 'Archived', Archive],
                 ['progress', 'Progress', TrendingUp],
               ] as const
@@ -545,6 +548,8 @@ export default function TrackerPage() {
       {empty && (view === 'board' || view === 'list') && <TrackerEmpty />}
       {!empty && <Upcoming onOpen={openJob} />}
       {view === 'list' && !empty && <TrackerList statuses={columns} matches={(j) => matches(j, query)} onOpen={openJob} onStatus={onStatus} />}
+      {view === 'contacts' && <ContactsView onOpenJob={openJob} />}
+      {view === 'offers' && <OffersView onOpenJob={openJob} />}
       {view === 'progress' && <Progress />}
       {view === 'archived' && <ArchivedList matches={(j) => matches(j, query)} onOpen={openJob} onStatus={onStatus} />}
       {view === 'board' && !empty && (

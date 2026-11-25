@@ -7,6 +7,8 @@ import { useAddEvent, useDeleteEvent, useJobEvents, usePatchApplication } from '
 import type { Contact, EventKind, JobDetail } from '../api/types';
 import { EVENT_KINDS, RESUME_KINDS, eventKindLabel, whenText } from '../lib/events';
 import { EmailDrafts } from './EmailDrafts';
+import { JobContacts } from './JobContacts';
+import { JobOfferPanel } from './JobOfferPanel';
 import { toast } from '../lib/toast';
 
 // A date input's value (the user's own day) and back. A day-only step is due at 9:00 that morning.
@@ -106,6 +108,10 @@ export function ApplicationDetails({ job }: { job: JobDetail }) {
       </div>
 
       <Events jobId={job.id} />
+
+      <JobContacts jobId={job.id} />
+
+      <JobOfferPanel job={job} />
 
       <EmailDrafts job={job} />
 
