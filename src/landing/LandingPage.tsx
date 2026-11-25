@@ -13,6 +13,8 @@ import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { usePublicPage } from '../lib/usePublicPage';
 import { AfterTheMatch } from './AfterTheMatch';
 import { ExtensionPreview } from './ExtensionPreview';
+import { FaqSection } from './FaqSection';
+import { JobsAddedToday } from './JobsAddedToday';
 import { SiteFooter } from './SiteFooter';
 import { SponsorLookup } from './SponsorLookup';
 
@@ -115,9 +117,10 @@ export default function LandingPage() {
           <Link to="/" aria-label="Wera home"><Logo /></Link>
           <div className="hidden items-center gap-6 text-sm text-muted md:flex">
             <a href="#how" className="transition-colors hover:text-text">How it works</a>
+            <a href="#jobs-today" className="transition-colors hover:text-text">Jobs</a>
             <a href="#features" className="transition-colors hover:text-text">Features</a>
             <a href="#pay-and-visas" className="transition-colors hover:text-text">Pay &amp; visas</a>
-            <a href="#extension" className="transition-colors hover:text-text">Extension</a>
+            <a href="#faq" className="transition-colors hover:text-text">FAQ</a>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
@@ -213,6 +216,9 @@ export default function LandingPage() {
             ))}
           </div>
         </section>
+
+        {/* Jobs added today: real company marks and roles across industries */}
+        <JobsAddedToday openJobs={compact(s.open_jobs)} companies={s.companies.toLocaleString()} />
 
         {/* Features: real screenshots beside an interactive list */}
         <AfterTheMatch />
@@ -311,6 +317,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* Q&A */}
+        <FaqSection />
 
         {/* Grounded closing CTA */}
         <section className="border-t border-border">
