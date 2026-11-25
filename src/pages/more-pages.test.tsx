@@ -133,18 +133,27 @@ describe('WelcomePage', () => {
 });
 
 describe('Community', () => {
-  it('lists posts and filters by tag', async () => {
+  it('lists posts including examples and filters by tag', async () => {
     stubApi({
       'GET /api/posts': (_init, url) =>
-        url.searchParams.get('tag') === 'offers'
-          ? { posts: [], tags: [{ tag: 'interviews', count: 1 }, { tag: 'offers', count: 0 }] }
-          : { posts: [summary], tags: [{ tag: 'interviews', count: 1 }, { tag: 'offers', count: 0 }] },
+        url.searchParams.get('tag') === 'relocation'
+          ? { posts: [], tags: [{ tag: 'interviews', count: 1 }, { tag: 'relocation', count: 0 }] }
+          : { posts: [summary], tags: [{ tag: 'interviews', count: 1 }, { tag: 'relocation', count: 0 }] },
     });
     renderApp(<CommunityPage />);
     expect(await screen.findByText('How I prepared for SRE loops')).toBeInTheDocument();
     expect(screen.getByText('Mock interviews helped.')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /#offers/ }));
-    expect(await screen.findByText('No posts tagged #offers yet')).toBeInTheDocument();
+    expect(screen.getByText('Amara Okoye')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /#relocation/ }));
+    expect(await screen.findByText('No posts tagged #relocation yet')).toBeInTheDocument();
+  });
+
+  it('opens an example post directly without hitting the API', async () => {
+    stubApi({});
+    renderApp(<PostPage />, { path: '/community/example-lca-offer-negotiation', route: '/community/:id' });
+    expect(await screen.findByRole('heading', { name: /negotiated a \$24k bump/i })).toBeInTheDocument();
+    expect(screen.getByText('Amara Okoye')).toBeInTheDocument();
+    expect(screen.getByText(/This is an example post/)).toBeInTheDocument();
   });
 
   it('reads a post and comments on it', async () => {
