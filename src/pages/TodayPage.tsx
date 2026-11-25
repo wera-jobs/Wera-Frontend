@@ -137,7 +137,8 @@ export default function TodayPage() {
   // estimates fill the list and it refreshes as real scores replace them.
   const profile = useProfile();
   const updatedAt = profile.data?.updated_at ?? undefined;
-  const { data, isLoading, error, refetch } = useToday(updatedAt);
+  const [followedOnly, setFollowedOnly] = useState(false);
+  const { data, isLoading, error, refetch } = useToday(updatedAt, followedOnly);
   const pending = data?.pending ?? 0;
   const ungraded = data?.ungraded ?? 0;
   const [now] = useState(() => Date.now());
@@ -250,6 +251,17 @@ export default function TodayPage() {
               {label}
             </button>
           ))}
+          <button
+            type="button"
+            aria-pressed={followedOnly}
+            onClick={() => {
+              setFollowedOnly((v) => !v);
+              setShown(PAGE);
+            }}
+            className={`rounded-full border px-2.5 py-1 font-medium transition-colors ${followedOnly ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text'}`}
+          >
+            Following
+          </button>
         </div>
 
         {/* Weekly application goal progress & quick editor */}
@@ -294,6 +306,11 @@ export default function TodayPage() {
               <span className="font-mono text-muted">
                 {stats.data?.applications_per_week ?? 0}/{weeklyGoal}
               </span>
+              {(stats.data?.goal_streak_weeks ?? 0) > 0 && (
+                <span className="rounded-full bg-good/10 px-2 py-0.5 font-mono text-[10px] font-medium text-good">
+                  {stats.data?.goal_streak_weeks}w streak
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => {
