@@ -161,8 +161,8 @@ describe('landing page', () => {
     expect(autoApplyQ).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText(/Mass auto-applying hurts response rates/)).toBeInTheDocument();
 
-    expect(screen.getByRole('link', { name: /LinkedIn/ })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /GitHub/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /LinkedIn/ })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /GitHub/ })).toBeInTheDocument();
   });
 
   it('shows a company page with the footer', () => {
