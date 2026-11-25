@@ -175,6 +175,7 @@ export function JobDrawer({
   const setWithUndo = useStatusWithUndo();
   const extension = useExtension();
   const [tab, setTab] = useState<DrawerTab>(initialTab);
+  const [highlightSkills, setHighlightSkills] = useState(true);
   const [tabJob, setTabJob] = useState(jobId);
   const [askedTab, setAskedTab] = useState(initialTab);
   // A tab picked from outside the tab strip (the footer, a link to a tab):
@@ -324,7 +325,39 @@ export function JobDrawer({
                 ) : tab === 'letter' ? (
                   <CoverLetterPanel key={job.id} job={job} />
                 ) : job.description ? (
-                  <Description text={job.description} />
+                  <>
+                    {((job.skills_matched?.length ?? 0) > 0 || (job.skills_missing?.length ?? 0) > 0) && (
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface-2/50 px-3 py-1.5 text-[11px]">
+                        <div className="flex flex-wrap items-center gap-3 text-muted">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="size-2 rounded-full bg-good" />
+                            {job.skills_matched?.length ?? 0} matched
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="size-2 rounded-full bg-warn" />
+                            {job.skills_missing?.length ?? 0} missing
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          aria-pressed={highlightSkills}
+                          onClick={() => setHighlightSkills((v) => !v)}
+                          className={clsx(
+                            'rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors',
+                            highlightSkills ? 'border-accent/40 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text',
+                          )}
+                        >
+                          {highlightSkills ? 'Highlights on' : 'Highlight skills'}
+                        </button>
+                      </div>
+                    )}
+                    <Description
+                      text={job.description}
+                      matched={job.skills_matched ?? []}
+                      missing={job.skills_missing ?? []}
+                      highlight={highlightSkills}
+                    />
+                  </>
                 ) : (
                   <p className="text-sm text-muted">
                     This board didn't include a description. Read it on the{' '}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Ban, Bookmark, BookmarkCheck, ExternalLink, LoaderCircle, Sun, X } from 'lucide-react';
+import { Ban, Bookmark, BookmarkCheck, ExternalLink, LoaderCircle, Sun, Target, X } from 'lucide-react';
 import { useLatestRun, useStats, useStatusWithUndo, useToday } from '../api/hooks';
 import { useProfile } from '../api/profile';
 import type { AppStatus, Job } from '../api/types';
@@ -14,6 +14,7 @@ import { StatTile } from '../components/StatTile';
 import { EarlyBadge, OLD_POSTING_DAYS, OldPostingBadge, PostedAge, StatusPill } from '../components/JobBadges';
 import { EmptyState, ErrorState, SkeletonRows } from '../components/States';
 import { daysUp, jobMeta, relTime, stepId, toYou } from '../lib/format';
+import { useWeeklyGoal } from '../lib/goals';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 
 /** How many jobs Today shows at first, and how many more each "Show more" adds. */
@@ -147,6 +148,9 @@ export default function TodayPage() {
   const [filter, setFilter] = useState<TodayFilter | null>(null);
   const [within, setWithin] = useState(0);
   const [shown, setShown] = useState(PAGE);
+  const [weeklyGoal, setWeeklyGoal] = useWeeklyGoal();
+  const [editingGoal, setEditingGoal] = useState(false);
+  const [goalDraft, setGoalDraft] = useState('');
   // The drawer steps through the list as it was when the job was opened,
   // so a job dealt with in the drawer (and gone from Today) keeps its place.
   const [drawer, setDrawer] = useState<{ id: number; ids: number[] } | null>(null);
@@ -221,25 +225,99 @@ export default function TodayPage() {
         />
         <StatTile label="Strong fits (80+)" value={count('strong')} sub="to review" onClick={() => toggle('strong')} pressed={filter === 'strong'} />
         <StatTile label="Sponsor visas" value={count('sponsors')} sub="to review" onClick={() => toggle('sponsors')} pressed={filter === 'sponsors'} />
-        <StatTile label="Applied this week" value={stats.data?.applications_per_week ?? '—'} sub="see your tracker" to="/tracker" />
+        <StatTile
+          label="Applied this week"
+          value={weeklyGoal > 0 ? `${stats.data?.applications_per_week ?? 0}/${weeklyGoal}` : (stats.data?.applications_per_week ?? '—')}
+          sub={weeklyGoal > 0 && (stats.data?.applications_per_week ?? 0) >= weeklyGoal ? 'Weekly goal met' : 'see your tracker'}
+          to="/tracker"
+        />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 text-xs" role="group" aria-label="Posted within">
-        <span className="mr-1 text-muted">Posted</span>
-        {WITHIN.map(([days, label]) => (
-          <button
-            key={days}
-            type="button"
-            aria-pressed={within === days}
-            onClick={() => {
-              setWithin(days);
-              setShown(PAGE);
-            }}
-            className={`rounded-full border px-2.5 py-1 font-medium transition-colors ${within === days ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text'}`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Posted within">
+          <span className="mr-1 text-muted">Posted</span>
+          {WITHIN.map(([days, label]) => (
+            <button
+              key={days}
+              type="button"
+              aria-pressed={within === days}
+              onClick={() => {
+                setWithin(days);
+                setShown(PAGE);
+              }}
+              className={`rounded-full border px-2.5 py-1 font-medium transition-colors ${within === days ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Weekly application goal progress & quick editor */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1 font-medium text-muted">
+            <Target className="size-3.5 text-accent" /> Goal
+          </span>
+          {editingGoal ? (
+            <form
+              className="flex items-center gap-1.5"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setWeeklyGoal(Number(goalDraft) || 0);
+                setEditingGoal(false);
+              }}
+            >
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={goalDraft}
+                onChange={(e) => setGoalDraft(e.target.value)}
+                aria-label="Weekly application target"
+                placeholder="10"
+                className="w-16 rounded-md border border-border bg-surface-2 px-2 py-0.5 font-mono text-xs text-text focus:border-accent/60 focus:outline-none"
+              />
+              <button type="submit" className="rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-bg hover:bg-accent/85">
+                Save
+              </button>
+              <button type="button" onClick={() => setEditingGoal(false)} className="text-muted hover:text-text">
+                Cancel
+              </button>
+            </form>
+          ) : weeklyGoal > 0 ? (
+            <>
+              <div className="h-1.5 w-20 overflow-hidden rounded-full bg-surface-2">
+                <div
+                  className={(stats.data?.applications_per_week ?? 0) >= weeklyGoal ? 'h-full bg-good transition-all duration-300' : 'h-full bg-accent transition-all duration-300'}
+                  style={{ width: `${Math.min(100, Math.round(((stats.data?.applications_per_week ?? 0) / weeklyGoal) * 100))}%` }}
+                />
+              </div>
+              <span className="font-mono text-muted">
+                {stats.data?.applications_per_week ?? 0}/{weeklyGoal}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setGoalDraft(String(weeklyGoal));
+                  setEditingGoal(true);
+                }}
+                className="text-faint hover:text-text"
+              >
+                Edit
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setGoalDraft('10');
+                setEditingGoal(true);
+              }}
+              className="rounded-full border border-border px-2.5 py-0.5 font-medium text-muted hover:border-accent/40 hover:text-text"
+            >
+              Set weekly target
+            </button>
+          )}
+        </div>
       </div>
 
       {filter && (

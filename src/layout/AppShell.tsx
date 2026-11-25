@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { prefetchRoute, useWarmup } from '../lib/warmup';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import clsx from 'clsx';
-import { LogOut, Search } from 'lucide-react';
+import { LogOut, MoreHorizontal, Search, X } from 'lucide-react';
 import { useScrollRestoration } from './useScrollRestoration';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLogout, useMe } from '../api/auth';
@@ -19,6 +19,7 @@ import { ApplyCheck } from '../components/ApplyCheck';
 import {
   useHealth,
   useLatestRun,
+  useStats,
 } from '../api/hooks';
 import { relTime } from '../lib/format';
 import { toast } from '../lib/toast';
@@ -94,8 +95,11 @@ export function AppShell() {
   useWarmup();
   const qc = useQueryClient();
   const latest = useLatestRun();
+  const stats = useStats();
   const location = useLocation();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const interviewingCount = stats.data?.by_status?.interviewing ?? 0;
   const latestRun = latest.data?.runs[0];
   const running = latestRun != null && latestRun.status == null;
 
@@ -155,7 +159,12 @@ export function AppShell() {
                     <span className="absolute top-1.5 bottom-1.5 left-0 w-0.5 rounded-full bg-accent" />
                   )}
                   <Icon className="size-4" />
-                  {label}
+                  <span className="flex-1 truncate">{label}</span>
+                  {to === '/tracker' && interviewingCount > 0 && (
+                    <span className="rounded-full bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-accent">
+                      {interviewingCount}
+                    </span>
+                  )}
                 </>
               )}
             </NavLink>
@@ -229,7 +238,56 @@ export function AppShell() {
               {label}
             </NavLink>
           ))}
+        <button
+          type="button"
+          onClick={() => setMoreOpen((v) => !v)}
+          aria-expanded={moreOpen}
+          aria-label="More pages"
+          className={clsx(
+            'flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors duration-150',
+            moreOpen ? 'text-accent' : 'text-faint hover:text-text',
+          )}
+        >
+          <MoreHorizontal className="size-5" />
+          More
+        </button>
       </nav>
+
+      {moreOpen && (
+        <div className="fixed inset-0 z-50 flex items-end bg-black/40 lg:hidden" onClick={() => setMoreOpen(false)}>
+          <div
+            role="dialog"
+            aria-label="More pages"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full rounded-t-2xl border-t border-border bg-surface p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-xs font-semibold text-text">More sections</span>
+              <button type="button" onClick={() => setMoreOpen(false)} aria-label="Close menu" className="rounded-lg p-1 text-muted hover:text-text">
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {NAV.filter((n) => !n.mobile).map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setMoreOpen(false)}
+                  className={({ isActive }) =>
+                    clsx(
+                      'flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
+                      isActive ? 'border-accent/40 bg-accent/10 text-accent' : 'border-border bg-surface-2/50 text-text hover:border-accent/30',
+                    )
+                  }
+                >
+                  <Icon className="size-4 shrink-0" />
+                  <span className="truncate">{label}</span>
+                </NavLink>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
       <ApplyCheck />

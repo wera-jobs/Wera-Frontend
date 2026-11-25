@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { ChevronDown, FilterX, Search, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, FilterX, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useIndustries, useStats } from '../api/hooks';
 import { APP_STATUSES } from './StatusSelect';
 import { useFamilyLabel } from '../api/profile';
@@ -244,6 +244,67 @@ export function FilterBar({
             <FilterX className="size-3.5" /> Clear
           </button>
         )}
+      </div>
+
+      {/* Quick-filter presets & removable active chips */}
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-border/60 pt-2.5">
+        <span className="mr-0.5 text-[10px] font-medium tracking-wide text-faint uppercase">Quick</span>
+        {(
+          [
+            { label: 'Strong fit (80+)', active: values.min_score >= 80, toggle: () => onChange({ min_score: values.min_score >= 80 ? 0 : 80 }) },
+            { label: 'Remote', active: values.work_mode === 'remote', toggle: () => onChange({ work_mode: values.work_mode === 'remote' ? '' : 'remote' }) },
+            { label: 'Sponsors', active: values.sponsorship === 'yes', toggle: () => onChange({ sponsorship: values.sponsorship === 'yes' ? '' : 'yes' }) },
+            { label: 'Past 24h', active: values.posted_within === 1, toggle: () => onChange({ posted_within: values.posted_within === 1 ? 0 : 1 }) },
+          ] as const
+        ).map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            aria-pressed={preset.active}
+            onClick={preset.toggle}
+            className={clsx(
+              'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
+              preset.active ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border bg-surface-2/60 text-muted hover:text-text',
+            )}
+          >
+            {preset.label}
+          </button>
+        ))}
+
+        {(() => {
+          const chips: { key: string; label: string; clear: () => void }[] = [];
+          if (values.industry) {
+            const name = industries.data?.industries.find((i) => i.id === values.industry)?.label ?? values.industry;
+            chips.push({ key: 'industry', label: name, clear: () => onChange({ industry: '' }) });
+          }
+          if (values.category) chips.push({ key: 'category', label: familyLabel(values.category), clear: () => onChange({ category: '' }) });
+          if (values.work_mode && values.work_mode !== 'remote') chips.push({ key: 'work_mode', label: values.work_mode, clear: () => onChange({ work_mode: '' }) });
+          if (values.sponsorship && values.sponsorship !== 'yes') chips.push({ key: 'sponsorship', label: `Sponsorship: ${values.sponsorship}`, clear: () => onChange({ sponsorship: '' }) });
+          if (values.status) {
+            const label = APP_STATUSES.find((s) => s.value === values.status)?.label ?? values.status;
+            chips.push({ key: 'status', label, clear: () => onChange({ status: '' }) });
+          }
+          if (values.min_pay > 0) chips.push({ key: 'min_pay', label: `$${Math.round(values.min_pay / 1000)}K+`, clear: () => onChange({ min_pay: 0 }) });
+          if (values.posted_within > 1) chips.push({ key: 'posted_within', label: `Past ${values.posted_within}d`, clear: () => onChange({ posted_within: 0 }) });
+          if (values.min_score > 0 && values.min_score < 80) chips.push({ key: 'min_score', label: `${values.min_score}+ fit`, clear: () => onChange({ min_score: 0 }) });
+          if (chips.length === 0) return null;
+          return (
+            <>
+              <span aria-hidden className="mx-1 h-3.5 w-px bg-border" />
+              {chips.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={c.clear}
+                  aria-label={`Remove ${c.label} filter`}
+                  className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent hover:bg-accent/15"
+                >
+                  {c.label} <X className="size-3" />
+                </button>
+              ))}
+            </>
+          );
+        })()}
       </div>
     </div>
   );
