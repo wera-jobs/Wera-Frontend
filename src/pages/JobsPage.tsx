@@ -28,6 +28,7 @@ function valuesFromParams(sp: URLSearchParams, defaultSort: string): FilterValue
     work_mode: sp.get('work_mode') ?? '',
     status: sp.get('status') ?? '',
     posted_within: Number(sp.get('posted_within') ?? 0) || 0,
+    followed: Number(sp.get('followed') ?? 0) || 0,
     sort: (sp.get('sort') ?? defaultSort) === 'newest' ? 'newest' : 'score',
   };
 }

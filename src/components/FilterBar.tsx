@@ -15,6 +15,7 @@ export interface FilterValues {
   work_mode: string;
   status: string;
   posted_within: number;
+  followed?: number;
   sort: string;
 }
 
@@ -28,6 +29,7 @@ export const DEFAULT_FILTERS: FilterValues = {
   work_mode: '',
   status: '',
   posted_within: 0,
+  followed: 0,
   sort: 'score',
 };
 
@@ -104,7 +106,7 @@ export function FilterBar({
     .map((value) => ({ value, label: familyLabel(value) }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  const active = [values.industry, values.category, values.min_score, values.min_pay, values.sponsorship, values.work_mode, values.status, values.posted_within, values.sort !== defaultSort]
+  const active = [values.industry, values.category, values.min_score, values.min_pay, values.sponsorship, values.work_mode, values.status, values.posted_within, values.followed, values.sort !== defaultSort]
     .filter(Boolean).length;
   const isDefault = values.q === '' && active === 0;
 
@@ -255,6 +257,7 @@ export function FilterBar({
             { label: 'Remote', active: values.work_mode === 'remote', toggle: () => onChange({ work_mode: values.work_mode === 'remote' ? '' : 'remote' }) },
             { label: 'Sponsors', active: values.sponsorship === 'yes', toggle: () => onChange({ sponsorship: values.sponsorship === 'yes' ? '' : 'yes' }) },
             { label: 'Past 24h', active: values.posted_within === 1, toggle: () => onChange({ posted_within: values.posted_within === 1 ? 0 : 1 }) },
+            { label: 'Following', active: values.followed === 1, toggle: () => onChange({ followed: values.followed === 1 ? 0 : 1 }) },
           ] as const
         ).map((preset) => (
           <button

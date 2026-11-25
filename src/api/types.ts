@@ -156,6 +156,8 @@ export interface Job {
   early?: boolean;
   /** Where Wera serves the company's logo; absent when it has none. */
   logo_url?: string;
+  /** Whether the user follows this job's company. */
+  company_followed?: boolean;
   dismiss_reason?: DismissReason | null;
 }
 
@@ -212,6 +214,8 @@ export interface Stats {
   by_status: Record<string, number>;
   new_per_day: DayCount[];
   applications_per_week: number;
+  weekly_goal?: number;
+  goal_streak_weeks?: number;
 }
 
 export interface Run {
@@ -375,6 +379,7 @@ export interface NotificationSettings {
 export interface Settings {
   theme: 'system' | 'light' | 'dark';
   default_sort: 'score' | 'newest';
+  weekly_application_goal?: number;
   notifications: NotificationSettings;
 }
 
@@ -424,4 +429,18 @@ export interface PracticeFeedback {
   strengths: string[];
   improve: string[];
   outline: string[];
+  follow_up?: string;
+}
+
+export interface PracticeTurn {
+  question: string;
+  answer: string;
+  feedback: PracticeFeedback;
+  at: string;
+}
+
+export interface PracticeThread {
+  question: string;
+  turns: PracticeTurn[];
+  updated_at: string;
 }

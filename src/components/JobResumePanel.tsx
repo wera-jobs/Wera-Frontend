@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Download, ExternalLink, Eye, FileText, GitCompare, LoaderCircle, RefreshCw, Wand2 } from 'lucide-react';
 import { errorMessage } from '../api/client';
 import { ErrorState } from './States';
-import { useJobKeywords, useJobResume, useResume, useTailorResume, type Coverage } from '../api/resumes';
+import { useJobKeywords, useJobResume, useResume, useResumes, useTailorResume, type Coverage } from '../api/resumes';
 import type { JobDetail } from '../api/types';
 import { diffResume } from '../resume/diff';
 import { ResumePreview } from '../resume/ResumePreview';
@@ -36,8 +36,11 @@ export function JobResumePanel({ job }: { job: JobDetail }) {
   const kw = useJobKeywords(job.id);
   const tailored = useJobResume(job.id);
   const tailor = useTailorResume(job.id);
+  const resumesList = useResumes();
+  const baseResumes = (resumesList.data?.resumes ?? []).filter((r) => r.job_id == null);
+  const [selectedBaseId, setSelectedBaseId] = useState<number | null>(null);
   const doc = tailored.data ?? null;
-  const base = useResume(doc ? (kw.data?.resume_id ?? null) : null);
+  const base = useResume(doc ? (selectedBaseId ?? kw.data?.resume_id ?? null) : null);
   const preview = useLivePreview(doc?.data ?? null, doc?.layout ?? null);
   const [mode, setMode] = useState<'preview' | 'diff'>('preview');
   const noBase = kw.data && kw.data.resume_id == null;
@@ -47,10 +50,11 @@ export function JobResumePanel({ job }: { job: JobDetail }) {
     [base.data, doc],
   );
 
-  const run = () => tailor.mutate(undefined, {
-    onSuccess: (r) => toast.success(r.resume.fit?.one_page ? 'Tailored and fitted to one page.' : 'Tailored.'),
-    onError: (e) => toast.error(errorMessage(e, 'Could not tailor')),
-  });
+  const run = () =>
+    tailor.mutate(selectedBaseId ? { base_resume_id: selectedBaseId } : undefined, {
+      onSuccess: (r) => toast.success(r.resume.fit?.one_page ? 'Tailored and fitted to one page.' : 'Tailored.'),
+      onError: (e) => toast.error(errorMessage(e, 'Could not tailor')),
+    });
 
   if (kw.isLoading || tailored.isLoading) return <div className="skeleton h-72 w-full" />;
   // A failed read is not "no tailored copy": tailoring again would replace it.
@@ -87,11 +91,26 @@ export function JobResumePanel({ job }: { job: JobDetail }) {
             Tailor a copy of your resume for {job.company}: the AI reorders skills and rewords bullets toward this posting
             using only what your resume says, then it is fitted to one page. Your main resume is not changed.
           </p>
-          <button onClick={run} disabled={tailor.isPending}
-            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-60">
-            {tailor.isPending ? <LoaderCircle className="size-3.5 animate-spin" /> : <Wand2 className="size-3.5" />}
-            {tailor.isPending ? 'Tailoring…' : 'Tailor my resume'}
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {baseResumes.length > 1 && (
+              <select
+                aria-label="Base resume to tailor from"
+                value={selectedBaseId ?? ''}
+                onChange={(e) => setSelectedBaseId(e.target.value ? Number(e.target.value) : null)}
+                className="rounded-lg border border-border bg-surface-2 px-2.5 py-2 text-xs font-medium text-text"
+              >
+                <option value="">Default base resume</option>
+                {baseResumes.map((r) => (
+                  <option key={r.id} value={r.id}>{r.title || 'My resume'}{r.is_default ? ' (Default)' : ''}</option>
+                ))}
+              </select>
+            )}
+            <button onClick={run} disabled={tailor.isPending}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-bg hover:bg-accent/85 disabled:opacity-60">
+              {tailor.isPending ? <LoaderCircle className="size-3.5 animate-spin" /> : <Wand2 className="size-3.5" />}
+              {tailor.isPending ? 'Tailoring…' : 'Tailor my resume'}
+            </button>
+          </div>
         </div>
       ) : (
         <>
