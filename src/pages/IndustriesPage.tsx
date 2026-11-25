@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import clsx from 'clsx';
-import { ArrowRight, Factory, Star } from 'lucide-react';
+import { ArrowRight, Factory, Search, Star } from 'lucide-react';
 import { useIndustries } from '../api/hooks';
 import { useProfile } from '../api/profile';
 import type { Industry } from '../api/types';
@@ -54,6 +55,8 @@ export default function IndustriesPage() {
   useDocumentTitle('Industries');
   const industries = useIndustries();
   const profile = useProfile();
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<'az' | 'matches' | 'score' | 'open'>('az');
   const preferred = new Set(profile.data?.answers?.industries ?? []);
 
   if (industries.isLoading) {
@@ -72,21 +75,59 @@ export default function IndustriesPage() {
   if (all.length === 0) {
     return <EmptyState icon={<Factory className="size-5 text-faint" />} title="No industries yet" />;
   }
-  // Preferred industries first, then the rest; both A to Z so any one is easy to find.
-  const az = [...all].sort((a, b) => a.label.localeCompare(b.label));
-  const mine = az.filter((i) => preferred.has(i.id));
-  const rest = az.filter((i) => !preferred.has(i.id));
+  const needle = query.trim().toLowerCase();
+  const filtered = needle
+    ? all.filter((i) => `${i.label} ${i.description}`.toLowerCase().includes(needle))
+    : all;
+  const cmp = (a: Industry, b: Industry) => {
+    if (sort === 'matches') return b.matches - a.matches || a.label.localeCompare(b.label);
+    if (sort === 'score') return (b.top_score ?? -1) - (a.top_score ?? -1) || a.label.localeCompare(b.label);
+    if (sort === 'open') return b.open_jobs - a.open_jobs || a.label.localeCompare(b.label);
+    return a.label.localeCompare(b.label);
+  };
+  const ordered = [...filtered].sort(cmp);
+  const mine = ordered.filter((i) => preferred.has(i.id));
+  const rest = ordered.filter((i) => !preferred.has(i.id));
   const totalCompanies = all.reduce((n, i) => n + i.companies, 0);
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-[28px] leading-tight font-semibold">Industries</h1>
-        <p className="mt-1 text-xs text-muted">
-          {totalCompanies} companies across {all.length} industries. Open one to see your matches and
-          its companies.
-        </p>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-[28px] leading-tight font-semibold">Industries</h1>
+          <p className="mt-1 text-xs text-muted">
+            {totalCompanies} companies across {all.length} industries. Open one to see your matches and
+            its companies.
+          </p>
+        </div>
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <label className="relative min-w-48 flex-1 sm:w-56 sm:flex-none">
+            <span className="sr-only">Search industries</span>
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-faint" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search industries…"
+              className="w-full rounded-lg border border-border bg-surface py-1.5 pr-2.5 pl-8 text-xs text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
+            />
+          </label>
+          <select
+            aria-label="Sort industries"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as 'az' | 'matches' | 'score' | 'open')}
+            className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text focus:border-accent/60 focus:outline-none"
+          >
+            <option value="az">A to Z</option>
+            <option value="matches">Most matches</option>
+            <option value="score">Highest fit score</option>
+            <option value="open">Most open jobs</option>
+          </select>
+        </div>
       </header>
+      {ordered.length === 0 && (
+        <EmptyState icon={<Factory className="size-5 text-faint" />} title={`No industry matches “${query}”`} />
+      )}
       {mine.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-xs font-medium tracking-wide text-faint uppercase">Your industries</h2>

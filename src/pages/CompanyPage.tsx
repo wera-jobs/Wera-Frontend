@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Bell, BellOff, EyeOff, ExternalLink } from 'lucide-react';
+import { Bell, BellOff, EyeOff, ExternalLink, Search } from 'lucide-react';
 import { useCompanyPage, useFollowCompany, useHideCompany, useStatusWithUndo } from '../api/hooks';
 import { CompanyLogo } from '../components/CompanyLogo';
 import { H1BDetailPanel } from '../components/H1BDetailPanel';
@@ -25,6 +25,8 @@ export default function CompanyPage() {
   const hide = useHideCompany();
   const quickStatus = useStatusWithUndo();
   const [drawer, setDrawer] = useState<number | null>(null);
+  const [roleQuery, setRoleQuery] = useState('');
+  const [matchesOnly, setMatchesOnly] = useState(false);
 
   if (isLoading) return <SkeletonRows rows={6} />;
   if (error || !c) return <ErrorState message={error instanceof Error ? error.message : 'company not found'} onRetry={() => void refetch()} />;
@@ -123,38 +125,67 @@ export default function CompanyPage() {
       </section>
 
       <section aria-labelledby="roles-title" className="overflow-hidden rounded-card border border-border bg-surface">
-        <h2 id="roles-title" className="px-4 pt-4 text-sm font-semibold text-text">
-          All open roles
-          {c.open_jobs > c.roles.length && <span className="ml-2 text-xs font-normal text-muted">the newest {c.roles.length} of {c.open_jobs}</span>}
-        </h2>
-        {c.roles.length === 0 ? (
-          <p className="px-4 py-4 text-xs text-muted">No open roles right now.</p>
-        ) : (
-          <ul className="mt-2 divide-y divide-border">
-            {c.roles.map((r) => (
-              <li key={r.id} className="flex items-center gap-3 px-4 py-2.5 text-xs">
-                <span className="min-w-0 flex-1">
-                  {r.match ? (
-                    <button type="button" onClick={() => setDrawer(r.id)} className="block truncate text-left font-medium text-text hover:text-accent">
-                      {r.title}
-                    </button>
-                  ) : (
-                    // Not one of your matches, so Wera has no review of it: the posting itself.
-                    <a href={r.url} target="_blank" rel="noreferrer" className="block truncate font-medium text-text hover:text-accent">
-                      {r.title}
-                    </a>
-                  )}
-                  <span className="block truncate text-muted">{r.location}</span>
-                </span>
-                {r.match && <span className="shrink-0 rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">Match</span>}
-                <span className="hidden shrink-0 text-faint sm:inline">{relTime(r.posted_at ?? r.first_seen_at)}</span>
-                <a href={r.url} target="_blank" rel="noreferrer" aria-label={`Open the posting for ${r.title}`} className="shrink-0 text-muted hover:text-accent">
-                  <ExternalLink className="size-3.5" />
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4">
+          <h2 id="roles-title" className="text-sm font-semibold text-text">
+            All open roles
+            {c.open_jobs > c.roles.length && <span className="ml-2 text-xs font-normal text-muted">the newest {c.roles.length} of {c.open_jobs}</span>}
+          </h2>
+          {c.roles.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="relative">
+                <span className="sr-only">Filter open roles</span>
+                <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-faint" />
+                <input
+                  type="search"
+                  value={roleQuery}
+                  onChange={(e) => setRoleQuery(e.target.value)}
+                  placeholder="Title or location…"
+                  className="w-44 rounded-lg border border-border bg-surface-2/60 py-1 pr-2 pl-8 text-xs text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
+                />
+              </label>
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-muted select-none">
+                <input type="checkbox" checked={matchesOnly} onChange={(e) => setMatchesOnly(e.target.checked)} className="size-3.5 accent-accent" />
+                Matches only
+              </label>
+            </div>
+          )}
+        </div>
+        {(() => {
+          const needle = roleQuery.trim().toLowerCase();
+          const filteredRoles = c.roles.filter((r) => {
+            if (matchesOnly && !r.match) return false;
+            if (needle && !`${r.title} ${r.location}`.toLowerCase().includes(needle)) return false;
+            return true;
+          });
+          if (c.roles.length === 0) return <p className="px-4 py-4 text-xs text-muted">No open roles right now.</p>;
+          if (filteredRoles.length === 0) return <p className="px-4 py-4 text-xs text-muted">No open roles match your filter.</p>;
+          return (
+            <ul className="mt-2 divide-y divide-border">
+              {filteredRoles.map((r) => (
+                <li key={r.id} className="flex items-center gap-3 px-4 py-2.5 text-xs">
+                  <span className="min-w-0 flex-1">
+                    {r.match ? (
+                      <button type="button" onClick={() => setDrawer(r.id)} className="block truncate text-left font-medium text-text hover:text-accent">
+                        {r.title}
+                      </button>
+                    ) : (
+                      // Not one of your matches, so Wera has no review of it: the posting itself.
+                      <a href={r.url} target="_blank" rel="noreferrer" className="block truncate font-medium text-text hover:text-accent">
+                        {r.title}
+                      </a>
+                    )}
+                    <span className="block truncate text-muted">{r.location}</span>
+                  </span>
+                  {r.match && <span className="shrink-0 rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-medium text-accent">Match</span>}
+                  <span className="hidden shrink-0 text-faint sm:inline">{relTime(r.posted_at ?? r.first_seen_at)}</span>
+                  <a href={r.url} target="_blank" rel="noreferrer" aria-label={`Open the posting for ${r.title}`} className="shrink-0 text-muted hover:text-accent">
+                    <ExternalLink className="size-3.5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          );
+        })()}
       </section>
 
       {c.h1b != null && (
