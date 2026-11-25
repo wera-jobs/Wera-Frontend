@@ -26,7 +26,7 @@ export function Reactions({ post, compact }: { post: PostSummary; compact?: bool
             key={kind}
             type="button"
             aria-pressed={mine}
-            aria-label={`${label} (${n})`}
+            aria-label={n > 0 ? `${label} ${n}` : label}
             title={label}
             onClick={(e) => {
               e.preventDefault();

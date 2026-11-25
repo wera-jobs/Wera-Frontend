@@ -21,7 +21,7 @@ describe('Reactions', () => {
     const { client } = renderApp(<Reactions post={post} />);
     client.setQueryData(['post', 7], { ...post, body: '', comments: [] });
 
-    await userEvent.click(screen.getByRole('button', { name: 'Like (2)' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Like 2' }));
     await waitFor(() => expect(client.getQueryData<PostSummary>(['post', 7])?.reactions.like).toBe(3));
     expect(client.getQueryData<PostSummary>(['post', 7])?.my_reactions).toEqual(['like']);
     expect(fetchMock).toHaveBeenCalledWith('/api/posts/7/reactions/like', expect.objectContaining({ method: 'PUT' }));
@@ -41,7 +41,7 @@ describe('Reactions', () => {
     client.setQueryDefaults(['post', 7], { queryFn: () => ({ ...post, body: '', comments: [] }) });
     client.setQueryDefaults(['posts'], { queryFn: () => ({ posts: [post], total: 1 }) });
 
-    await userEvent.click(screen.getByRole('button', { name: 'Like (2)' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Like 2' }));
     expect(await screen.findByText('reactions are down')).toBeInTheDocument();
     await waitFor(() => expect(client.getQueryState(['posts', {}])?.isInvalidated).toBe(true));
     expect(client.getQueryState(['post', 7])?.isInvalidated).toBe(true);
@@ -51,7 +51,7 @@ describe('Reactions', () => {
     mockApi({ 'PUT /api/posts/7/reactions/like': () => new Promise(() => {}) });
     const { client } = renderApp(<Reactions post={post} />);
     client.setQueryData(['post', 7], { ...post, body: '', comments: [] });
-    const button = screen.getByRole('button', { name: 'Like (2)' });
+    const button = screen.getByRole('button', { name: 'Like 2' });
     await userEvent.click(button);
     // A second "on" while the first is in flight, as a fast double click sends.
     await userEvent.click(button);
