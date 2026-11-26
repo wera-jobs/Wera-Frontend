@@ -117,7 +117,7 @@ export default function IndustryPage() {
         </Link>
         <div className="mt-2 flex items-center gap-3">
           <IndustryIcon id={ind.id} size="lg" />
-          <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">{ind.label}</h1>
+          <h1 className="text-[28px] leading-tight font-semibold">{ind.label}</h1>
         </div>
         <p className="mt-1 text-xs text-muted">{ind.description}</p>
       </header>

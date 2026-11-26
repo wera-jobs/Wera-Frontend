@@ -62,7 +62,7 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
             <EarlyBadge job={job} />
             <OldPostingBadge job={job} />
           </div>
-          <h2 className="mt-2 line-clamp-2 font-display text-xl leading-snug font-semibold tracking-[-0.015em] text-text transition-colors group-hover:text-accent sm:text-[23px]">
+          <h2 className="mt-2 line-clamp-2 text-lg leading-snug font-semibold text-text transition-colors group-hover:text-accent">
             <button
               type="button"
               onClick={() => onOpen(job.id)}
@@ -187,7 +187,7 @@ export default function TodayPage() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Today</h1>
+          <h1 className="text-[28px] leading-tight font-semibold">Today</h1>
           <p className="mt-1 text-xs text-muted">
             {all.length >= TODAY_CAP ? `${TODAY_CAP}+` : all.length} {all.length === 1 ? 'match' : 'matches'} to review
             {estimatedCount > 0 && <> ({estimatedCount} estimated)</>}

@@ -41,7 +41,7 @@ export function EmptyState({
           {icon}
         </div>
       )}
-      <div className="font-display text-lg font-semibold text-text">{title}</div>
+      <div className="text-sm font-medium text-text">{title}</div>
       {hint && <div className="max-w-sm text-xs leading-relaxed text-muted">{hint}</div>}
     </div>
   );

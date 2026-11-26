@@ -84,7 +84,7 @@ function Header({ job, onLeave }: { job: JobDetail; onLeave: () => void }) {
         <EarlyBadge job={job} />
         <OldPostingBadge job={job} />
       </div>
-      <h2 className="mt-2 font-display text-2xl leading-snug font-semibold tracking-[-0.015em] text-balance text-text md:text-[26px]">{job.title}</h2>
+      <h2 className="mt-2 text-xl leading-snug font-semibold text-balance text-text md:text-2xl">{job.title}</h2>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1.5">
           <CompanyLogo name={job.company} url={job.logo_url} size="md" />

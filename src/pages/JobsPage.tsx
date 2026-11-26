@@ -186,7 +186,7 @@ export default function JobsPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Jobs</h1>
+          <h1 className="text-[28px] leading-tight font-semibold">Jobs</h1>
           <p className="mt-1 text-xs text-muted">
             {isFetching ? 'Loading…' : `${jobs.length} shown${jobs.length === PAGE ? '+' : ''}`}
             <span className="hidden md:inline">

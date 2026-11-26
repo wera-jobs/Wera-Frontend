@@ -393,7 +393,7 @@ export default function InterviewPage() {
 
   const header = (
     <header className="mb-5">
-      <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Interview prep</h1>
+      <h1 className="text-[28px] leading-tight font-semibold">Interview prep</h1>
     </header>
   );
   const tab = sp.get('tab') === 'sims' ? 'sims' : 'rounds';
@@ -437,7 +437,7 @@ export default function InterviewPage() {
       <header className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="min-w-0">
-            <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Interview prep</h1>
+            <h1 className="text-[28px] leading-tight font-semibold">Interview prep</h1>
             <p className="mt-1 text-sm text-muted">{track.blurb}</p>
           </div>
           <RolePicker tracks={list} value={trackId} suggested={suggested} onChange={pickTrack} />

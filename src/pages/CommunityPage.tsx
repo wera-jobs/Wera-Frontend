@@ -47,7 +47,7 @@ export default function CommunityPage() {
     <div className="mx-auto max-w-3xl pb-10">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Community</h1>
+          <h1 className="text-[28px] leading-tight font-semibold">Community</h1>
           <p className="mt-1 max-w-lg text-sm text-muted">
             Offers, interview trends and hard-won tips from people in the same search. Every post is reviewed before it
             goes live.
