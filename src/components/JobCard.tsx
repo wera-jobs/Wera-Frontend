@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { CompanyLogo } from './CompanyLogo';
 import { Badge } from './Badge';
 import { AutofilledBadge, CategoryChips, EarlyBadge, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
-import { jobMeta, toYou, verdictLabel, verdictOf } from '../lib/format';
+import { jobMeta, prettyReason, toYou, verdictLabel, verdictOf } from '../lib/format';
 import type { AppStatus, Job } from '../api/types';
 
 /** The small bordered buttons on cards. */
@@ -102,15 +102,28 @@ export function JobCard({
             </span>
             <EarlyBadge job={job} />
             <OldPostingBadge job={job} />
+            {job.also_in && job.also_in.length > 0 && (
+              <span
+                className="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                title={`Also in ${job.also_in.join(', ')}`}
+              >
+                +{job.also_in.length} {job.also_in.length === 1 ? 'city' : 'cities'}
+              </span>
+            )}
             {job.sponsorship === 'yes' && (
               <Badge variant="good" className="shrink-0">
                 Sponsors visas
               </Badge>
             )}
           </div>
-          {job.reason && (
+          {job.stage === 'excluded' && job.exclude_reason ? (
+            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-bad">
+              Not a match: {prettyReason(job.exclude_reason)}
+              {job.exclude_evidence ? ` (${job.exclude_evidence})` : ''}
+            </p>
+          ) : job.reason ? (
             <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{toYou(job.reason)}</p>
-          )}
+          ) : null}
           <div className="mt-2.5 flex min-h-6 flex-wrap items-end justify-between gap-2">
             <CategoryChips cats={job.matched_categories} />
             {quickActions && (
