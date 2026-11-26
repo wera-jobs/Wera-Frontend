@@ -104,6 +104,8 @@ export interface Job {
   ext_id: string;
   title: string;
   location_raw: string | null;
+  /** Other cities where the same role is posted among the user's open matches. */
+  also_in?: string[];
   is_remote: boolean | null;
   url: string;
   department: string | null;
