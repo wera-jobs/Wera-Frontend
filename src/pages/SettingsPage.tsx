@@ -318,7 +318,7 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-5 pb-10">
       <header>
-        <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Settings</h1>
+        <h1 className="text-[28px] leading-tight font-semibold">Settings</h1>
         <p className="mt-1 text-xs text-muted">Changes save as you make them.</p>
       </header>
 
