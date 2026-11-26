@@ -114,7 +114,7 @@ export default function SponsorshipPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-5 pb-10">
       <header>
-        <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Sponsorship</h1>
+        <h1 className="text-[28px] leading-tight font-semibold">Sponsorship</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted">
           Who files for H-1B workers, what they pay, and what each company's own postings say about sponsorship.
         </p>

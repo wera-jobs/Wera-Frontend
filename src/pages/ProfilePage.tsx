@@ -156,7 +156,7 @@ function ProfileHeader() {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <h1 className="font-display text-[30px] leading-[1.12] font-semibold tracking-[-0.02em]">{user.name || 'Your profile'}</h1>
+        <h1 className="text-[26px] leading-tight font-semibold">{user.name || 'Your profile'}</h1>
         <p className="mt-0.5 text-sm text-muted">{user.email}</p>
         <p className="mt-1 text-xs text-faint">Member since {new Date(user.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</p>
       </div>
