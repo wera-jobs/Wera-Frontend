@@ -35,9 +35,13 @@ export function EmptyState({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-card border border-dashed border-border bg-surface/50 px-6 py-16 text-center">
-      {icon}
-      <div className="text-sm font-medium text-text">{title}</div>
+    <div className="flex flex-col items-center justify-center gap-2.5 rounded-card border border-dashed border-border bg-surface/60 px-6 py-16 text-center">
+      {icon && (
+        <div className="mb-1 flex size-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+          {icon}
+        </div>
+      )}
+      <div className="font-display text-lg font-semibold text-text">{title}</div>
       {hint && <div className="max-w-sm text-xs leading-relaxed text-muted">{hint}</div>}
     </div>
   );

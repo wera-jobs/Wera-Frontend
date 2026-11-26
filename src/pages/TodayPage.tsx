@@ -45,7 +45,7 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
   const meta = jobMeta(job);
   const saved = job.application_status === 'saved';
   return (
-    <article className="anim-rise group relative cursor-pointer rounded-card border border-accent/25 bg-surface p-5 transition-colors duration-150 hover:border-accent/50 has-[h2_button:focus-visible]:ring-2 has-[h2_button:focus-visible]:ring-accent">
+    <article className="anim-rise surface-featured group relative cursor-pointer rounded-card border border-accent/25 bg-surface p-5 transition-colors duration-150 hover:border-accent/50 has-[h2_button:focus-visible]:ring-2 has-[h2_button:focus-visible]:ring-accent sm:p-6">
       <div className="flex flex-wrap items-start gap-4 sm:gap-5">
         <span className="sm:hidden">
           <ScoreRing score={job.fit_score} estimate={job.estimated_score} ai={job.estimate_ai} size="md" />
@@ -54,15 +54,15 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
           <ScoreRing score={job.fit_score} estimate={job.estimated_score} ai={job.estimate_ai} size="lg" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] font-semibold tracking-widest text-accent uppercase">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-accent/10 px-2 py-0.5 font-mono text-[10px] font-semibold tracking-widest text-accent uppercase">
               {job.fit_score == null ? 'Top estimate' : 'Top pick'}
             </span>
             <StatusPill value={job.application_status} />
             <EarlyBadge job={job} />
             <OldPostingBadge job={job} />
           </div>
-          <h2 className="mt-1.5 line-clamp-2 text-lg leading-snug font-semibold text-text">
+          <h2 className="mt-2 line-clamp-2 font-display text-xl leading-snug font-semibold tracking-[-0.015em] text-text transition-colors group-hover:text-accent sm:text-[23px]">
             <button
               type="button"
               onClick={() => onOpen(job.id)}
@@ -72,27 +72,27 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
               {job.title}
             </button>
           </h2>
-          <div className="mt-0.5 flex min-w-0 items-center gap-2 text-sm text-muted">
+          <div className="mt-1 flex min-w-0 items-center gap-2 text-sm font-medium text-muted">
             <CompanyLogo name={job.company} url={job.logo_url} size="md" />
             <span className="truncate">{job.company}</span>
           </div>
           {passedOver > 0 && (
-            <p className="mt-1 text-[11px] text-faint">
+            <p className="mt-1.5 text-[11px] text-faint">
               Best fit among postings from the last {OLD_POSTING_DAYS} days: {passedOver === 1 ? 'a higher score below is' : `${passedOver} higher scores below are`} on older postings, which are often filled.
             </p>
           )}
-          {job.reason && <p className="mt-2 line-clamp-3 max-w-2xl text-xs leading-relaxed text-muted">{toYou(job.reason)}</p>}
-          <div className="mt-2.5 text-[11px] text-faint">
+          {job.reason && <p className="mt-2.5 line-clamp-3 max-w-2xl text-[13px] leading-relaxed text-muted">{toYou(job.reason)}</p>}
+          <div className="mt-3 text-xs text-faint">
             {meta || '—'} · <PostedAge job={job} />
           </div>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-1.5 whitespace-nowrap sm:w-auto">
+        <div className="flex w-full flex-wrap items-center gap-2 whitespace-nowrap sm:w-auto">
           <a
             href={job.url}
             data-wera-job={job.id}
             target="_blank"
             rel="noreferrer"
-            className="relative z-10 inline-flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-bg transition-colors duration-150 hover:bg-accent/85"
+            className="relative z-10 inline-flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2 text-xs font-semibold text-bg shadow-xs transition-colors duration-150 hover:bg-accent/85"
           >
             <ExternalLink className="size-3.5" /> Open posting
           </a>
@@ -101,14 +101,14 @@ function TopPick({ job, passedOver, onOpen, onStatus }: { job: Job; passedOver: 
             onClick={() => onStatus(job, saved ? null : 'saved')}
             aria-pressed={saved}
             title={saved ? 'Saved. Click to unsave.' : undefined}
-            className={`${CHIP_BUTTON} px-2.5 py-1.5 hover:border-accent/40 hover:text-accent ${saved ? 'border-accent/30 text-accent' : 'text-text'}`}
+            className={`${CHIP_BUTTON} px-3 py-2 hover:border-accent/40 hover:text-accent ${saved ? 'border-accent/30 text-accent' : 'text-text'}`}
           >
             {saved ? <BookmarkCheck className="size-3.5" /> : <Bookmark className="size-3.5" />} {saved ? 'Saved' : 'Save'}
           </button>
           <button
             type="button"
             onClick={() => onStatus(job, 'not_interested')}
-            className={`${CHIP_BUTTON} px-2.5 py-1.5 text-muted hover:border-bad/40 hover:text-bad`}
+            className={`${CHIP_BUTTON} px-3 py-2 text-muted hover:border-bad/40 hover:text-bad`}
           >
             <Ban className="size-3.5" /> Not interested
           </button>
@@ -187,7 +187,7 @@ export default function TodayPage() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-[28px] leading-tight font-semibold">Today</h1>
+          <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Today</h1>
           <p className="mt-1 text-xs text-muted">
             {all.length >= TODAY_CAP ? `${TODAY_CAP}+` : all.length} {all.length === 1 ? 'match' : 'matches'} to review
             {estimatedCount > 0 && <> ({estimatedCount} estimated)</>}

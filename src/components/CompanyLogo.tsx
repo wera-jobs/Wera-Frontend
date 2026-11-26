@@ -4,8 +4,8 @@ import clsx from 'clsx';
 // Height sets the size; a logo keeps its own shape up to about 3.5 times as wide (wordmarks), a letter tile is square.
 const SIZE = {
   sm: { box: 'h-4 rounded', wide: 'max-w-14', square: 'w-4 text-[9px]' },
-  md: { box: 'h-5 rounded-md', wide: 'max-w-[4.5rem]', square: 'w-5 text-[10px]' },
-  lg: { box: 'h-8 rounded-lg', wide: 'max-w-28', square: 'w-8 text-sm' },
+  md: { box: 'h-6 rounded-md', wide: 'max-w-[5rem]', square: 'w-6 text-[11px]' },
+  lg: { box: 'h-9 rounded-lg', wide: 'max-w-32', square: 'w-9 text-sm' },
 };
 
 /**

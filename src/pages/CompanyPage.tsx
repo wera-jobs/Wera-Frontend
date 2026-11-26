@@ -40,7 +40,7 @@ export default function CompanyPage() {
         <div className="flex min-w-0 items-center gap-3">
           <CompanyLogo name={c.name} url={c.logo_url} size="lg" />
           <div className="min-w-0">
-            <h1 className="truncate text-[28px] leading-tight font-semibold">{c.name}</h1>
+            <h1 className="truncate font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">{c.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
               <IndustryBadge value={c.industry} />
               <span>

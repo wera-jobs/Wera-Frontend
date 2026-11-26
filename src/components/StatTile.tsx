@@ -132,17 +132,17 @@ export function StatTile({
 }) {
   const tone = delta?.tone ?? 'neutral';
   const classes = clsx(
-    'flex w-full flex-col rounded-card border border-border bg-surface p-3 text-left transition-colors duration-150 sm:p-4',
-    accent && 'border-accent/30',
-    (onClick || to) && 'cursor-pointer hover:border-accent/50',
+    'flex w-full flex-col rounded-card border border-border bg-surface p-3.5 text-left transition-all duration-150 sm:p-4',
+    accent && 'border-accent/30 surface-featured',
+    (onClick || to) && 'cursor-pointer hover:-translate-y-0.5 hover:border-accent/45',
     pressed && 'border-accent bg-accent/[0.06] ring-1 ring-accent',
     className,
   );
   const body = (
     <span className="flex items-start justify-between gap-3">
       <span className="block min-w-0">
-        <span className="block text-xs font-medium text-muted">{label}</span>
-        <span className="mt-1 block font-mono text-xl font-semibold tabular-nums text-text sm:mt-1.5 sm:text-2xl">
+        <span className="block text-[11px] font-medium tracking-wide text-muted">{label}</span>
+        <span className="mt-1 block font-mono text-2xl font-semibold tracking-tight tabular-nums text-text sm:mt-1.5 sm:text-[26px]">
           {typeof value === 'number' ? <CountUp value={value} /> : value}
         </span>
         {sub != null && <span className="mt-1 block text-xs text-faint">{sub}</span>}

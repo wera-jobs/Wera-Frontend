@@ -119,7 +119,7 @@ export default function WelcomePage() {
           <Logo />
           <ThemeToggle />
         </div>
-        <h1 className="mt-4 text-[26px] leading-tight font-semibold">
+        <h1 className="mt-4 font-display text-[30px] leading-[1.12] font-semibold tracking-[-0.02em]">
           {firstName ? `Welcome, ${firstName}.` : 'Welcome.'} Let's find your jobs.
         </h1>
         <p className="mt-1 text-sm text-muted">

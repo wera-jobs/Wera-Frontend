@@ -94,7 +94,7 @@ export default function IndustriesPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[28px] leading-tight font-semibold">Industries</h1>
+          <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Industries</h1>
           <p className="mt-1 text-xs text-muted">
             {totalCompanies} companies across {all.length} industries. Open one to see your matches and
             its companies.
