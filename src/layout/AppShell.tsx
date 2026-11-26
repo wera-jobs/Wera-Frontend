@@ -149,7 +149,7 @@ export function AppShell() {
               className={({ isActive }) =>
                 clsx(
                   'relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150',
-                  isActive ? 'text-accent' : 'text-muted hover:bg-surface-2 hover:text-text',
+                  isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-surface-2 hover:text-text',
                 )
               }
             >

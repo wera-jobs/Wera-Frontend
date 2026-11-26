@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { CompanyLogo } from './CompanyLogo';
 import { Badge } from './Badge';
 import { AutofilledBadge, CategoryChips, EarlyBadge, OldPostingBadge, PostedAge, StatusPill } from './JobBadges';
-import { jobMeta, prettyReason, toYou, verdictLabel, verdictOf } from '../lib/format';
+import { jobMeta, payText, prettyReason, toYou, verdictLabel, verdictOf } from '../lib/format';
 import type { AppStatus, Job } from '../api/types';
 
 /** The small bordered buttons on cards. */
@@ -36,14 +36,14 @@ export function JobCard({
   onQuickStatus?: (job: Job, status: AppStatus | null) => void;
   quickActions?: boolean;
 }) {
-  // One quiet line instead of a wall of badges; the sponsor chip stays
-  // because it is the one signal worth interrupting the scan for.
-  const meta = jobMeta(job);
+  // Separate stated pay into its own scannable chip instead of burying it in the dot line.
+  const pay = payText(job, true);
+  const meta = jobMeta({ ...job, pay_min: null, pay_max: null });
   const saved = job.application_status === 'saved';
 
   return (
     <article
-      className="group anim-rise relative min-w-0 cursor-pointer rounded-card border border-border bg-surface p-4 transition-colors duration-150 hover:border-accent/40 has-[h3_button:focus-visible]:ring-2 has-[h3_button:focus-visible]:ring-accent"
+      className="group anim-rise relative min-w-0 cursor-pointer rounded-card border border-border bg-surface p-4 transition-colors duration-150 hover:border-accent/40 has-[h3_button:focus-visible]:ring-2 has-[h3_button:focus-visible]:ring-accent sm:p-5"
       style={{ animationDelay: `${Math.min(index * 40, STAGGER_MAX_MS)}ms` }}
     >
       <div className="flex items-start gap-4">
@@ -67,7 +67,7 @@ export function JobCard({
                   clamp sits on a span inside the button: a button is always
                   inline-block, so a clamp or truncate outside it cut the
                   title off mid-letter. */}
-              <h3 className="text-sm font-semibold text-text">
+              <h3 className="text-[15px] leading-snug font-semibold tracking-[-0.01em] text-text transition-colors group-hover:text-accent">
                 <button
                   type="button"
                   onClick={() => onOpen(job.id)}
@@ -77,11 +77,11 @@ export function JobCard({
                   <span className="line-clamp-2 break-words">{job.title}</span>
                 </button>
               </h3>
-              <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
-                <CompanyLogo name={job.company} url={job.logo_url} />
+              <div className="mt-1 flex min-w-0 items-center gap-2 text-xs text-muted">
+                <CompanyLogo name={job.company} url={job.logo_url} size="md" />
                 <Link
                   to={`/companies/${job.company_id}`}
-                  className="relative z-10 truncate hover:text-accent hover:underline"
+                  className="relative z-10 truncate font-medium hover:text-accent hover:underline"
                 >
                   {job.company}
                 </Link>
@@ -92,19 +92,24 @@ export function JobCard({
               <AutofilledBadge at={job.autofilled_at} />
             </span>
           </div>
-          <div className="mt-2 flex min-w-0 items-center gap-2 text-[11px] text-faint">
+          <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
             {/* The age keeps the same " · " spacing as the rest of the line. */}
             <span className="flex min-w-0 items-center gap-1">
               <span className="min-w-0 truncate">{meta || '—'}</span>
-              <span className="shrink-0">
+              <span className="shrink-0 text-faint">
                 · <PostedAge job={job} />
               </span>
             </span>
+            {pay && (
+              <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 font-mono text-[11px] font-medium tabular-nums text-text">
+                {pay}
+              </span>
+            )}
             <EarlyBadge job={job} />
             <OldPostingBadge job={job} />
             {job.also_in && job.also_in.length > 0 && (
               <span
-                className="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-[11px] font-medium text-muted"
                 title={`Also in ${job.also_in.join(', ')}`}
               >
                 +{job.also_in.length} {job.also_in.length === 1 ? 'city' : 'cities'}
@@ -117,12 +122,12 @@ export function JobCard({
             )}
           </div>
           {job.stage === 'excluded' && job.exclude_reason ? (
-            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-bad">
+            <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-bad">
               Not a match: {prettyReason(job.exclude_reason)}
               {job.exclude_evidence ? ` (${job.exclude_evidence})` : ''}
             </p>
           ) : job.reason ? (
-            <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">{toYou(job.reason)}</p>
+            <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-muted">{toYou(job.reason)}</p>
           ) : null}
           <div className="mt-2.5 flex min-h-6 flex-wrap items-end justify-between gap-2">
             <CategoryChips cats={job.matched_categories} />

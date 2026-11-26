@@ -463,7 +463,7 @@ export default function TrackerPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[28px] leading-tight font-semibold">Tracker</h1>
+          <h1 className="font-display text-[32px] leading-[1.12] font-semibold tracking-[-0.02em]">Tracker</h1>
           <p className="mt-1 text-xs text-muted">
             Drag a card to another column to move it along, or use the status menu on the card.
           </p>
