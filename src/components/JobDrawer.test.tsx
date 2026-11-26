@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fixtures, stubApi } from '../test/fixtures';
 import { jsonBody, renderApp } from '../test/render';
 import { JobDrawer, type DrawerTab } from './JobDrawer';
+import { JobCard } from './JobCard';
+import type { Job } from '../api/types';
 
 const a = { ...fixtures.job, id: 701, title: 'Role A', company: 'Acme', description: 'About role A.' };
 const b = { ...fixtures.job, id: 702, title: 'Role B', company: 'Globex', description: 'About role B.' };
@@ -60,6 +62,30 @@ describe('JobDrawer', () => {
     await userEvent.click(within(tabs).getByRole('tab', { name: 'Cover letter' }));
     await waitFor(() => expect(within(tabs).getByRole('tab', { name: 'Cover letter' })).toHaveAttribute('aria-selected', 'true'));
     expect(await screen.findByRole('button', { name: /Write my letter/ })).toBeInTheDocument();
+  });
+
+  it('shows other cities (also_in) and ruled-out reasons on JobDrawer and JobCard', async () => {
+    const multi = {
+      ...a,
+      id: 703,
+      also_in: ['Austin, TX', 'New York, NY'],
+      stage: 'excluded',
+      exclude_reason: 'llm:years>3',
+      exclude_evidence: 'Requires 6+ years of experience.',
+      reason: null,
+      estimated_score: null,
+    };
+    stubApi({ [`GET /api/jobs/${multi.id}`]: () => multi });
+    renderApp(
+      <>
+        <JobCard job={multi as unknown as Job} onOpen={() => {}} />
+        <JobDrawer jobId={multi.id} onClose={() => {}} />
+      </>,
+    );
+    expect(screen.getByText('+2 cities')).toHaveAttribute('title', 'Also in Austin, TX, New York, NY');
+    expect(screen.getByText(/Not a match: Needs more than 3 years/)).toBeInTheDocument();
+    expect(await screen.findByText('Also in Austin, TX, New York, NY')).toBeInTheDocument();
+    expect(screen.getAllByText(/Requires 6\+ years of experience\./)).toHaveLength(2);
   });
 
   describe('on a phone', () => {

@@ -102,6 +102,11 @@ function Header({ job, onLeave }: { job: JobDetail; onLeave: () => void }) {
             </span>
           </span>
         )}
+        {job.also_in && job.also_in.length > 0 && (
+          <span className="inline-flex min-w-0 items-center text-faint" title={`Also in ${job.also_in.join(', ')}`}>
+            <span className="truncate">Also in {job.also_in.join(', ')}</span>
+          </span>
+        )}
         {job.posted_at && (
           <span className="inline-flex items-center gap-1.5" title={absTime(job.posted_at)}>
             <CalendarDays className="size-3.5 text-faint" /> Posted {relTime(job.posted_at)}
