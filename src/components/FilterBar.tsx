@@ -109,6 +109,9 @@ export function FilterBar({
   const active = [values.industry, values.category, values.min_score, values.min_pay, values.sponsorship, values.work_mode, values.status, values.posted_within, values.followed, values.sort !== defaultSort]
     .filter(Boolean).length;
   const isDefault = values.q === '' && active === 0;
+  // Set filters behind "More filters" (not search, sort or the Following preset).
+  const hidden = [values.industry, values.category, values.min_score, values.min_pay, values.sponsorship, values.work_mode, values.status, values.posted_within]
+    .filter(Boolean).length;
 
   return (
     <div className="rounded-card border border-border bg-surface p-3">
@@ -125,18 +128,34 @@ export function FilterBar({
           />
         </label>
 
-        {/* On a phone the filters wait behind a button, so the jobs come first. */}
+        <div className="w-32">
+          <Select
+            label="Sort"
+            value={values.sort}
+            onChange={(v) => onChange({ sort: v })}
+            options={[
+              { value: 'score', label: 'Best fit' },
+              { value: 'newest', label: 'Newest' },
+            ]}
+          />
+        </div>
+
+        {/* The rest wait behind a button, so the jobs come first; the chips below show what is set. */}
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="inline-flex items-center gap-1.5 self-end rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-sm font-medium text-text md:hidden"
+          aria-controls="more-filters"
+          className={clsx(
+            'inline-flex items-center gap-1.5 self-end rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150',
+            open ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border bg-surface-2 text-text hover:border-accent/40',
+          )}
         >
-          <SlidersHorizontal className="size-3.5" /> Filters
-          {active > 0 && <span className="rounded-full bg-accent px-1.5 text-xs font-semibold text-bg">{active}</span>}
+          <SlidersHorizontal className="size-3.5" /> More filters
+          {hidden > 0 && <span className="rounded-full bg-accent px-1.5 font-mono text-[10px] font-semibold text-bg">{hidden}</span>}
         </button>
 
-        <div className={clsx('md:contents', open ? 'contents' : 'hidden')}>
+        <div id="more-filters" className={open ? 'contents' : 'hidden'}>
         <Select
           label="Industry"
           value={values.industry}
@@ -205,15 +224,6 @@ export function FilterBar({
             { value: '7', label: 'Past week' },
             { value: '30', label: 'Past month' },
             { value: '60', label: 'Past 2 months' },
-          ]}
-        />
-        <Select
-          label="Sort"
-          value={values.sort}
-          onChange={(v) => onChange({ sort: v })}
-          options={[
-            { value: 'score', label: 'Best fit' },
-            { value: 'newest', label: 'Newest' },
           ]}
         />
 
