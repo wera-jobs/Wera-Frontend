@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.39.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.38.0...wera-frontend-v0.39.0) (2026-11-28)
+
+
+### Features
+
+* a practice application at /practice ([426d89e](https://github.com/wera-jobs/Wera-Frontend/commit/426d89eee63627c693a9fc3033a2a5d485908fc2))
+* **tracker:** queue saved jobs in the extension ([9cd5c68](https://github.com/wera-jobs/Wera-Frontend/commit/9cd5c68e4dc644f21b71ce43cd0ad00229a4a0f6))
+
+
+### Bug Fixes
+
+* **details:** three veteran states ([b25b2ab](https://github.com/wera-jobs/Wera-Frontend/commit/b25b2abe9b1e9d2d155defaf72c7dc16b80c9f9d))
+
 ## [0.38.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.37.0...wera-frontend-v0.38.0) (2026-11-28)
 
 
