@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useFollowCompany, useHideCompany, useJob, useScoreJob, useStatusWithUndo, useUpdateApplication } from '../api/hooks';
 import { CoverLetterPanel } from './CoverLetterPanel';
+import { AssistantChat } from './AssistantChat';
 import { InterviewPrepPanel } from './InterviewPrepPanel';
 import { JobResumePanel } from './JobResumePanel';
 import { toast } from '../lib/toast';
@@ -42,17 +43,18 @@ function Kbd({ children }: { children: React.ReactNode }) {
   );
 }
 
-export type DrawerTab = 'posting' | 'letter' | 'resume' | 'prep';
+export type DrawerTab = 'posting' | 'letter' | 'resume' | 'prep' | 'ask';
 
 function Tabs({ tab, setTab }: { tab: DrawerTab; setTab: (t: DrawerTab) => void }) {
   return (
-    <div role="tablist" className="mb-4 flex gap-1 border-b border-border">
+    <div role="tablist" className="mb-4 flex gap-1 overflow-x-auto whitespace-nowrap border-b border-border">
       {(
         [
           ['posting', 'The posting'],
           ['letter', 'Cover letter'],
           ['resume', 'Resume'],
           ['prep', 'Interview prep'],
+          ['ask', 'Ask Wera'],
         ] as const
       ).map(([key, label]) => (
         <button
@@ -359,7 +361,9 @@ export function JobDrawer({
                 <Tabs tab={tab} setTab={setTab} />
                 {/* Keyed by job: stepping to the next job starts each panel
                     fresh, so an open editor can't save into the wrong job. */}
-                {tab === 'resume' ? (
+                {tab === 'ask' ? (
+                  <AssistantChat key={job.id} jobId={job.id} />
+                ) : tab === 'resume' ? (
                   <JobResumePanel key={job.id} job={job} />
                 ) : tab === 'prep' ? (
                   <InterviewPrepPanel key={job.id} job={job} />
