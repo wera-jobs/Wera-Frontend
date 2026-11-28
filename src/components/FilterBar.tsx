@@ -155,7 +155,7 @@ export function FilterBar({
           {hidden > 0 && <span className="rounded-full bg-accent px-1.5 font-mono text-[10px] font-semibold text-bg">{hidden}</span>}
         </button>
 
-        <div id="more-filters" className={open ? 'contents' : 'hidden'}>
+        <div id="more-filters" className={open ? 'flex basis-full flex-wrap items-end gap-2 border-t border-border/60 pt-2.5' : 'hidden'}>
         <Select
           label="Industry"
           value={values.industry}
