@@ -17,6 +17,8 @@ import { Switch } from '../components/Switch';
 import { ThemeChoice } from '../lib/theme';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { useActiveSection } from '../lib/useActiveSection';
+import { readWeeklyGoal, writeWeeklyGoal } from '../lib/goals';
 
 function Section({ id, icon: Icon, title, hint, children, tone }: {
   id?: string; icon: typeof Bell; title: string; hint?: string; children: ReactNode; tone?: 'danger';
@@ -46,6 +48,40 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
       </div>
       {children}
     </div>
+  );
+}
+
+/** The weekly application goal: typed, saved on Enter or leaving the box; 0 or empty turns it off. */
+function GoalInput({ value, onSave }: { value: number; onSave: (n: number) => void }) {
+  const [text, setText] = useState(value ? String(value) : '');
+  const [synced, setSynced] = useState(value);
+  // A change from elsewhere (Today's goal editor) shows here too.
+  if (value !== synced) {
+    setSynced(value);
+    setText(value ? String(value) : '');
+  }
+  const commit = () => {
+    const n = Math.max(0, Math.min(100, Math.round(Number(text) || 0)));
+    setText(n ? String(n) : '');
+    if (n !== value) onSave(n);
+  };
+  return (
+    <label className="inline-flex items-center gap-2 text-xs text-muted">
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={100}
+        value={text}
+        placeholder="Off"
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        aria-label="Applications per week"
+        className={`${INPUT_CLS} w-20 text-right tabular-nums`}
+      />
+      a week
+    </label>
   );
 }
 
@@ -282,6 +318,15 @@ function About() {
   );
 }
 
+const SETTINGS_SECTIONS = [
+  ['appearance', 'Appearance'],
+  ['feed', 'Job feed'],
+  ['notifications', 'Notifications'],
+  ['extension', 'Extension'],
+  ['account', 'Account & data'],
+] as const;
+const SETTINGS_IDS = SETTINGS_SECTIONS.map(([id]) => id);
+
 export default function SettingsPage() {
   useDocumentTitle('Settings');
   const me = useMe();
@@ -291,6 +336,7 @@ export default function SettingsPage() {
   const hide = useHideCompany();
   const industryLabel = useIndustryLabel();
   const [draft, setDraft] = useState<Settings | null>(null);
+  const activeSection = useActiveSection(SETTINGS_IDS, draft != null);
 
   if (settings.data && !draft) {
     const { hidden_companies: _hidden, ...rest } = settings.data;
@@ -323,24 +369,20 @@ export default function SettingsPage() {
       </header>
 
       <nav aria-label="Settings sections" className="sticky top-14 z-20 -mx-1 flex flex-wrap gap-1.5 bg-bg/90 px-1 py-2 backdrop-blur">
-        {(
-          [
-            ['appearance', 'Appearance'],
-            ['feed', 'Job feed'],
-            ['notifications', 'Notifications'],
-            ['extension', 'Extension'],
-            ['account', 'Account & data'],
-          ] as const
-        ).map(([id, label]) => (
+        {SETTINGS_SECTIONS.map(([id, label]) => (
           <a
             key={id}
             href={`#${id}`}
+            aria-current={activeSection === id ? 'location' : undefined}
             onClick={(e) => {
               e.preventDefault();
               document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
               window.history.replaceState(window.history.state, '', `#${id}`);
             }}
-            className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-accent/40 hover:text-text"
+            className={clsx(
+              'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+              activeSection === id ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border bg-surface text-muted hover:border-accent/40 hover:text-text',
+            )}
           >
             {label}
           </a>
@@ -363,6 +405,15 @@ export default function SettingsPage() {
               { value: 'score', label: 'Best fit' },
               { value: 'newest', label: 'Newest' },
             ]}
+          />
+        </Row>
+        <Row label="Weekly application goal" hint="Today and the weekly review show how far along the week is, and your streak of weeks that met it.">
+          <GoalInput
+            value={draft.weekly_application_goal ?? readWeeklyGoal()}
+            onSave={(n) => {
+              writeWeeklyGoal(n);
+              update({ ...draft, weekly_application_goal: n });
+            }}
           />
         </Row>
         <div>

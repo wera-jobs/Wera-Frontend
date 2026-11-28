@@ -1,11 +1,11 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import AuthPage from '../auth/AuthPage';
 import { AppShell } from '../layout/AppShell';
 import { Toasts } from '../lib/toast';
-import { me, stubApi } from '../test/fixtures';
+import { fixtures, me, stubApi } from '../test/fixtures';
 import { jsonResponse, renderApp, jsonBody } from '../test/render';
 import CommunityPage from './CommunityPage';
 import PostPage from './PostPage';
@@ -87,6 +87,34 @@ describe('AppShell', () => {
     const labels = screen.getAllByRole('link').map((a) => a.textContent?.trim()).filter(Boolean);
     expect(labels).not.toContain('Excluded');
     expect(labels).toEqual(expect.arrayContaining(['Today', 'Jobs', 'Community', 'Interview prep', 'Sponsorship']));
+  });
+
+  it("counts Today's new matches and active interviews in the sidebar from cached data, with no extra request", async () => {
+    const fetchMock = stubApi({ 'GET /api/stats': () => ({ ...fixtures.stats, by_status: { interviewing: 2 } }) });
+    const { client } = renderApp(
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route path="*" element={<p>page body</p>} />
+        </Route>
+      </Routes>,
+    );
+    await screen.findByText('page body');
+    const job = fixtures.jobs.jobs[0];
+    const recent = new Date().toISOString();
+    act(() => {
+      client.setQueryData(['today'], {
+        count: 3,
+        jobs: [
+          { ...job, id: 1, first_seen_at: recent, application_status: null },
+          { ...job, id: 2, first_seen_at: recent, application_status: null },
+          { ...job, id: 3, first_seen_at: recent, application_status: 'saved' }, // dealt with
+          { ...job, id: 4, first_seen_at: '2026-01-01T00:00:00Z', application_status: null }, // not new
+        ],
+      });
+    });
+    expect(await screen.findByText('2 new to review')).toBeInTheDocument();
+    expect(await screen.findByText('2 interviewing')).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([u]) => (u instanceof Request ? u.url : String(u as string)).includes('/api/today'))).toBe(false);
   });
 
   it('opens the command palette with Ctrl+K', async () => {

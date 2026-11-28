@@ -183,6 +183,13 @@ export function JobDrawer({
   const extension = useExtension();
   const [tab, setTab] = useState<DrawerTab>(initialTab);
   const [highlightSkills, setHighlightSkills] = useState(true);
+  // A missing skill clicked in the posting: bring its "add to profile" button into view, focused.
+  const showSkillToAdd = (skill: string) => {
+    const btn = [...document.querySelectorAll<HTMLButtonElement>('[data-missing-skill]')].find((b) => b.dataset.missingSkill === skill);
+    if (!btn) return;
+    btn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    btn.focus({ preventScroll: true });
+  };
   const [tabJob, setTabJob] = useState(jobId);
   const [askedTab, setAskedTab] = useState(initialTab);
   // A tab picked from outside the tab strip (the footer, a link to a tab):
@@ -390,6 +397,7 @@ export function JobDrawer({
                       matched={job.skills_matched ?? []}
                       missing={job.skills_missing ?? []}
                       highlight={highlightSkills}
+                      onMissing={showSkillToAdd}
                     />
                   </>
                 ) : (

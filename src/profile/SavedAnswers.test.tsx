@@ -100,4 +100,41 @@ describe('SavedAnswers', () => {
     await userEvent.click(screen.getByRole('button', { name: /Show 2 more wordings/ }));
     expect(screen.getByText('Do you need sponsorship now or in the future?')).toBeInTheDocument();
   });
+
+  it("forgets a whole topic, or every one form's own answer, after a confirm", async () => {
+    let list = [
+      answer(1, 'Will you require visa sponsorship?', 'Yes'),
+      answer(2, 'Are you authorized to work in the US?', 'Yes'),
+      answer(3, 'How did you hear about us?', 'LinkedIn'),
+      answer(4, 'What is your favorite Linux init system?', 'systemd'),
+      answer(5, 'Describe a project you led at Acme', 'The robots.'),
+    ];
+    const deleted: number[] = [];
+    const del = (id: number) => () => {
+      deleted.push(id);
+      list = list.filter((a) => a.id !== id);
+      return new Response(null, { status: 204 });
+    };
+    stubApi({
+      'GET /api/applicant/answers': () => ({ answers: list }),
+      ...Object.fromEntries([1, 2, 3, 4, 5].map((id) => [`DELETE /api/applicant/answers/${id}`, del(id)])),
+    });
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValue(true);
+    renderApp(<><SavedAnswers /><Toasts /></>);
+    await screen.findByRole('region', { name: 'Asked on most forms' });
+
+    // Declining the confirm forgets nothing.
+    await userEvent.click(screen.getByRole('button', { name: 'Forget these' }));
+    expect(deleted).toEqual([]);
+    await userEvent.click(screen.getByRole('button', { name: 'Forget these' }));
+    expect(await screen.findByText('Forgot 2 answers.')).toBeInTheDocument();
+    expect(deleted.sort()).toEqual([4, 5]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Forget this topic (2)' }));
+    await waitFor(() => expect(deleted.sort()).toEqual([1, 2, 4, 5]));
+    expect(confirm).toHaveBeenLastCalledWith(expect.stringMatching(/^Forget all 2 answers about work authorization/));
+    // The other topic stays.
+    expect(await screen.findByText('LinkedIn')).toBeInTheDocument();
+    confirm.mockRestore();
+  });
 });
