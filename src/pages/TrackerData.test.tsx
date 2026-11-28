@@ -160,4 +160,31 @@ describe('tracker data', () => {
     expect(within(dialog).getByRole('tab', { name: 'Interview prep' })).toHaveAttribute('aria-selected', 'true');
     expect(await within(dialog).findByRole('button', { name: /Prepare for this interview/ })).toBeInTheDocument();
   });
+
+  it('queues the saved jobs in the extension, which fills them for the person to submit', async () => {
+    document.documentElement.dataset.weraExtension = '0.22.0';
+    const posted: unknown[] = [];
+    const onMessage = (e: MessageEvent) => posted.push(e.data);
+    window.addEventListener('message', onMessage);
+    const saved = [
+      { ...base, id: 801, title: 'Data Analyst', company: 'Acme', url: 'https://jobs.example/801', application_status: 'saved' as const },
+      { ...base, id: 802, title: 'Analytics Engineer', company: 'Globex', url: 'https://jobs.example/802', application_status: 'saved' as const },
+    ];
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        const jobs = url.searchParams.get('status') === 'saved' ? saved : [];
+        return { ...fixtures.jobs, total: jobs.length, jobs };
+      },
+    });
+    renderApp(<><TrackerPage /><Toasts /></>);
+    const column = await screen.findByRole('region', { name: 'Saved' });
+    await userEvent.click(await within(column).findByRole('button', { name: 'Queue 2' }));
+    await waitFor(() => expect(posted).toContainEqual({ source: 'wera-dashboard', type: 'queue', jobs: [
+      { jobId: 801, url: 'https://jobs.example/801', title: 'Data Analyst', company: 'Acme' },
+      { jobId: 802, url: 'https://jobs.example/802', title: 'Analytics Engineer', company: 'Globex' },
+    ] }));
+    expect(within(column).getByRole('button', { name: 'Queued' })).toBeDisabled();
+    window.removeEventListener('message', onMessage);
+    delete document.documentElement.dataset.weraExtension;
+  });
 });

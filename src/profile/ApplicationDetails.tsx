@@ -78,7 +78,8 @@ const GROUPS: { title: string; hint?: string; fields: { key: Key; label: string;
       { key: 'sexual_orientation', label: 'Sexual orientation', options: [NOT_SET, ...opts('Heterosexual or straight', 'Gay or lesbian', 'Bisexual', 'Asexual', 'Pansexual', 'Queer'), DECLINE] },
       { key: 'hispanic', label: 'Hispanic or Latino', options: [NOT_SET, { value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }, DECLINE] },
       { key: 'race', label: 'Race', options: [NOT_SET, ...['American Indian or Alaska Native', 'Asian', 'Black or African American', 'Native Hawaiian or Other Pacific Islander', 'White', 'Two or more races'].map((r) => ({ value: r, label: r })), DECLINE] },
-      { key: 'veteran', label: 'Veteran status', options: [NOT_SET, { value: 'I am not a protected veteran', label: 'Not a protected veteran' }, { value: 'I am a protected veteran', label: 'Protected veteran' }, DECLINE] },
+      // Three states: forms ask "not a veteran" apart from "a veteran, but not a protected one".
+      { key: 'veteran', label: 'Veteran status', options: [NOT_SET, { value: 'I am not a veteran', label: 'Not a veteran' }, { value: 'I am a veteran, but not a protected veteran', label: 'Veteran, not protected' }, { value: 'I am a protected veteran', label: 'Protected veteran' }, DECLINE] },
       { key: 'disability', label: 'Disability', options: [NOT_SET, { value: 'No, I do not have a disability', label: 'No' }, { value: 'Yes, I have a disability', label: 'Yes' }, DECLINE] },
     ],
   },

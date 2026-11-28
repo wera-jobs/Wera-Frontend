@@ -19,6 +19,7 @@ import { api, errorMessage } from '../api/client';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { toast } from '../lib/toast';
+import { queueJobs, useExtension } from '../lib/extension';
 import { trackerCSV } from '../lib/csv';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
@@ -342,6 +343,28 @@ function StageTab({ status, query, selected, onSelect }: { status: AppStatus; qu
   );
 }
 
+/** Saved jobs into the extension's application queue: it fills them in the background; the person submits each. */
+function QueueButton({ jobs }: { jobs: Job[] }) {
+  const [sent, setSent] = useState(false);
+  const open = jobs.filter((j) => /^https?:\/\//.test(j.url)).slice(0, 10);
+  if (!open.length) return null;
+  return (
+    <button
+      type="button"
+      disabled={sent}
+      title="The Wera extension fills each application in a background tab. You review each one and press Submit yourself."
+      onClick={() => {
+        queueJobs(open);
+        setSent(true);
+        toast.success(`Queued ${open.length} in the extension. Its panel shows each one as it's ready.`);
+      }}
+      className="rounded-md border border-border px-1.5 py-0.5 text-[11px] font-medium text-muted hover:text-text disabled:opacity-60"
+    >
+      {sent ? 'Queued' : `Queue ${open.length}`}
+    </button>
+  );
+}
+
 function Column({
   status,
   query,
@@ -359,6 +382,7 @@ function Column({
   const { data, isLoading, isError, error, refetch } = useJobs({ status, limit: 100, sort: 'newest' });
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const jobs = (data?.jobs ?? []).filter((j) => matches(j, query));
+  const extension = useExtension();
   return (
     <section
       ref={setNodeRef}
@@ -374,7 +398,10 @@ function Column({
           <span aria-hidden className={clsx('size-2 rounded-full', COLUMN_DOT[status])} />
           {COLUMN_LABEL[status]}
         </h3>
-        <span className="font-mono text-xs text-faint">{jobs.length}</span>
+        <span className="flex items-center gap-2">
+          {status === 'saved' && extension && jobs.length > 0 && <QueueButton jobs={jobs} />}
+          <span className="font-mono text-xs text-faint">{jobs.length}</span>
+        </span>
       </header>
       {/* On a board each column scrolls on its own, so a long list does not make the page long; a phone's one stage runs down the page. */}
       <div className="-mx-1 flex flex-col gap-2 px-1 pb-1 sm:max-h-[60svh] sm:overflow-y-auto sm:overscroll-contain xl:max-h-none xl:min-h-0 xl:flex-1">
