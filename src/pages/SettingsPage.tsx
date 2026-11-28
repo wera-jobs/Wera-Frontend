@@ -18,6 +18,7 @@ import { ThemeChoice } from '../lib/theme';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useActiveSection } from '../lib/useActiveSection';
+import { readWeeklyGoal, writeWeeklyGoal } from '../lib/goals';
 
 function Section({ id, icon: Icon, title, hint, children, tone }: {
   id?: string; icon: typeof Bell; title: string; hint?: string; children: ReactNode; tone?: 'danger';
@@ -47,6 +48,40 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
       </div>
       {children}
     </div>
+  );
+}
+
+/** The weekly application goal: typed, saved on Enter or leaving the box; 0 or empty turns it off. */
+function GoalInput({ value, onSave }: { value: number; onSave: (n: number) => void }) {
+  const [text, setText] = useState(value ? String(value) : '');
+  const [synced, setSynced] = useState(value);
+  // A change from elsewhere (Today's goal editor) shows here too.
+  if (value !== synced) {
+    setSynced(value);
+    setText(value ? String(value) : '');
+  }
+  const commit = () => {
+    const n = Math.max(0, Math.min(100, Math.round(Number(text) || 0)));
+    setText(n ? String(n) : '');
+    if (n !== value) onSave(n);
+  };
+  return (
+    <label className="inline-flex items-center gap-2 text-xs text-muted">
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={100}
+        value={text}
+        placeholder="Off"
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === 'Enter' && commit()}
+        aria-label="Applications per week"
+        className={`${INPUT_CLS} w-20 text-right tabular-nums`}
+      />
+      a week
+    </label>
   );
 }
 
@@ -370,6 +405,15 @@ export default function SettingsPage() {
               { value: 'score', label: 'Best fit' },
               { value: 'newest', label: 'Newest' },
             ]}
+          />
+        </Row>
+        <Row label="Weekly application goal" hint="Today and the weekly review show how far along the week is, and your streak of weeks that met it.">
+          <GoalInput
+            value={draft.weekly_application_goal ?? readWeeklyGoal()}
+            onSave={(n) => {
+              writeWeeklyGoal(n);
+              update({ ...draft, weekly_application_goal: n });
+            }}
           />
         </Row>
         <div>
