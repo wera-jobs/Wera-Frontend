@@ -6,7 +6,6 @@
 ### Features
 
 * a practice application at /practice ([426d89e](https://github.com/wera-jobs/Wera-Frontend/commit/426d89eee63627c693a9fc3033a2a5d485908fc2))
-* practice application, three veteran states, queue saved jobs in the extension ([a31fb70](https://github.com/wera-jobs/Wera-Frontend/commit/a31fb708bd7241f12722480c712b18471683e19e))
 * **tracker:** queue saved jobs in the extension ([9cd5c68](https://github.com/wera-jobs/Wera-Frontend/commit/9cd5c68e4dc644f21b71ce43cd0ad00229a4a0f6))
 
 
