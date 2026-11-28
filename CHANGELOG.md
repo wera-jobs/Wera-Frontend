@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.37.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.36.0...wera-frontend-v0.37.0) (2026-11-28)
+
+
+### Features
+
+* **community:** add example blog posts ([#350](https://github.com/wera-jobs/Wera-Frontend/issues/350)) ([acb4d08](https://github.com/wera-jobs/Wera-Frontend/commit/acb4d089338899b9df63f609036115da76e5e7a9))
+* **jobs:** clicking a missing skill in the posting brings up its add-to-profile button ([0576250](https://github.com/wera-jobs/Wera-Frontend/commit/057625031311d61bcb466a272c919841c63427e0))
+* **jobs:** keep the filter dropdowns behind More filters with a count, sort in the first row ([5135bae](https://github.com/wera-jobs/Wera-Frontend/commit/5135bae552a4d865a083ff7f0190db45c1a528b5))
+* **jobs:** show other cities (also_in) and ruled-out reason on cards ([d127901](https://github.com/wera-jobs/Wera-Frontend/commit/d127901ae0f47dfca56b8cd5b1fce80d7e2d72bc))
+* **nav:** show Today's new matches to review as a sidebar count ([3e2f610](https://github.com/wera-jobs/Wera-Frontend/commit/3e2f61028bb9dc134c67ebedd088dd8663f1ea75))
+* **profile:** forget a whole topic or every one-off saved answer in one step ([28c115d](https://github.com/wera-jobs/Wera-Frontend/commit/28c115d02b4b706b79a7416b329090d686e7b09e))
+* **profile:** keep the section links in view and light the section being read, on Settings too ([70650da](https://github.com/wera-jobs/Wera-Frontend/commit/70650da9b462417bf459d98d48533da99d0291cd))
+* **settings:** set the weekly application goal from Settings ([207fa65](https://github.com/wera-jobs/Wera-Frontend/commit/207fa653414b930cf0870707ad4a81a785149f6e))
+* **tracker:** export dates and next steps to CSV, and sort the list by next step and pay ([70c80b6](https://github.com/wera-jobs/Wera-Frontend/commit/70c80b6f0a4cd61c91c3dde1f104882e3d81e0f0))
+* **tracker:** show reply rates by fit score in Progress ([50a51e4](https://github.com/wera-jobs/Wera-Frontend/commit/50a51e465670568c17599e65a398d1023845a703))
+* **ui:** editorial typography, surface depth, and scannable job cards ([#356](https://github.com/wera-jobs/Wera-Frontend/issues/356)) ([eee8adf](https://github.com/wera-jobs/Wera-Frontend/commit/eee8adff1e791d75359dc15a29f23273ea453d01))
+
+
+### Bug Fixes
+
+* **jobs:** open More filters on its own row so the search keeps its width ([426f95f](https://github.com/wera-jobs/Wera-Frontend/commit/426f95fffd07eac8d8edbdad8e4b9fc159845c48))
+* **profile:** stick the section links to the page, not their own wrapper, so they stay in view ([8ae5510](https://github.com/wera-jobs/Wera-Frontend/commit/8ae55109ded301bd5cfe6ca37d2df360f0c69f1f))
+* **tracker:** count the no-reply badge from the application date, not the posting's find date ([a8e999b](https://github.com/wera-jobs/Wera-Frontend/commit/a8e999b24e588bc1bd68f9b8e3732a51d32b0503))
+* **tracker:** scroll the view switcher inside its box on a phone instead of past the screen edge ([5583a21](https://github.com/wera-jobs/Wera-Frontend/commit/5583a218e7d214c20757a6edcc379ffb9b76ba94))
+* **ui:** restore Geist sans-serif headings in signed-in app ([#358](https://github.com/wera-jobs/Wera-Frontend/issues/358)) ([c003857](https://github.com/wera-jobs/Wera-Frontend/commit/c0038571f5f9a75c6d51cc288fd5edfca3634f0e))
+
 ## [0.36.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.35.0...wera-frontend-v0.36.0) (2026-11-25)
 
 
