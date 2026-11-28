@@ -6,7 +6,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppShell } from './layout/AppShell';
 import {
-  CommunityPage, IndustriesPage, IndustryPage, InterviewPage, NewPostPage, PostPage, ProfilePage,
+  AskPage, CommunityPage, IndustriesPage, IndustryPage, InterviewPage, NewPostPage, PostPage, ProfilePage,
   CompanyPage, ConnectExtensionPage, ReviewPage, SettingsPage, SponsorshipPage, TrackerPage, WelcomePage,
 } from './pages/lazy';
 import { RequireAuth } from './auth/RequireAuth';
@@ -76,6 +76,7 @@ createRoot(document.getElementById('root')!).render(
                     <Route path="companies/:id" element={<CompanyPage />} />
                     <Route path="review" element={<ReviewPage />} />
                     <Route path="interview" element={<InterviewPage />} />
+                    <Route path="ask" element={<AskPage />} />
                     <Route path="community" element={<CommunityPage />} />
                     <Route path="community/new" element={<NewPostPage />} />
                     <Route path="community/:id" element={<PostPage />} />
