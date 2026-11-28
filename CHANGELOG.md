@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.38.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.37.0...wera-frontend-v0.38.0) (2026-11-28)
+
+
+### Features
+
+* Ask Wera chat and email reply suggestions ([7cb3a65](https://github.com/wera-jobs/Wera-Frontend/commit/7cb3a6519e45bf75bf2b068d19db19cdc92a024a))
+* Ask Wera, a chat grounded on the user's data ([1ef8640](https://github.com/wera-jobs/Wera-Frontend/commit/1ef864010226004f5318e88c83bf6cb74f210f58)), closes [#190](https://github.com/wera-jobs/Wera-Frontend/issues/190)
+* tracker suggestions from forwarded recruiter replies ([6f0f809](https://github.com/wera-jobs/Wera-Frontend/commit/6f0f80918b2a10dec21a9e2aebd144b571b76f85)), closes [#192](https://github.com/wera-jobs/Wera-Frontend/issues/192)
+
 ## [0.37.0](https://github.com/wera-jobs/Wera-Frontend/compare/wera-frontend-v0.36.0...wera-frontend-v0.37.0) (2026-11-28)
 
 
