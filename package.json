@@ -1,6 +1,7 @@
 {
   "name": "wera-frontend",
   "private": true,
+  "license": "UNLICENSED",
   "version": "0.39.0",
   "type": "module",
   "scripts": {
