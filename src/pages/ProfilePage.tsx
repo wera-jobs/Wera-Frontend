@@ -230,9 +230,9 @@ const SECTION_IDS = SECTIONS.map(([id]) => id);
 function SectionLinks() {
   const active = useActiveSection(SECTION_IDS);
   return (
-    <div className="-mt-2 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-xs">
-      {/* Sticky under the app header, with the section in view lit. */}
-      <nav aria-label="On this page" className="sticky top-14 z-20 -mx-1 flex flex-wrap gap-1 bg-bg/90 px-1 py-1.5 backdrop-blur">
+    <>
+      {/* A child of the page itself, so it stays under the app header the whole way down, with the section in view lit. */}
+      <nav aria-label="On this page" className="sticky top-14 z-20 -mx-1 -mt-2 flex flex-wrap gap-1 bg-bg/90 px-1 py-1.5 text-xs backdrop-blur">
         {SECTIONS.map(([id, label]) => (
           <a key={id} href={`#${id}`} aria-current={active === id ? 'location' : undefined}
             onClick={(e) => {
@@ -248,8 +248,8 @@ function SectionLinks() {
           </a>
         ))}
       </nav>
-      <p className="text-muted sm:ml-auto">What you want and the profile text decide your matches. Saving them rematches your jobs.</p>
-    </div>
+      <p className="-mt-3 text-xs text-muted">What you want and the profile text decide your matches. Saving them rematches your jobs.</p>
+    </>
   );
 }
 
