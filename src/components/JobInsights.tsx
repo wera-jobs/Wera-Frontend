@@ -254,6 +254,8 @@ export function Insights({ job, scoring }: { job: JobDetail; scoring: boolean })
                       type="button"
                       disabled={addSkill.isPending}
                       title={`I have ${s}: add to profile & re-score`}
+                      // The posting's highlight of this skill brings the reader here.
+                      data-missing-skill={s.trim().toLowerCase()}
                       onClick={() =>
                         addSkill.mutate(
                           { skill: s, job_id: job.id },
