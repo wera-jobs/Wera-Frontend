@@ -73,6 +73,8 @@ export interface AppAnalytics {
   sources: { source: string; applied: number; responded: number; interview: number }[];
   /** The same by resume sent: tailored, base, upload or unknown (older APIs leave it out). */
   resumes?: { source: string; applied: number; responded: number; interview: number }[];
+  /** The same by the job's fit score band ('80+', '60-79', 'under 60', 'unscored'), best first (older APIs leave it out). */
+  fits?: { source: string; applied: number; responded: number; interview: number }[];
   days_to_interview: number | null;
   days_to_offer: number | null;
 }

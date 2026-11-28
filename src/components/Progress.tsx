@@ -1,5 +1,5 @@
 // The tracker's Progress view: how applications move from sent to
-// interview to offer, week by week and by applicant system.
+// interview to offer, week by week, by fit score and by applicant system.
 import { useState } from 'react';
 import { useAppAnalytics } from '../api/hooks';
 import type { AppAnalytics } from '../api/types';
@@ -96,12 +96,15 @@ export function Progress() {
         </div>
       </section>
 
+      {/* Whether aiming at better fits pays off: the reply rate by the job's fit score. */}
+      <Breakdown id="fits" title="By fit score" first="Fit" rows={data.fits ?? []} name={(k) => FIT[k] ?? k} />
       <Breakdown id="sources" title="By applicant system" first="System" rows={sources} name={(k) => SOURCE[k] ?? k} />
       <Breakdown id="resumes" title="By resume sent" first="Resume" rows={data.resumes ?? []} name={(k) => RESUME[k] ?? k} />
     </div>
   );
 }
 
+const FIT: Record<string, string> = { '80+': 'Strong (80+)', '60-79': 'Fair (60-79)', 'under 60': 'Weak (under 60)', unscored: 'Not scored' };
 const RESUME: Record<string, string> = { tailored: 'Tailored for the job', base: 'Main resume', upload: 'Uploaded file', unknown: 'Not recorded' };
 
 function Breakdown({ id, title, first, rows, name }: { id: string; title: string; first: string; rows: AppAnalytics['sources']; name: (k: string) => string }) {
