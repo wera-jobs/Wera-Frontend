@@ -17,6 +17,7 @@ import { Switch } from '../components/Switch';
 import { ThemeChoice } from '../lib/theme';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
+import { useActiveSection } from '../lib/useActiveSection';
 
 function Section({ id, icon: Icon, title, hint, children, tone }: {
   id?: string; icon: typeof Bell; title: string; hint?: string; children: ReactNode; tone?: 'danger';
@@ -282,6 +283,15 @@ function About() {
   );
 }
 
+const SETTINGS_SECTIONS = [
+  ['appearance', 'Appearance'],
+  ['feed', 'Job feed'],
+  ['notifications', 'Notifications'],
+  ['extension', 'Extension'],
+  ['account', 'Account & data'],
+] as const;
+const SETTINGS_IDS = SETTINGS_SECTIONS.map(([id]) => id);
+
 export default function SettingsPage() {
   useDocumentTitle('Settings');
   const me = useMe();
@@ -291,6 +301,7 @@ export default function SettingsPage() {
   const hide = useHideCompany();
   const industryLabel = useIndustryLabel();
   const [draft, setDraft] = useState<Settings | null>(null);
+  const activeSection = useActiveSection(SETTINGS_IDS, draft != null);
 
   if (settings.data && !draft) {
     const { hidden_companies: _hidden, ...rest } = settings.data;
@@ -323,24 +334,20 @@ export default function SettingsPage() {
       </header>
 
       <nav aria-label="Settings sections" className="sticky top-14 z-20 -mx-1 flex flex-wrap gap-1.5 bg-bg/90 px-1 py-2 backdrop-blur">
-        {(
-          [
-            ['appearance', 'Appearance'],
-            ['feed', 'Job feed'],
-            ['notifications', 'Notifications'],
-            ['extension', 'Extension'],
-            ['account', 'Account & data'],
-          ] as const
-        ).map(([id, label]) => (
+        {SETTINGS_SECTIONS.map(([id, label]) => (
           <a
             key={id}
             href={`#${id}`}
+            aria-current={activeSection === id ? 'location' : undefined}
             onClick={(e) => {
               e.preventDefault();
               document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
               window.history.replaceState(window.history.state, '', `#${id}`);
             }}
-            className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-muted transition-colors hover:border-accent/40 hover:text-text"
+            className={clsx(
+              'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+              activeSection === id ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border bg-surface text-muted hover:border-accent/40 hover:text-text',
+            )}
           >
             {label}
           </a>

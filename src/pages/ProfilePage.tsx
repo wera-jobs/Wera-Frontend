@@ -10,6 +10,7 @@ import type { Answers, Preferences } from '../api/types';
 import { Avatar } from '../components/Avatar';
 import { ErrorState, Skeleton } from '../components/States';
 import { money, relTime } from '../lib/format';
+import { useActiveSection } from '../lib/useActiveSection';
 import { toast } from '../lib/toast';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import { useUnsavedGuard } from '../lib/useUnsavedGuard';
@@ -224,18 +225,25 @@ const SECTIONS = [
 ] as const;
 
 /** The page is long: a line of links to its sections, and what the first two do. */
+const SECTION_IDS = SECTIONS.map(([id]) => id);
+
 function SectionLinks() {
+  const active = useActiveSection(SECTION_IDS);
   return (
     <div className="-mt-2 flex flex-wrap items-center gap-x-1 gap-y-1.5 text-xs">
-      <nav aria-label="On this page" className="flex flex-wrap gap-1">
+      {/* Sticky under the app header, with the section in view lit. */}
+      <nav aria-label="On this page" className="sticky top-14 z-20 -mx-1 flex flex-wrap gap-1 bg-bg/90 px-1 py-1.5 backdrop-blur">
         {SECTIONS.map(([id, label]) => (
-          <a key={id} href={`#${id}`}
+          <a key={id} href={`#${id}`} aria-current={active === id ? 'location' : undefined}
             onClick={(e) => {
               e.preventDefault();
               document.getElementById(id)?.scrollIntoView({ block: 'start', behavior: 'smooth' });
               window.history.replaceState(window.history.state, '', `#${id}`);
             }}
-            className="rounded-full border border-border bg-surface px-2.5 py-1 font-medium text-muted hover:border-accent/40 hover:text-text">
+            className={clsx(
+              'rounded-full border px-2.5 py-1 font-medium transition-colors',
+              active === id ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border bg-surface text-muted hover:border-accent/40 hover:text-text',
+            )}>
             {label}
           </a>
         ))}
