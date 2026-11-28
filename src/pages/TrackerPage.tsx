@@ -18,6 +18,7 @@ import { api, errorMessage } from '../api/client';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { toast } from '../lib/toast';
+import { trackerCSV } from '../lib/csv';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
 import { Archive, Clock, DollarSign, Download, ExternalLink, EyeOff, KanbanSquare, List, Plus, Search, TrendingUp, Users } from 'lucide-react';
@@ -46,27 +47,15 @@ const COLUMN_DOT: Record<AppStatus, string> = {
 
 const STALE_DAYS = 14;
 
-function csvCell(v: string | number | null | undefined): string {
-  const s = String(v ?? '');
-  return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
-}
-
-async function exportTrackerCsv(statuses: AppStatus[]) {
+/** Downloads every tracked application in the shown stages that matches the search, as CSV. */
+async function exportTrackerCsv(statuses: AppStatus[], keep: (job: Job) => boolean) {
   try {
     const rows: Job[] = [];
     for (const status of statuses) {
       const { jobs } = await api<JobList>(`/api/jobs?status=${status}&limit=200&offset=0`);
-      rows.push(...jobs);
+      rows.push(...jobs.filter(keep));
     }
-    const csv = [
-      ['company', 'title', 'status', 'fit_score', 'pay', 'location', 'next_step', 'url', 'notes'].join(','),
-      ...rows.map((j) =>
-        [j.company, j.title, j.application_status, j.fit_score, payText(j, true), j.location_summary ?? j.location_raw, j.next_step, j.url, j.application_notes]
-          .map(csvCell)
-          .join(','),
-      ),
-    ].join('\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const url = URL.createObjectURL(new Blob([trackerCSV(rows)], { type: 'text/csv' }));
     const a = Object.assign(document.createElement('a'), { href: url, download: 'wera-tracker.csv' });
     a.click();
     URL.revokeObjectURL(url);
@@ -519,7 +508,7 @@ export default function TrackerPage() {
           {!empty && (
             <button
               type="button"
-              onClick={() => void exportTrackerCsv(columns)}
+              onClick={() => void exportTrackerCsv(columns, (j) => matches(j, query))}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent/40 hover:text-text"
             >
               <Download className="size-3.5" /> Export CSV

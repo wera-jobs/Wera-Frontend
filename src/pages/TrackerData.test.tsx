@@ -47,6 +47,14 @@ describe('tracker data', () => {
     expect(screen.getByRole('region', { name: 'Applied' })).toHaveClass('hidden');
     expect(screen.getByText('Tailored for this job + letter')).toBeInTheDocument();
 
+    // Sorting by next step: dated steps soonest first, the undated one last, either way round.
+    const table = screen.getByRole('table');
+    const order = () => within(table).getAllByRole('row').slice(1).map((r) => within(r).getAllByRole('button')[0].textContent);
+    await userEvent.click(within(table).getByRole('button', { name: 'Next step' }));
+    expect(order()).toEqual(['Sooner RoleGGlobex', 'Later RoleAAcme', 'No Step RoleIInitech']);
+    await userEvent.click(within(table).getByRole('button', { name: 'Next step' }));
+    expect(order()).toEqual(['Later RoleAAcme', 'Sooner RoleGGlobex', 'No Step RoleIInitech']);
+
     await userEvent.click(within(views).getByRole('button', { name: 'Archived' }));
     expect(await screen.findByText('Old Role')).toBeInTheDocument();
     expect(screen.queryByText('Sooner Role', { selector: 'span' })).toBeNull();
@@ -66,13 +74,13 @@ describe('tracker data', () => {
     });
     renderApp(<TrackerPage />);
     const applied = await screen.findByRole('region', { name: 'Applied' });
-    const card = async (title: string) => within(applied).getByRole('group', { name: new RegExp(`^${title}`) });
+    const card = (title: string) => within(applied).getByRole('group', { name: new RegExp(`^${title}`) });
     await within(applied).findByText('Waiting Role');
-    expect(within(await card('Waiting Role')).getByText(/20d no reply/)).toBeInTheDocument();
-    expect(within(await card('Waiting Role')).getByText('applied 20d ago')).toBeInTheDocument();
+    expect(within(card('Waiting Role')).getByText(/20d no reply/)).toBeInTheDocument();
+    expect(within(card('Waiting Role')).getByText('applied 20d ago')).toBeInTheDocument();
     // Found long ago but applied yesterday; and one with a next step planned.
-    expect(within(await card('Fresh Role')).queryByText(/no reply/)).toBeNull();
-    expect(within(await card('Planned Role')).queryByText(/no reply/)).toBeNull();
+    expect(within(card('Fresh Role')).queryByText(/no reply/)).toBeNull();
+    expect(within(card('Planned Role')).queryByText(/no reply/)).toBeNull();
   });
 
   it('saves the next step, contact and an interview from the job view, and archives', async () => {
