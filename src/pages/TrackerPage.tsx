@@ -90,7 +90,8 @@ function KanbanCard({
 }) {
   const verdict = verdictOf(job.fit_score);
   const [now] = useState(() => Date.now());
-  const daysOld = Math.floor((now - new Date(job.first_seen_at).getTime()) / 86_400_000);
+  // Days since applying, not since the posting was found: a month-old find applied to yesterday is not stale.
+  const daysOld = job.applied_at ? Math.floor((now - new Date(job.applied_at).getTime()) / 86_400_000) : 0;
   const stale = job.application_status === 'applied' && !job.next_step_at && !job.closed_at && daysOld >= STALE_DAYS;
   return (
     <div
@@ -126,10 +127,9 @@ function KanbanCard({
         </div>
         <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
           <span>
-            {job.application_status === 'applied'
-              ? 'first seen '
-              : ''}
-            {relTime(job.first_seen_at)}
+            {job.applied_at && job.application_status !== 'saved'
+              ? `applied ${relTime(job.applied_at)}`
+              : `${job.application_status === 'applied' ? 'first seen ' : ''}${relTime(job.first_seen_at)}`}
           </span>
           {payText(job, true) && <span className="font-medium text-muted">{payText(job, true)}</span>}
           <AutofilledBadge at={job.autofilled_at} />

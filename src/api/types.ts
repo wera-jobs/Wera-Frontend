@@ -134,6 +134,8 @@ export interface Job {
   contact?: Contact | null;
   /** Set when the application is archived: off the board, history kept. */
   archived_at?: string | null;
+  /** When the user applied (their own date when they set one); absent on older servers. */
+  applied_at?: string | null;
   /** The resume (and letter) that went with the application: the user's word, else what the extension attached. */
   resume_used?: { kind: '' | 'tailored' | 'base' | 'upload'; name: string; letter: boolean; by: 'you' | 'extension' } | null;
   /**

@@ -52,6 +52,29 @@ describe('tracker data', () => {
     expect(screen.queryByText('Sooner Role', { selector: 'span' })).toBeNull();
   });
 
+  it('flags an application with no reply two weeks after applying, counted from the application, not the find', async () => {
+    const jobs = [
+      { ...base, id: 711, title: 'Waiting Role', company: 'Acme', application_status: 'applied' as const, first_seen_at: day(-40), applied_at: day(-20) },
+      { ...base, id: 712, title: 'Fresh Role', company: 'Globex', application_status: 'applied' as const, first_seen_at: day(-40), applied_at: day(-1) },
+      { ...base, id: 713, title: 'Planned Role', company: 'Initech', application_status: 'applied' as const, applied_at: day(-20), next_step_at: day(2) },
+    ];
+    stubApi({
+      'GET /api/jobs': (_init, url) => {
+        const list = jobs.filter((j) => j.application_status === url.searchParams.get('status'));
+        return { ...fixtures.jobs, total: list.length, jobs: list };
+      },
+    });
+    renderApp(<TrackerPage />);
+    const applied = await screen.findByRole('region', { name: 'Applied' });
+    const card = async (title: string) => within(applied).getByRole('group', { name: new RegExp(`^${title}`) });
+    await within(applied).findByText('Waiting Role');
+    expect(within(await card('Waiting Role')).getByText(/20d no reply/)).toBeInTheDocument();
+    expect(within(await card('Waiting Role')).getByText('applied 20d ago')).toBeInTheDocument();
+    // Found long ago but applied yesterday; and one with a next step planned.
+    expect(within(await card('Fresh Role')).queryByText(/no reply/)).toBeNull();
+    expect(within(await card('Planned Role')).queryByText(/no reply/)).toBeNull();
+  });
+
   it('saves the next step, contact and an interview from the job view, and archives', async () => {
     const job = { ...base, id: 801, title: 'Tracked Role', company: 'Acme', application_status: 'applied' as const };
     const patched: unknown[] = [];
