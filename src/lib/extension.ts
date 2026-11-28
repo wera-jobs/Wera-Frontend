@@ -41,6 +41,14 @@ export function handOffJob(jobId: number, url: string) {
   post({ type: 'open-job', jobId, url });
 }
 
+/**
+ * Lines jobs up in the extension's application queue: it fills each in a
+ * background tab, and the person reviews and submits each one.
+ */
+export function queueJobs(jobs: { id: number; url: string; title: string; company: string }[]) {
+  post({ type: 'queue', jobs: jobs.slice(0, 30).map((j) => ({ jobId: j.id, url: j.url, title: j.title, company: j.company })) });
+}
+
 /** Something the extension shows changed here. */
 export function announceChange(what = '') {
   post({ type: 'changed', what });
