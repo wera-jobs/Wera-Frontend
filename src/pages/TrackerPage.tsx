@@ -9,6 +9,7 @@ import type { AppStatus, Job } from '../api/types';
 import { AutofilledBadge, ClosedBadge } from '../components/JobBadges';
 import { AddJobDialog } from '../components/AddJobDialog';
 import { JobDrawer, type DrawerTab } from '../components/JobDrawer';
+import { EmailSuggestions } from '../components/EmailReplies';
 import { CompanyLogo } from '../components/CompanyLogo';
 import { StatusSelect } from '../components/StatusSelect';
 import { ArchivedList, NextStep, TrackerList, Upcoming } from '../components/TrackerExtras';
@@ -535,6 +536,7 @@ export default function TrackerPage() {
       )}
 
       {empty && (view === 'board' || view === 'list') && <TrackerEmpty />}
+      <EmailSuggestions onOpen={openJob} />
       {!empty && <Upcoming onOpen={openJob} />}
       {view === 'list' && !empty && <TrackerList statuses={columns} matches={(j) => matches(j, query)} onOpen={openJob} onStatus={onStatus} />}
       {view === 'contacts' && <ContactsView onOpenJob={openJob} />}
