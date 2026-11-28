@@ -5,7 +5,6 @@
 
 ### Features
 
-* Ask Wera chat and email reply suggestions ([7cb3a65](https://github.com/wera-jobs/Wera-Frontend/commit/7cb3a6519e45bf75bf2b068d19db19cdc92a024a))
 * Ask Wera, a chat grounded on the user's data ([1ef8640](https://github.com/wera-jobs/Wera-Frontend/commit/1ef864010226004f5318e88c83bf6cb74f210f58)), closes [#190](https://github.com/wera-jobs/Wera-Frontend/issues/190)
 * tracker suggestions from forwarded recruiter replies ([6f0f809](https://github.com/wera-jobs/Wera-Frontend/commit/6f0f80918b2a10dec21a9e2aebd144b571b76f85)), closes [#192](https://github.com/wera-jobs/Wera-Frontend/issues/192)
 
