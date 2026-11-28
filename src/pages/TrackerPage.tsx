@@ -469,7 +469,7 @@ export default function TrackerPage() {
               className="w-full rounded-lg border border-border bg-surface py-1.5 pr-2.5 pl-8 text-xs text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
             />
           </label>
-          <div role="group" aria-label="View" className="inline-flex rounded-lg border border-border bg-surface p-0.5">
+          <div role="group" aria-label="View" className="inline-flex max-w-full overflow-x-auto rounded-lg border border-border bg-surface p-0.5 whitespace-nowrap">
             {(
               [
                 ['board', 'Board', KanbanSquare],
