@@ -45,6 +45,33 @@ describe('SettingsPage', () => {
 });
 
 describe('SettingsPage: when things fail', () => {
+  it('sets the weekly application goal, and turns it off when cleared', async () => {
+    const saved: Record<string, unknown>[] = [];
+    mockApi({
+      'GET /api/auth/me': () => ({ user: { id: 1, email: 'a@example.com', name: 'A', is_admin: false, created_at: '' }, avatar_version: null }),
+      'GET /api/settings': () => ({ ...settings, weekly_application_goal: 0 }),
+      'GET /api/industries': () => ({ industries: [] }),
+      'PUT /api/settings': (init) => {
+        saved.push(jsonBody(init));
+        return { ...settings, ...saved.at(-1) };
+      },
+    });
+    renderApp(<SettingsPage />);
+    const goal = await screen.findByLabelText('Applications per week');
+    expect(goal).toHaveValue(null);
+    await userEvent.type(goal, '12{Enter}');
+    await waitFor(() => expect(saved.at(-1)).toMatchObject({ weekly_application_goal: 12 }));
+    // Over the cap saves the cap; clearing saves 0 (off).
+    await userEvent.clear(goal);
+    await userEvent.type(goal, '250');
+    await userEvent.tab();
+    await waitFor(() => expect(saved.at(-1)).toMatchObject({ weekly_application_goal: 100 }));
+    await userEvent.clear(goal);
+    await userEvent.tab();
+    await waitFor(() => expect(saved.at(-1)).toMatchObject({ weekly_application_goal: 0 }));
+    expect(saved).toHaveLength(3);
+  });
+
   it('sets the strong match alerts and their score', async () => {
     const saved: { notifications?: { strong_matches?: boolean; min_score?: number } }[] = [];
     mockApi({

@@ -40,11 +40,14 @@ export function Description({
   matched = [],
   missing = [],
   highlight = false,
+  onMissing,
 }: {
   text: string;
   matched?: string[];
   missing?: string[];
   highlight?: boolean;
+  /** Called with a missing skill (lower case) when its highlight is clicked; without it, missing skills are plain marks. */
+  onMissing?: (skill: string) => void;
 }) {
   const matcher = useMemo(
     () => (highlight ? buildMatcher(matched, missing) : null),
@@ -74,7 +77,7 @@ export function Description({
                 <li key={j} className="flex gap-2.5">
                   <span className="mt-[9px] size-1 shrink-0 rounded-full bg-faint" />
                   <span>
-                    <Linkify text={l} matcher={matcher} />
+                    <Linkify text={l} matcher={matcher} onMissing={onMissing} />
                   </span>
                 </li>
               ))}
@@ -83,7 +86,7 @@ export function Description({
         }
         return (
           <p key={i}>
-            <Linkify text={lines[0]} matcher={matcher} />
+            <Linkify text={lines[0]} matcher={matcher} onMissing={onMissing} />
           </p>
         );
       })}
@@ -97,7 +100,9 @@ function isHeading(line: string, next: string | undefined): boolean {
 
 const URL_RE = /(https?:\/\/[^\s)]+[^\s).,;:!?'"])/g;
 
-function HighlightSkills({ text, matcher }: { text: string; matcher: SkillMatcher | null }) {
+type OnMissing = ((skill: string) => void) | undefined;
+
+function HighlightSkills({ text, matcher, onMissing }: { text: string; matcher: SkillMatcher | null; onMissing?: OnMissing }) {
   if (!matcher) return <>{text}</>;
   const parts = text.split(matcher.re);
   if (parts.length === 1) return <>{text}</>;
@@ -107,6 +112,21 @@ function HighlightSkills({ text, matcher }: { text: string; matcher: SkillMatche
         if (i % 2 === 0) return part;
         const k = matcher.kind.get(part.toLowerCase());
         if (!k) return part;
+        // A missing skill leads to where it can be added, when the page offers that.
+        if (k === 'missing' && onMissing) {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onMissing(part.toLowerCase())}
+              title="Missing from your profile: click if you have it"
+              aria-label={`${part}, missing from your profile. Add it if you have it`}
+              className="cursor-pointer rounded bg-warn/15 px-1 py-px font-medium text-warn underline decoration-warn/40 decoration-dotted underline-offset-2 hover:bg-warn/25"
+            >
+              {part}
+            </button>
+          );
+        }
         return (
           <mark
             key={i}
@@ -126,7 +146,7 @@ function HighlightSkills({ text, matcher }: { text: string; matcher: SkillMatche
 }
 
 /** Turns bare http(s) URLs into links that open in a new tab, and highlights skills in non-URL text. */
-function Linkify({ text, matcher }: { text: string; matcher: SkillMatcher | null }) {
+function Linkify({ text, matcher, onMissing }: { text: string; matcher: SkillMatcher | null; onMissing?: OnMissing }) {
   const parts = text.split(URL_RE);
   return (
     <>
@@ -142,7 +162,7 @@ function Linkify({ text, matcher }: { text: string; matcher: SkillMatcher | null
             {p.replace(/^https?:\/\/(www\.)?/, '')}
           </a>
         ) : (
-          <HighlightSkills key={i} text={p} matcher={matcher} />
+          <HighlightSkills key={i} text={p} matcher={matcher} onMissing={onMissing} />
         ),
       )}
     </>

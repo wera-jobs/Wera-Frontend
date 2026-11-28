@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Layers, LoaderCircle, Pencil, Search, Trash2 } from 'lucide-react';
 import { errorMessage } from '../api/client';
-import { useForgetAnswer, useSavedAnswers, useUpdateAnswer, type SavedAnswer } from '../api/extension';
+import { useForgetAnswer, useForgetAnswers, useSavedAnswers, useUpdateAnswer, type SavedAnswer } from '../api/extension';
 import { relTime } from '../lib/format';
 import { INPUT_CLS } from '../lib/styles';
 import { ErrorState, Skeleton } from '../components/States';
@@ -10,6 +10,27 @@ import { clusterByAnswer, isCommon, TOPICS, topicOf, type AnswerCluster } from '
 
 /** Above this many common answers, topic groups start collapsed so /profile stays compact. */
 const AUTO_COLLAPSE_THRESHOLD = 6;
+
+/** A small "Forget …" action for a set of answers, after a confirm. */
+function ForgetMany({ items, label, confirm }: { items: SavedAnswer[]; label: string; confirm: string }) {
+  const forget = useForgetAnswers();
+  return (
+    <button
+      type="button"
+      disabled={forget.isPending}
+      onClick={() =>
+        window.confirm(confirm) &&
+        forget.mutate(items.map((a) => a.id), {
+          onSuccess: (n) => toast.success(`Forgot ${n} answer${n === 1 ? '' : 's'}.`),
+          onError: (e) => toast.error(errorMessage(e, 'Could not forget every answer')),
+        })
+      }
+      className="inline-flex items-center gap-1 text-[11px] font-medium text-faint hover:text-bad disabled:opacity-60"
+    >
+      {forget.isPending ? <LoaderCircle className="size-3 animate-spin" /> : <Trash2 className="size-3" />} {label}
+    </button>
+  );
+}
 
 function AnswerRow({ a, compact = false }: { a: SavedAnswer; compact?: boolean }) {
   const [editing, setEditing] = useState(false);
@@ -127,9 +148,15 @@ function TopicGroup({
         <ChevronDown className={`size-3.5 shrink-0 text-faint transition-transform ${open ? 'rotate-180 text-text' : ''}`} />
       </button>
       {open && (
-        <ul className="max-h-[340px] space-y-2 overflow-y-auto overscroll-contain border-t border-border p-3">
-          {clusters.map((c) => <ClusterRow key={c.key} cluster={c} />)}
-        </ul>
+        <div className="border-t border-border">
+          <ul className="max-h-[340px] space-y-2 overflow-y-auto overscroll-contain p-3">
+            {clusters.map((c) => <ClusterRow key={c.key} cluster={c} />)}
+          </ul>
+          <div className="flex justify-end border-t border-border/60 px-3 py-2">
+            <ForgetMany items={items} label={`Forget this topic (${items.length})`}
+              confirm={`Forget all ${items.length} answers about ${label.toLowerCase()}? The extension will ask again on the next forms.`} />
+          </div>
+        </div>
       )}
     </div>
   );
@@ -207,11 +234,15 @@ export function SavedAnswers() {
           )}
           {once.length > 0 && (
             <section aria-label="Answered once" className="space-y-2">
-              <button type="button" aria-expanded={more} onClick={() => setMore((v) => !v)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
-                <ChevronDown className={`size-3.5 transition-transform ${more ? 'rotate-180' : ''}`} />
-                {once.length} answer{once.length === 1 ? '' : 's'} to one form's own questions
-              </button>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <button type="button" aria-expanded={more} onClick={() => setMore((v) => !v)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                  <ChevronDown className={`size-3.5 transition-transform ${more ? 'rotate-180' : ''}`} />
+                  {once.length} answer{once.length === 1 ? '' : 's'} to one form's own questions
+                </button>
+                <ForgetMany items={once} label="Forget these"
+                  confirm={`Forget the ${once.length} answers to one form's own questions? Answers to common questions stay.`} />
+              </div>
               {more && (
                 <ul className="max-h-[340px] space-y-2 overflow-y-auto overscroll-contain">
                   {once.map((a) => <AnswerRow key={a.id} a={a} />)}

@@ -17,16 +17,22 @@ describe('progress', () => {
           { source: 'greenhouse', applied: 7, responded: 3, interview: 2 },
           { source: 'workday', applied: 3, responded: 1, interview: 1 },
         ],
+        fits: [
+          { source: '80+', applied: 4, responded: 3, interview: 2 },
+          { source: 'under 60', applied: 6, responded: 1, interview: 1 },
+        ],
         days_to_interview: 8.5,
         days_to_offer: 21,
       }),
     });
     renderApp(<Progress />);
     expect(await screen.findByRole('img', { name: 'Interviewing: 3' })).toBeInTheDocument();
+    const fits = within(screen.getByRole('region', { name: 'By fit score' })).getAllByRole('row').slice(1);
+    expect(fits.map((r) => r.textContent)).toEqual(['Strong (80+)43 75%2', 'Weak (under 60)61 17%1']);
     expect(screen.getByText('40%')).toBeInTheDocument(); // heard back: 4 of 10
     expect(screen.getByText('8.5d')).toBeInTheDocument();
     expect(screen.getByText('21d')).toBeInTheDocument();
-    const rows = within(screen.getByRole('table')).getAllByRole('row').slice(1);
+    const rows = within(screen.getByRole('region', { name: 'By applicant system' })).getAllByRole('row').slice(1);
     expect(rows.map((r) => r.textContent)).toEqual(['Greenhouse73 43%2', 'Workday31 33%1']);
     const bars = screen.getAllByRole('button', { name: /^Week of / });
     expect(bars).toHaveLength(12);

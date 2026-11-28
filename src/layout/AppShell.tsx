@@ -5,7 +5,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import clsx from 'clsx';
 import { LogOut, MoreHorizontal, Search, X } from 'lucide-react';
 import { useScrollRestoration } from './useScrollRestoration';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLogout, useMe } from '../api/auth';
 import { ConnectionBanner } from './ConnectionBanner';
 import { NAV } from './nav';
@@ -22,6 +22,7 @@ import {
   useStats,
 } from '../api/hooks';
 import { relTime } from '../lib/format';
+import type { JobList } from '../api/types';
 import { toast } from '../lib/toast';
 import { SkeletonRows } from '../components/States';
 
@@ -90,6 +91,28 @@ function TopBarMeta() {
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
+/**
+ * Matches that came in over the last day and wait for a decision, read from
+ * Today's own cached list: it never fetches (enabled: false), so the badge
+ * shows once Today has loaded and costs no request.
+ */
+function useTodayToReview(): number {
+  const { data } = useQuery<JobList>({ queryKey: ['today'], enabled: false });
+  const [now] = useState(() => Date.now());
+  return (data?.jobs ?? []).filter((j) => !j.application_status && now - new Date(j.first_seen_at).getTime() < 86_400_000).length;
+}
+
+/** A sidebar count: small, tabular, and read out with what it counts. */
+function NavCount({ n, label }: { n: number; label: string }) {
+  if (n <= 0) return null;
+  return (
+    <span className="rounded-full bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-accent tabular-nums">
+      <span aria-hidden>{n}</span>
+      <span className="sr-only">{`${n} ${label}`}</span>
+    </span>
+  );
+}
+
 export function AppShell() {
   useScrollRestoration();
   useWarmup();
@@ -100,6 +123,7 @@ export function AppShell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const interviewingCount = stats.data?.by_status?.interviewing ?? 0;
+  const toReview = useTodayToReview();
   const latestRun = latest.data?.runs[0];
   const running = latestRun != null && latestRun.status == null;
 
@@ -160,11 +184,8 @@ export function AppShell() {
                   )}
                   <Icon className="size-4" />
                   <span className="flex-1 truncate">{label}</span>
-                  {to === '/tracker' && interviewingCount > 0 && (
-                    <span className="rounded-full bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-accent">
-                      {interviewingCount}
-                    </span>
-                  )}
+                  {to === '/' && <NavCount n={toReview} label="new to review" />}
+                  {to === '/tracker' && <NavCount n={interviewingCount} label="interviewing" />}
                 </>
               )}
             </NavLink>

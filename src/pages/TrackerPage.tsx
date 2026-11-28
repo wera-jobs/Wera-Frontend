@@ -18,6 +18,7 @@ import { api, errorMessage } from '../api/client';
 import { Skeleton } from '../components/States';
 import { payText, relTime, verdictColor, verdictOf } from '../lib/format';
 import { toast } from '../lib/toast';
+import { trackerCSV } from '../lib/csv';
 import { useDocumentTitle } from '../lib/useDocumentTitle';
 import clsx from 'clsx';
 import { Archive, Clock, DollarSign, Download, ExternalLink, EyeOff, KanbanSquare, List, Plus, Search, TrendingUp, Users } from 'lucide-react';
@@ -46,27 +47,15 @@ const COLUMN_DOT: Record<AppStatus, string> = {
 
 const STALE_DAYS = 14;
 
-function csvCell(v: string | number | null | undefined): string {
-  const s = String(v ?? '');
-  return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
-}
-
-async function exportTrackerCsv(statuses: AppStatus[]) {
+/** Downloads every tracked application in the shown stages that matches the search, as CSV. */
+async function exportTrackerCsv(statuses: AppStatus[], keep: (job: Job) => boolean) {
   try {
     const rows: Job[] = [];
     for (const status of statuses) {
       const { jobs } = await api<JobList>(`/api/jobs?status=${status}&limit=200&offset=0`);
-      rows.push(...jobs);
+      rows.push(...jobs.filter(keep));
     }
-    const csv = [
-      ['company', 'title', 'status', 'fit_score', 'pay', 'location', 'next_step', 'url', 'notes'].join(','),
-      ...rows.map((j) =>
-        [j.company, j.title, j.application_status, j.fit_score, payText(j, true), j.location_summary ?? j.location_raw, j.next_step, j.url, j.application_notes]
-          .map(csvCell)
-          .join(','),
-      ),
-    ].join('\n');
-    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const url = URL.createObjectURL(new Blob([trackerCSV(rows)], { type: 'text/csv' }));
     const a = Object.assign(document.createElement('a'), { href: url, download: 'wera-tracker.csv' });
     a.click();
     URL.revokeObjectURL(url);
@@ -90,7 +79,8 @@ function KanbanCard({
 }) {
   const verdict = verdictOf(job.fit_score);
   const [now] = useState(() => Date.now());
-  const daysOld = Math.floor((now - new Date(job.first_seen_at).getTime()) / 86_400_000);
+  // Days since applying, not since the posting was found: a month-old find applied to yesterday is not stale.
+  const daysOld = job.applied_at ? Math.floor((now - new Date(job.applied_at).getTime()) / 86_400_000) : 0;
   const stale = job.application_status === 'applied' && !job.next_step_at && !job.closed_at && daysOld >= STALE_DAYS;
   return (
     <div
@@ -126,10 +116,9 @@ function KanbanCard({
         </div>
         <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
           <span>
-            {job.application_status === 'applied'
-              ? 'first seen '
-              : ''}
-            {relTime(job.first_seen_at)}
+            {job.applied_at && job.application_status !== 'saved'
+              ? `applied ${relTime(job.applied_at)}`
+              : `${job.application_status === 'applied' ? 'first seen ' : ''}${relTime(job.first_seen_at)}`}
           </span>
           {payText(job, true) && <span className="font-medium text-muted">{payText(job, true)}</span>}
           <AutofilledBadge at={job.autofilled_at} />
@@ -480,7 +469,7 @@ export default function TrackerPage() {
               className="w-full rounded-lg border border-border bg-surface py-1.5 pr-2.5 pl-8 text-xs text-text placeholder:text-faint focus:border-accent/60 focus:outline-none"
             />
           </label>
-          <div role="group" aria-label="View" className="inline-flex rounded-lg border border-border bg-surface p-0.5">
+          <div role="group" aria-label="View" className="inline-flex max-w-full overflow-x-auto rounded-lg border border-border bg-surface p-0.5 whitespace-nowrap">
             {(
               [
                 ['board', 'Board', KanbanSquare],
@@ -519,7 +508,7 @@ export default function TrackerPage() {
           {!empty && (
             <button
               type="button"
-              onClick={() => void exportTrackerCsv(columns)}
+              onClick={() => void exportTrackerCsv(columns, (j) => matches(j, query))}
               className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-muted transition-colors hover:border-accent/40 hover:text-text"
             >
               <Download className="size-3.5" /> Export CSV

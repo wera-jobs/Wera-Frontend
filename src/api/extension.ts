@@ -209,6 +209,21 @@ export function useForgetAnswer() {
   });
 }
 
+/** Forgets several saved answers, a few requests at a time; resolves with how many went. */
+export function useForgetAnswers() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      for (let i = 0; i < ids.length; i += 5) {
+        await Promise.all(ids.slice(i, i + 5).map((id) => api<void>(`/api/applicant/answers/${id}`, { method: 'DELETE' })));
+      }
+      return ids.length;
+    },
+    // Some may have gone before one failed: refresh either way.
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['saved-answers'] }),
+  });
+}
+
 /** Applications the extension filled for one job, newest first. */
 export function useAutofillRuns(jobId: number | null) {
   return useQuery({
