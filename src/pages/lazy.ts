@@ -10,6 +10,7 @@ export const ReviewPage = lazyPage(() => import('./ReviewPage'));
 export const CompanyPage = lazyPage(() => import('./CompanyPage'));
 export const SponsorshipPage = lazyPage(() => import('./SponsorshipPage'));
 export const InterviewPage = lazyPage(() => import('./InterviewPage'));
+export const AskPage = lazyPage(() => import('./AskPage'));
 export const CommunityPage = lazyPage(() => import('./CommunityPage'));
 export const NewPostPage = lazyPage(() => import('./NewPostPage'));
 export const PostPage = lazyPage(() => import('./PostPage'));

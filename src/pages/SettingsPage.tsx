@@ -1,4 +1,5 @@
 import { ImportApplications } from '../components/ImportApplications';
+import { EmailRepliesSettings } from '../components/EmailReplies';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import clsx from 'clsx';
 import { Link } from 'react-router-dom';
@@ -322,6 +323,7 @@ const SETTINGS_SECTIONS = [
   ['appearance', 'Appearance'],
   ['feed', 'Job feed'],
   ['notifications', 'Notifications'],
+  ['email-replies', 'Email replies'],
   ['extension', 'Extension'],
   ['account', 'Account & data'],
 ] as const;
@@ -476,6 +478,10 @@ export default function SettingsPage() {
         <Row label="Product updates" hint="Occasional news about new Wera features.">
           <Switch label="Product updates" checked={n.product_updates} onChange={(v) => setN({ product_updates: v })} />
         </Row>
+      </Section>
+
+      <Section id="email-replies" icon={MailCheck} title="Email replies" hint="Recruiter replies forwarded to Wera become tracker suggestions you approve.">
+        <EmailRepliesSettings />
       </Section>
 
       <Section id="extension" icon={Puzzle} title="Chrome extension" hint="Save jobs, write cover letters, tailor your resume and fill applications from any job site: it lists every field, fills what you approve and continues page by page. It never submits.">
